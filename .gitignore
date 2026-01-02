@@ -1,0 +1,36 @@
+# Sensitive Files
+*.key
+*.pem
+*.pfx
+*.p12
+secrets.txt
+credentials.txt
+password*.txt
+api_keys.txt
+
+# Machine Output
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Lab Notes (personal, if needed)
+personal-notes/
