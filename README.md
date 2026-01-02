@@ -11,9 +11,9 @@ A comprehensive guide and repository documenting my journey to **multiple advanc
 This repository contains:
 - **2026 Certification Pathway** - Security+ → PNPT → OSCP → CRTO (1,500+ hours)
 - **Security+** (Jan 10) - Foundation knowledge, complete study materials
-- **PNPT** (Apr/May) - Practical penetration testing certification
-- **OSCP** (Aug/Sep) - Advanced lab-based penetration testing  
-- **CRTO** (Dec) - Red team operator specialization
+- **PNPT** (Apr/May) - Practical penetration testing certification, [PNPT_PREPARATION_PLAN.md](00-roadmap/PNPT_PREPARATION_PLAN.md)
+- **OSCP** (Aug/Sep) - Advanced lab-based penetration testing, [OSCP_Preparation_Guide_Jan-June_2026.md](00-roadmap/OSCP_Preparation_Guide_Jan-June_2026.md)
+- **CRTO** (Dec) - Red team operator specialization, [CRTO_PREPARATION_PLAN.md](00-roadmap/CRTO_PREPARATION_PLAN.md)
 - **Study Materials** - Notes, guides, reference documents
 - **Lab Writeups** - Machine exploitation documentation
 - **Custom Scripts** - Tools built during preparation
