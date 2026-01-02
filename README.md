@@ -1,58 +1,68 @@
-# Offensive Security Development - OSCP 2026
+# Offensive Security Development - 2026 Certification Pathway
 
-A comprehensive guide and repository documenting my journey to **OSCP (Offensive Security Certified Professional) certification** from January - August 2026.
+A comprehensive guide and repository documenting my journey to **multiple advanced security certifications** in 2026:
+- **Security+** (Jan 10)
+- **PNPT** (Apr/May)  
+- **OSCP** (Aug/Sep)
+- **CRTO** (Dec)
 
 ## Overview
 
 This repository contains:
-- **OSCP Roadmap** - 7-phase 800-hour study plan (Jan 6 - Aug 1, 2026)
-- **Python Fundamentals** - Pre-phase learning (Dec 15 - Jan 5, 2026)
-- **Study Materials** - Foundation knowledge, techniques, reference guides
-- **PWK Machine Writeups** - Detailed exploitation walkthroughs
-- **Custom Scripts** - Exploitation tools and utilities built during prep
-- **HackTheBox Writeups** - Easy/Medium difficulty machines as practice
+- **2026 Certification Pathway** - Security+ → PNPT → OSCP → CRTO (1,500+ hours)
+- **Security+** (Jan 10) - Foundation knowledge, complete study materials
+- **PNPT** (Apr/May) - Practical penetration testing certification
+- **OSCP** (Aug/Sep) - Advanced lab-based penetration testing  
+- **CRTO** (Dec) - Red team operator specialization
+- **Study Materials** - Notes, guides, reference documents
+- **Lab Writeups** - Machine exploitation documentation
+- **Custom Scripts** - Tools built during preparation
 
-## Timeline
+## 2026 Certification Timeline
 
-### Pre-Phase (Dec 15 - Jan 5, 2026)
-- **15 hours** Python fundamentals
-- Violent Python, HackTheBox, TryHackMe foundations
-- Basic binary operations, socket programming, script writing
+### Phase 1: Security+ (Jan 3-10, 2026)
+- **7 days** final preparation
+- 85%+ ready on practice exams
+- Target: Pass Jan 10, 2026
 
-### Spring 2026 (Jan 6 - May 4, 2026) - 370 Hours
-While attending 15 credits of coursework:
-- **Phase 1:** Linux foundations, nmap, web basics (80 hrs)
-- **Phase 2:** PWK content modules 1-5, buffer overflow (80 hrs)  
-- **Phase 3:** PWK labs 1-50, custom exploitation (110 hrs)
-- **Phase 4:** PWK labs 50-100+, advanced techniques (100 hrs)
+### Phase 2: PNPT (Jan 15 - May 15, 2026)  
+- **250-300 hours** over 4 months
+- eLearnSecurity practical penetration testing
+- 5-day practical exam April/May
+- Focus: Real-world network exploitation, reporting
 
-#### Coursework
-- COMP 5830/5700 (Online)
-- COMP 4200 (MWF 2:00 PM)
-- COMP 5120 (MWF 12:00 PM)
-- MATH 2660 (TTh 12:30 PM)
+### Phase 3: OSCP (May 20 - Sept 1, 2026)
+- **600-700 hours** intensive lab work
+- PWK course (PEN-200) - 70+ vulnerable machines
+- Proving Grounds Hard/Insane machines
+- Target: 70+ points on exam
+- 24-hour proctored exam Aug/Sep
 
-### Summer 2026 (May 5 - Aug 1, 2026) - 630 Hours
-Full-time intensive preparation:
-- **Phase 5:** Lab finishing, 90+ machines complete (170 hrs)
-- **Phase 6:** Proving Grounds, Active Directory mastery (260 hrs)
-- **Phase 7:** Final review, mock exams, official exam (200 hrs)
+### Phase 4: CRTO (Sept 1 - Dec 15, 2026)
+- **300-400 hours** red team specialization
+- Active Directory mastery
+- C2 framework (Covenant) proficiency
+- Red team operations & OPSEC
+- Target: Practical exam pass by Dec 15
 
 ## Daily Schedule
 
 **5:00 AM** - Gym (fitness for mental clarity)
-**7:00 AM - 9:00 AM** - OSCP Study Block (sacred time, daily)
-**Class Times** - COMP/MATH courses (flexible online + fixed times)
-**Saturday 8 AM - 1 PM** - Extended focus block (5 hours)
-**Evening** - Lab work, writeups, review
+**7:00 AM - 9:00 AM** - Primary Study Block (sacred time, daily)
+**Afternoon/Evening** - Lab work, machine exploitation, writeups
+**Sleep** - 8+ hours (cognitive performance depends on this)
 
-## Mock Exams (24-hour format, 7 AM - 7 AM)
+## Mock Exams (Strategic Timing)
 
-| Exam | Date | Focus |
-|------|------|-------|
-| **Mock #1** | Saturday, April 5, 2026 | Diagnostic - after 40-50 machines |
-| **Mock #2** | Saturday, April 26, 2026 | Validation - after 70-80 machines |
-| **Mock #3** | Saturday, June 27, 2026 | Confidence - before final push |
+| Exam | Cert | Date | Focus | Duration |
+|------|------|------|-------|----------|
+| Practice | Security+ | Jan 5-9 | Full exams (3x) | 1.5 hrs each |
+| Practice | PNPT | Mar 20-25 | Methodology test | 5 days |
+| **Mock #1** | OSCP | Jun 1-2 | Diagnostic | 24 hours |
+| **Mock #2** | OSCP | Jun 29-30 | Validation | 24 hours |
+| **Mock #3** | OSCP | Aug 15-16 | Confidence | 24 hours |
+| **Mock #1** | CRTO | Oct 15-16 | AD exploitation | 24 hours |
+| **Mock #2** | CRTO | Nov 15-16 | Full scenario | 24 hours |
 
 ## Repository Structure
 
@@ -111,10 +121,14 @@ offensive-security-development/
 
 ## Current Status
 
-- 🎯 **Target Exam Date:** August 1, 2026
-- 🎯 **Target Score:** 70+ points (OSCP passing threshold)
-- 📍 **Current Phase:** Pre-Phase (Python fundamentals)
-- 📊 **Progress:** January 2, 2026 - Roadmap established, repo initialized
+- 🎯 **Target:** All 4 certifications by December 15, 2026
+- 📍 **Current Phase:** Security+ Final Push (Jan 3-10)
+- � **Progress:** 85%+ practice exam average
+- ✅ **Jan 10:** Security+ exam
+- ✅ **Apr/May:** PNPT practical exam
+- ✅ **Aug/Sep:** OSCP exam
+- ✅ **Dec 15:** CRTO exam
+- 📈 **Total Hours:** ~1,500 across all 4 certs
 
 ## Contact & Notes
 
