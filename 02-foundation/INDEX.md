@@ -1,7 +1,13 @@
 # Security+ SY0-701 Complete Study Materials Index
 
 ## Overview
-This folder contains **complete Security+ SY0-701 study materials**, including:
+This folder conta### Study Plans & Schedules
+
+### Preparation Guides
+- `Professor_Messer_Practice_Exams_Plan.md` - How to use practice exams effectively
+- `Professor_Messer_Section_Guide.md` - Section-by-section study guide with video recommendations
+
+### Sprint Plansmplete Security+ SY0-701 study materials**, including:
 - All 6 Domain notes from Professor Messer video series
 - Study schedules and sprint plans
 - Practice exam guides
