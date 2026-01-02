@@ -37,6 +37,7 @@ This repository contains:
 - Proving Grounds Hard/Insane machines
 - Target: 70+ points on exam
 - 24-hour proctored exam Aug/Sep
+- [OSCP_PREPARATION_PLAN.md](00-roadmap/OSCP_PREPARATION_PLAN.md)
 
 ### Phase 4: CRTO (Sept 1 - Dec 15, 2026)
 - **300-400 hours** red team specialization
