@@ -1,7 +1,9 @@
-# OSCP Certification Roadmap & Planning Documents
+# 2026 Certification Roadmap & Planning Documents
 
 ## Overview
-This folder contains the official **OSCP 800-hour preparation roadmap** and detailed planning documents for the January 6 - August 1, 2026 certification journey.
+This folder contains the official **2026 certification preparation roadmaps** and detailed planning documents for the Security+ → PNPT → OSCP → CRTO journey (Jan 10 - Dec 15, 2026).
+
+**Latest Update (Jan 14, 2026):** Dropped Linear Algebra (MATH 2660) to maximize PNPT preparation focus. PNPT exam is May 30 - needs full attention. Spring 2026 now 12 credits instead of 15.
 
 ---
 

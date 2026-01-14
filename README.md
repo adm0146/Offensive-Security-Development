@@ -58,6 +58,7 @@ offensive-security-development/
 - **Duration:** 400 hours
 - **Course:** eLearnSecurity Practical Network Penetration Tester
 - **Format:** 5-day practical exam
+- **Spring Semester:** 12 credits (DROPPED Linear Algebra to maximize PNPT focus)
 - **Plan:** [PNPT_PREPARATION_PLAN.md](00-roadmap/PNPT_PREPARATION_PLAN.md)
 
 ### Phase 3: OSCP
