@@ -18,14 +18,14 @@
 
 **Total Credits:** 12.0 (down from 15.0)
 
-**Rationale:** Linear Algebra (MATH 2660) dropped to free up ~3-4 hours per week for focused CPTS preparation. CPTS exam is April 1-10 - needs 300-350 hours total prep. This strategic move allows maximum focus on certification coursework.
+**Rationale:** Linear Algebra (MATH 2660) dropped to free up ~3-4 hours per week for focused CPTS preparation. CPTS exam is April 1-10 - needs 400 hours total prep. This strategic move allows maximum focus on certification coursework.
 
 ---
 
 ## Priority Hierarchy (Updated Jan 14, 2026)
 
 ### Tier 1 - CRITICAL (Career-making)
-1. **CPTS Preparation** - Feb 1 - April 10 (300-350 hours) → Lab-based exam April 1-10
+1. **CPTS Preparation** - Feb 1 - April 10 (400 hours) → Lab-based exam April 1-10
 2. **Cybersecurity Core Classes** - COMP 5830, COMP 5700, COMP 4200 (A grades required)
 
 ### Tier 2 - Important (Foundation)
@@ -97,18 +97,18 @@
 
 ## CPTS Focus During Spring Semester
 
-### February 1 - April 10: CPTS Preparation (300-350 hours)
+### February 1 - April 10: CPTS Preparation (400 hours)
 
 **Available Time Allocation:**
 - **7:00 AM - 9:00 AM:** CPTS labs (2 hours daily) = 10 hours/week
 - **9:00 AM - 11:30 AM:** CPTS curriculum (2.5 hours daily) = 12.5 hours/week
 - **3:50 PM - 5:00 PM:** CPTS labs (1 hour daily) = 5 hours/week
 - **6:00 PM - 8:00 PM:** CPTS intensive lab work (2 hours daily) = 10 hours/week
-- **Weekend:** Extra 5-10 hours/week as needed
+- **Weekend:** Extra 2.5 hours/week as needed
 
-**Total Available:** ~40-50 hours/week for CPTS work
-**Required:** ~7-8.5 hours/week average (300-350 hours ÷ 10 weeks, accounting for exam week)
-**Status:** ✅ Plenty of time available with class load
+**Total Available:** ~40 hours/week for CPTS work
+**Required:** 40 hours/week average (400 hours ÷ 10 weeks)
+**Status:** ✅ Perfect match - exactly on target
 
 ---
 

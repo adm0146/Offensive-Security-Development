@@ -55,9 +55,10 @@ offensive-security-development/
 
 ### Phase 2: CPTS
 - **Dates:** Feb 1 - April 10, 2026
-- **Duration:** 300-350 hours
+- **Duration:** 400 hours
 - **Course:** HackTheBox Academy Certified Penetration Tester Specialist
 - **Format:** 10-day lab-based practical exam (April 1-10)
+- **Pace:** 40 hours/week over 10 weeks
 - **Spring Semester:** 12 credits (DROPPED Linear Algebra to maximize CPTS focus)
 - **Plan:** [CPTS_PREPARATION_PLAN.md](00-roadmap/CPTS_PREPARATION_PLAN.md)
 

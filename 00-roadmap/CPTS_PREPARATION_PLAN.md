@@ -2,7 +2,7 @@
 ## Certified Penetration Tester Specialist
 **Timeline:** January 15 - March 31, 2026 (2.5 months)
 **Target Exam:** April 1-10, 2026
-**Hours:** 300-350 hours total
+**Hours:** 400 hours total
 **Prerequisites:** Security+ (✅ passed Jan 10)
 **Provider:** HackTheBox Academy
 
@@ -32,17 +32,17 @@
 
 ---
 
-## Phase Breakdown: 2.5 Months (300-350 hours)
+## Phase Breakdown: 2.5 Months (400 hours)
 
 ### Month 1: Foundation & Curriculum (Jan 15 - Feb 15)
-**Hours:** 100 hours
+**Hours:** 130 hours
 **Focus:** HTB Academy CPTS curriculum completion
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1-2** | Course enrollment + fundamentals | 20 | Lab environment setup, first modules |
-| **Week 3-4** | Networking & Web Basics | 25 | HTTP, DNS, TCP/IP mastery |
-| **Week 5-6** | Reconnaissance & Enumeration | 25 | Information gathering techniques |
+| **Week 1-2** | Course enrollment + fundamentals | 30 | Lab environment setup, first modules |
+| **Week 3-4** | Networking & Web Basics | 35 | HTTP, DNS, TCP/IP mastery |
+| **Week 5-6** | Reconnaissance & Enumeration | 35 | Information gathering techniques |
 | **Week 7-8** | Vulnerability Assessment | 30 | Finding and analyzing vulnerabilities |
 
 **Key Topics:**
@@ -61,15 +61,15 @@
 ---
 
 ### Month 2: Exploitation & Privilege Escalation (Feb 15 - Mar 15)
-**Hours:** 120 hours
+**Hours:** 160 hours
 **Focus:** Hands-on exploitation labs and skill development
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1-2** | Initial Access & Exploitation | 30 | Web shells, RCE, service exploits |
-| **Week 3-4** | Privilege Escalation (Linux) | 30 | Kernel exploits, misconfigurations |
-| **Week 5-6** | Privilege Escalation (Windows) | 30 | UAC bypass, token impersonation |
-| **Week 7-8** | Post-Exploitation & Persistence | 30 | Lateral movement, data exfiltration |
+| **Week 1-2** | Initial Access & Exploitation | 40 | Web shells, RCE, service exploits |
+| **Week 3-4** | Privilege Escalation (Linux) | 40 | Kernel exploits, misconfigurations |
+| **Week 5-6** | Privilege Escalation (Windows) | 40 | UAC bypass, token impersonation |
+| **Week 7-8** | Post-Exploitation & Persistence | 40 | Lateral movement, data exfiltration |
 
 **Lab Focus:**
 - Work through HTB Academy CPTS lab machines
@@ -85,7 +85,7 @@
 - File transfer techniques
 
 **Deliverables:**
-- Complete 20+ CPTS lab scenarios
+- Complete 25+ CPTS lab scenarios
 - Document exploitation methodology
 - Proof of concept (PoC) for each system
 - Privilege escalation chains
@@ -93,15 +93,15 @@
 ---
 
 ### Month 3: Advanced Labs & Exam Prep (Mar 15 - Mar 31)
-**Hours:** 80-100 hours
+**Hours:** 110 hours
 **Focus:** Complex scenarios, integration, and exam readiness
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1** | Multi-system compromise chains | 25 | Complete integrated attack scenarios |
-| **Week 2** | Active Directory labs | 25 | Domain controller compromise |
-| **Week 3** | Advanced evasion & opsec | 25 | AV bypass, logging evasion |
-| **Week 4** | Mock exam / final labs | 25-30 | Full pentest simulation |
+| **Week 1** | Multi-system compromise chains | 30 | Complete integrated attack scenarios |
+| **Week 2** | Active Directory labs | 30 | Domain controller compromise |
+| **Week 3** | Advanced evasion & opsec | 30 | AV bypass, logging evasion |
+| **Week 4** | Mock exam / final labs | 20 | Full pentest simulation (pre-exam) |
 
 **Advanced Focus:**
 - Multi-stage attack chains (initial access → persistence → lateral movement)
