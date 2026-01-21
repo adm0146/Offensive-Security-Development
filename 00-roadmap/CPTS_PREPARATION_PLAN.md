@@ -1,103 +1,151 @@
-# PNPT Preparation Plan (eLearnSecurity)
-## Practical Network Penetration Testing
-**Timeline:** January 15 - May 15, 2026 (4 months)
-**Target Exam:** April/May 2026
-**Hours:** 250-300 hours total
-**Prerequisites:** Security+ (✅ you'll have it by Jan 10)
+# CPTS Preparation Plan (HackTheBox)
+## Certified Penetration Tester Specialist
+**Timeline:** January 15 - March 31, 2026 (2.5 months)
+**Target Exam:** April 1-10, 2026
+**Hours:** 300-350 hours total
+**Prerequisites:** Security+ (✅ passed Jan 10)
+**Provider:** HackTheBox Academy
 
 ---
 
-## Overview: What is PNPT?
+## Overview: What is CPTS?
 
-**PNPT** is the **Practical Network Penetration Testing** certification from eLearnSecurity. It bridges the gap between Security+ (theoretical) and OSCP (hardcore labs).
+**CPTS** is the **Certified Penetration Tester Specialist** certification from HackTheBox Academy. It's a comprehensive, lab-intensive penetration testing certification bridging Security+ and OSCP.
 
 ### Key Characteristics:
-- **Real-world focused** - Black-box penetration testing scenarios
-- **Practical exam** - 5 full days of hands-on testing
-- **Report-based** - Heavy emphasis on professional reporting
-- **Methodology-driven** - Follows NIST/OWASP frameworks
-- **Less hardcore than OSCP** - More achievable while building skills
-- **Time-based** - 5 days to complete the exam (not 24-hour proctored)
+- **Lab-intensive** - 30+ real vulnerable systems to test
+- **Hands-on focused** - Very practical, minimal theory lectures
+- **Real-world scenarios** - Black-box and white-box penetration testing
+- **Skill-based** - Proves actual penetration testing ability
+- **HackTheBox labs** - Access to HTB Academy's complete lab environment
+- **10-day exam window** - April 1-10, 2026 (10-day lab-based practical)
+- **No time pressure** - Work at your own pace within 10-day window
 
-### Why PNPT?
-✓ Teaches penetration testing methodology (critical for career)
-✓ Requires formal reporting (essential professional skill)
-✓ Black-box approach (more real-world than lab)
-✓ Stepping stone to OSCP
-✓ Boosts confidence after Security+
-✓ Adds practical experience to your credentials
+### Why CPTS?
+✓ Lab-intensive (perfect skill builder for OSCP)
+✓ Real vulnerable systems, not simulated
+✓ HTB Academy provides excellent structured curriculum
+✓ Bridges Security+ → OSCP gap effectively
+✓ Earlier completion (April 10) → Earlier OSCP start (May 20)
+✓ Proven pathway for penetration tester career
+✓ High industry respect (HTB is well-known in infosec)
 
 ---
 
-## Phase Breakdown: 4 Months (250-300 hours)
+## Phase Breakdown: 2.5 Months (300-350 hours)
 
-### Month 1: Foundation & Course (Jan 15 - Feb 15)
-**Hours:** 60 hours
-**Focus:** eLearnSecurity course completion
+### Month 1: Foundation & Curriculum (Jan 15 - Feb 15)
+**Hours:** 100 hours
+**Focus:** HTB Academy CPTS curriculum completion
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1-2** | PNPT course introduction | 15 | Course overview, tools setup |
-| **Week 3-4** | Network fundamentals | 15 | Network protocols mastery |
-| **Week 5-6** | Reconnaissance & enumeration | 15 | Scanning methodology |
-| **Week 7-8** | Web application basics | 15 | OWASP Top 10 understanding |
+| **Week 1-2** | Course enrollment + fundamentals | 20 | Lab environment setup, first modules |
+| **Week 3-4** | Networking & Web Basics | 25 | HTTP, DNS, TCP/IP mastery |
+| **Week 5-6** | Reconnaissance & Enumeration | 25 | Information gathering techniques |
+| **Week 7-8** | Vulnerability Assessment | 30 | Finding and analyzing vulnerabilities |
 
 **Key Topics:**
-- Network architecture and topology
-- TCP/IP protocol deep dive
-- DNS, DHCP, LDAP enumeration
-- Web application framework understanding
-- Database basics (SQL, NoSQL)
-- Authentication mechanisms
+- Network reconnaissance and mapping
+- Web application testing methodology
+- Vulnerability scanning and manual assessment
+- Common vulnerability types (OWASP Top 10)
+- Information gathering techniques
+- Service enumeration
 
 **Deliverables:**
-- Complete all course videos
-- Take detailed notes per section
-- Set up penetration testing lab environment
+- Complete HTB Academy CPTS foundation modules
+- Document enumeration findings
+- Practice reporting format
 
 ---
 
-### Month 2: Methodology & Tools (Feb 15 - Mar 15)
-**Hours:** 70 hours
-**Focus:** Penetration testing workflow and tool mastery
+### Month 2: Exploitation & Privilege Escalation (Feb 15 - Mar 15)
+**Hours:** 120 hours
+**Focus:** Hands-on exploitation labs and skill development
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1-2** | Scanning and enumeration tools | 18 | Nmap, Burp Suite, Metasploit mastery |
-| **Week 3-4** | Vulnerability assessment | 18 | Manual vs automated testing |
-| **Week 5-6** | Exploitation frameworks | 18 | Metasploit, Custom exploits |
-| **Week 7-8** | Post-exploitation techniques | 16 | Persistence, privilege escalation |
+| **Week 1-2** | Initial Access & Exploitation | 30 | Web shells, RCE, service exploits |
+| **Week 3-4** | Privilege Escalation (Linux) | 30 | Kernel exploits, misconfigurations |
+| **Week 5-6** | Privilege Escalation (Windows) | 30 | UAC bypass, token impersonation |
+| **Week 7-8** | Post-Exploitation & Persistence | 30 | Lateral movement, data exfiltration |
+
+**Lab Focus:**
+- Work through HTB Academy CPTS lab machines
+- Hands-on exploitation practice (30+ vulnerable systems)
+- Real-world attack chain scenarios
+- Multi-stage compromise scenarios
 
 **Tools to Master:**
-- **Nmap** - Network scanning and mapping
-- **Burp Suite** - Web application testing (Pro version recommended)
-- **Metasploit Framework** - Exploitation and payload generation
-- **Wireshark** - Protocol analysis
-- **SQLmap** - SQL injection automation
-- **Nikto** - Web server scanning
-- **Hydra** - Password cracking
-- **Hashcat** - GPU-accelerated cracking
+- Burp Suite (web app testing)
+- Metasploit Framework
+- Custom exploit development
+- Active Directory exploitation tools
+- File transfer techniques
 
 **Deliverables:**
-- Complete PNPT course modules 2-5
-- Practice on easy/medium HackTheBox machines
-- Create tool cheat sheets
+- Complete 20+ CPTS lab scenarios
+- Document exploitation methodology
+- Proof of concept (PoC) for each system
+- Privilege escalation chains
 
 ---
 
-### Month 3: Report Writing & Practice (Mar 15 - Apr 15)
-**Hours:** 70 hours
-**Focus:** Professional penetration testing reports and practice labs
+### Month 3: Advanced Labs & Exam Prep (Mar 15 - Mar 31)
+**Hours:** 80-100 hours
+**Focus:** Complex scenarios, integration, and exam readiness
 
 | Week | Content | Hours | Deliverable |
 |------|---------|-------|-------------|
-| **Week 1-2** | Report writing framework | 18 | Executive summary, technical findings |
-| **Week 3-4** | Practice PT scenario 1 | 18 | Full network pentest writeup |
-| **Week 5-6** | Practice PT scenario 2 | 18 | Another complete assessment |
-| **Week 7-8** | Mock exam / practice scenario | 16 | Full 5-day simulation |
+| **Week 1** | Multi-system compromise chains | 25 | Complete integrated attack scenarios |
+| **Week 2** | Active Directory labs | 25 | Domain controller compromise |
+| **Week 3** | Advanced evasion & opsec | 25 | AV bypass, logging evasion |
+| **Week 4** | Mock exam / final labs | 25-30 | Full pentest simulation |
 
-**Report Components:**
-- **Executive Summary** - Non-technical overview (1-2 pages)
+**Advanced Focus:**
+- Multi-stage attack chains (initial access → persistence → lateral movement)
+- Active Directory domination
+- Post-exploitation tradecraft
+- OPSEC and evasion techniques
+- Real-world complex networks
+
+**Exam Preparation:**
+- Complete all remaining CPTS curriculum labs
+- Review weak areas
+- Practice time management
+- Document your methodology
+
+**Deliverables:**
+- Complete all 30+ CPTS lab machines
+- Final comprehensive pentest report
+- Methodology documentation
+- Ready for April 1 exam
+
+---
+
+## Exam Details: April 1-10, 2026
+
+### Format
+- **Lab-based practical exam** (10-day window)
+- **Access to HTB Academy environment** with vulnerable systems
+- **Objective:** Compromise systems and document findings
+- **Reporting:** Provide evidence of compromise and methodology
+
+### Success Criteria
+- Demonstrate exploitation of vulnerable systems
+- Show privilege escalation techniques
+- Prove post-exploitation and lateral movement capability
+- Document findings in professional report format
+- Show understanding of penetration testing methodology
+
+### Exam Tips
+✓ Start with reconnaissance and enumeration
+✓ Document everything as you go
+✓ Don't rush - 10-day window is generous
+✓ Quality PoC > quantity of systems
+✓ Professional reporting is half the grade
+✓ Take breaks - marathon not sprint
 - **Scope & Methodology** - What was tested and how
 - **Findings** - Vulnerabilities grouped by severity
 - **Remediation** - How to fix each issue

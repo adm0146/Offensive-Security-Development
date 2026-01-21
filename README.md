@@ -2,7 +2,7 @@
 
 A comprehensive guide and repository documenting my journey to **multiple advanced security certifications** in 2026:
 - **Security+** ✅ (Jan 10 - PASSED 768/900, 85.3%)
-- **PNPT** (Feb 1 - May 30)  
+- **CPTS** (Feb 1 - April 10)  
 - **OSCP** (May 20 - Sept 26)
 - **CRTO** (Sept 26 - Dec 15)
 
@@ -15,7 +15,7 @@ A comprehensive guide and repository documenting my journey to **multiple advanc
 ```
 offensive-security-development/
 ├── 00-roadmap/                    # Certification roadmaps & planning
-│   ├── PNPT_PREPARATION_PLAN.md
+│   ├── CPTS_PREPARATION_PLAN.md
 │   ├── OSCP_PREPARATION_PLAN.md
 │   ├── CRTO_PREPARATION_PLAN.md
 │   └── INDEX.md
@@ -53,13 +53,13 @@ offensive-security-development/
 - **Result:** PASSED 768/900 (85.3%)
 - **Materials:** `/02-foundation/` (study notes, reference guides)
 
-### Phase 2: PNPT
-- **Dates:** Feb 1 - May 30, 2026
-- **Duration:** 400 hours
-- **Course:** eLearnSecurity Practical Network Penetration Tester
-- **Format:** 5-day practical exam
-- **Spring Semester:** 12 credits (DROPPED Linear Algebra to maximize PNPT focus)
-- **Plan:** [PNPT_PREPARATION_PLAN.md](00-roadmap/PNPT_PREPARATION_PLAN.md)
+### Phase 2: CPTS
+- **Dates:** Feb 1 - April 10, 2026
+- **Duration:** 300-350 hours
+- **Course:** HackTheBox Academy Certified Penetration Tester Specialist
+- **Format:** 10-day lab-based practical exam (April 1-10)
+- **Spring Semester:** 12 credits (DROPPED Linear Algebra to maximize CPTS focus)
+- **Plan:** [CPTS_PREPARATION_PLAN.md](00-roadmap/CPTS_PREPARATION_PLAN.md)
 
 ### Phase 3: OSCP
 - **Dates:** May 20 - Sept 26, 2026
@@ -99,10 +99,10 @@ offensive-security-development/
 
 | Phase | Status | % Complete | Days Elapsed | Next Milestone |
 |-------|--------|------------|--------------|----------------|
-| Security+ | ✅ Complete | 100% | 12 days | PNPT starts Jan 15 |
-| PNPT | ⏳ Not started | 0% | - | 400 hours, due May 30 |
-| OSCP | ⏳ Not started | 0% | - | 1,278 hours, due Sept 26 |
-| CRTO | ⏳ Not started | 0% | - | 300 hours, due Dec 15 |
+| Security+ | ✅ Complete | 100% | - | ✅ Completed Jan 10 |
+| CPTS | ⏳ In Progress | 0% | - | 300-350 hours → April 1-10 exam |
+| OSCP | ⏳ Not started | 0% | - | 1,278 hours → Sept 26 exam |
+| CRTO | ⏳ Not started | 0% | - | 300 hours → Dec 15 exam |
 
 **THM Progress:** 25% complete (targeting 100% by Jan 31)
 **GitHub:** Organized and synced, ready for portfolio growth

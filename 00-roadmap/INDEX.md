@@ -1,9 +1,9 @@
 # 2026 Certification Roadmap & Planning Documents
 
 ## Overview
-This folder contains the official **2026 certification preparation roadmaps** and detailed planning documents for the Security+ → PNPT → OSCP → CRTO journey (Jan 10 - Dec 15, 2026).
+This folder contains the official **2026 certification preparation roadmaps** and detailed planning documents for the Security+ → CPTS → OSCP → CRTO journey (Jan 10 - Dec 15, 2026).
 
-**Latest Update (Jan 14, 2026):** Dropped Linear Algebra (MATH 2660) to maximize PNPT preparation focus. PNPT exam is May 30 - needs full attention. Spring 2026 now 12 credits instead of 15.
+**Latest Update (Jan 21, 2026):** Switched from PNPT to CPTS (HackTheBox Academy). CPTS exam April 1-10 (10 days earlier than PNPT), requiring 300-350 hours instead of 400. Better integration with HTB labs.
 
 ---
 
@@ -18,7 +18,7 @@ This folder contains the official **2026 certification preparation roadmaps** an
   - Mock exam scheduling (April 5, April 26, June 27)
 
 ### Detailed Planning Guides
-- **OSCP_Preparation_Guide_Jan-June_2026.md** - Comprehensive guide covering Spring semester preparation with course integration
+- **CPTS_PREPARATION_PLAN.md** - HackTheBox CPTS comprehensive guide with lab breakdown
 - **SPRING_2026_DAILY_PLANNER.md** - Detailed day-by-day schedule with time blocks and course schedules
 
 ---

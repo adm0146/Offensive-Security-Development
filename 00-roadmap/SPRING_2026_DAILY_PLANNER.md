@@ -1,7 +1,8 @@
 # Spring 2026 Daily Planner & Course Schedule
 
 **Semester:** January 7 - May 1, 2026 (15 weeks)
-**Updated:** January 14, 2026 - Dropped Linear Algebra (MATH 2660) to maximize PNPT prep
+**Updated:** January 21, 2026 - Changed from PNPT to CPTS (HackTheBox)
+**CPTS Exam:** April 1-10, 2026
 
 ---
 
@@ -17,14 +18,14 @@
 
 **Total Credits:** 12.0 (down from 15.0)
 
-**Rationale:** Linear Algebra (MATH 2660) dropped to free up ~3-4 hours per week for focused PNPT preparation. PNPT exam is May 30 - needs 400 hours total prep. This strategic move allows maximum focus on certification coursework.
+**Rationale:** Linear Algebra (MATH 2660) dropped to free up ~3-4 hours per week for focused CPTS preparation. CPTS exam is April 1-10 - needs 300-350 hours total prep. This strategic move allows maximum focus on certification coursework.
 
 ---
 
 ## Priority Hierarchy (Updated Jan 14, 2026)
 
 ### Tier 1 - CRITICAL (Career-making)
-1. **PNPT Preparation** - Feb 1 - May 30 (400 hours) → Practical exam May 30
+1. **CPTS Preparation** - Feb 1 - April 10 (300-350 hours) → Lab-based exam April 1-10
 2. **Cybersecurity Core Classes** - COMP 5830, COMP 5700, COMP 4200 (A grades required)
 
 ### Tier 2 - Important (Foundation)
@@ -94,51 +95,52 @@
 
 ---
 
-## PNPT Focus During Spring Semester
+## CPTS Focus During Spring Semester
 
-### February 1 - May 30: PNPT Preparation (400 hours)
+### February 1 - April 10: CPTS Preparation (300-350 hours)
 
 **Available Time Allocation:**
-- **7:00 AM - 9:00 AM:** PNPT (2 hours daily) = 10 hours/week
-- **9:00 AM - 11:30 AM:** PNPT labs (2.5 hours daily) = 12.5 hours/week
-- **3:50 PM - 5:00 PM:** PNPT (1 hour daily) = 5 hours/week
-- **6:00 PM - 8:00 PM:** PNPT intensive (2 hours daily) = 10 hours/week
-- **Weekend:** Extra 10-15 hours/week as needed
+- **7:00 AM - 9:00 AM:** CPTS labs (2 hours daily) = 10 hours/week
+- **9:00 AM - 11:30 AM:** CPTS curriculum (2.5 hours daily) = 12.5 hours/week
+- **3:50 PM - 5:00 PM:** CPTS labs (1 hour daily) = 5 hours/week
+- **6:00 PM - 8:00 PM:** CPTS intensive lab work (2 hours daily) = 10 hours/week
+- **Weekend:** Extra 5-10 hours/week as needed
 
-**Total Available:** ~40-50 hours/week for PNPT work
-**Required:** ~7.7 hours/week average (400 hours ÷ 16 weeks)
+**Total Available:** ~40-50 hours/week for CPTS work
+**Required:** ~7-8.5 hours/week average (300-350 hours ÷ 10 weeks, accounting for exam week)
 **Status:** ✅ Plenty of time available with class load
 
 ---
 
 ## Week-by-Week Milestones (Spring 2026)
 
-### Weeks 1-3: Jan 7 - Jan 24 (PNPT Enrollment)
-- Enroll in eLearnSecurity PNPT course (Jan 15)
-- Complete course setup and first modules
-- Assess current skill level
+### Weeks 1-3: Jan 7 - Jan 24 (CPTS Enrollment)
+- Begin CPTS curriculum review (Jan 21-31)
+- Set up HTB Academy lab access
+- Complete first foundation modules
 
-### Weeks 4-6: Jan 27 - Feb 14 (PNPT Foundation)
-- Complete PNPT course foundation modules
-- Begin first lab scenarios
-- Start building methodology
+### Weeks 4-6: Jan 27 - Feb 14 (CPTS Foundation)
+- Complete CPTS foundation modules
+- Begin first lab scenarios (HTB Academy labs)
+- Start vulnerability assessment labs
 
-### Weeks 7-10: Feb 17 - Mar 16 (PNPT Labs)
-- Intensive lab work (25-30 hours/week)
-- Multiple penetration testing scenarios
-- Heavy documentation practice
+### Weeks 7-10: Feb 17 - Mar 16 (CPTS Intensive Labs)
+- Intensive lab work (20-25 hours/week)
+- Work through 15+ CPTS lab machines
+- Exploitation and privilege escalation practice
 
-### Weeks 11-13: Mar 19 - Apr 6 (PNPT Advanced)
-- Advanced lab scenarios
-- Practice reporting (critical skill)
-- Methodology refinement
+### Weeks 11-13: Mar 19 - Mar 31 (CPTS Advanced + Exam Prep)
+- Advanced lab scenarios (10+ systems)
+- Multi-stage attack chains
+- Active Directory and complex networks
+- Mock exam scenarios
 
-### Weeks 14-15: Apr 9 - Apr 22 (Final Exam Prep)
-- Mock penetration tests
-- Review weak areas
-- Ready for exam by May 1
+### Exam: April 1-10, 2026 (10-day lab-based practical)
 
-### Exam: May 30, 2026 (5-day practical exam)
+**Timeline Advantage:** 
+- CPTS exam April 10
+- OSCP prep starts May 20
+- 40-day buffer between certs (vs 20 days with PNPT)
 
 ---
 
