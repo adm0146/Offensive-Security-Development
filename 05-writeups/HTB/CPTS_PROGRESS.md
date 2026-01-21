@@ -1,117 +1,173 @@
 # CPTS Progress Tracking
 
-**Start Date:** February 1, 2026  
+**Start Date:** ⚡ **January 22, 2026** (Early start!)  
 **Target Exam:** April 1-10, 2026  
-**Total Hours:** 400 (40 hours/week for 10 weeks)  
+**Total Hours:** 400 (40 hours/week for ~10 weeks)  
 **Machines to Complete:** 30+ vulnerable systems  
+**Lab Duration:** Jan 22 - April 1 (70 days available, ~70 hour buffer)
 
 ---
 
 ## Learning Path Integration Guide
 
-**Foundation Phase (Jan 14-31):** Complete HTB Junior Pentester learning path  
-Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
+**Foundation Phase (Jan 14-22):** ✅ **COMPLETE** - HTB Junior Pentester 100%  
+You're finishing the learning path Jan 22, starting machines **same day!**
 
-- **Completed ✅:** Getting Started (25%)
-- **Week 1 (Jan 21-27):** Pentesting Process + Core Security Concepts
-- **Week 2 (Jan 28-31):** Web App Fundamentals + Common Web Vulnerabilities
+- **Completed ✅:** Getting Started (25%) + All core modules through Exploitation Techniques (100%)
+- **Ready to Start:** Easy machines Jan 22
+- **Fast Track Advantage:** 9 extra days (Jan 22 start vs Feb 1 plan)
 
 ### Machine Difficulty Recommendations by Learning Module
 
-| Module Completion | Ready For | Box Target | Example Topics |
-|-------------------|-----------|-----------|-----------------|
-| Getting Started (25%) | Jan 15+ | None yet | Wait until Feb 1 |
-| Pentesting Process (50%) | Jan 25+ | Easy boxes | Basic recon, simple exploitation |
-| Core Security Concepts (65%) | Jan 29+ | Easy/Medium | HTTP, DNS, basic auth bypass |
-| Web App Fundamentals (80%) | Feb 1+ | **START Easy machines** | Frontend/backend interaction |
-| Common Web Vulns (90%) | Feb 8+ | **PROGRESS to Medium** | SQLi, XSS, command injection |
-| Exploitation Techniques (100%) | Feb 15+ | **PROGRESS to Hard/AD** | File inclusion, privilege escalation |
+| Module Completion | Ready For | Box Target | Status | Starting |
+|-------------------|-----------|-----------|--------|----------|
+| Getting Started (25%) | Foundation | Theory only | ✅ Complete | Jan 14 |
+| Pentesting Process (50%) | Basic boxes | Simple recon | ✅ Complete | Jan 14-20 |
+| Core Security Concepts (65%) | Easy boxes | HTTP, DNS basics | ✅ Complete | Jan 14-20 |
+| Web App Fundamentals (80%) | **Easy machines** | Frontend/backend | ✅ Complete | Jan 22 |
+| Common Web Vulns (90%) | **Medium machines** | SQLi, XSS, auth | ✅ Complete | ~Jan 29+ |
+| Exploitation Techniques (100%) | **Hard/AD** | Chaining, privesc | ✅ Complete | ~Feb 8+ |
 
 ---
 
 ## Weekly Progress
 
-### Week 1-2 (Feb 1-14): Foundation
-**Target:** 80 hours, 3-4 Easy machines  
-**Modules:** Networking, Web Basics, Reconnaissance  
-**Learning Path Status:** Web App Fundamentals COMPLETE + Starting Common Web Vulnerabilities (80%+)
+### Week 1 (Jan 22-28): Foundation - Starting NOW! 🚀
+**Target:** 40 hours, 2-3 Easy machines  
+**Status:** Starting Jan 22 (learning path complete today!)  
+**Learning Path Status:** All fundamentals 100% COMPLETE
 
-**Box Guidance:** Easy machines focus on basic reconnaissance and simple web app vulnerabilities (parameter tampering, basic auth bypass, simple SQL injection). These correlate directly with "Web App Fundamentals" and early "Common Web Vulnerabilities" modules.
+**Box Guidance:** Easy machines focus on basic reconnaissance and simple web app vulnerabilities. You have complete foundation knowledge now. Move fast but methodically - these are confidence builders before Medium difficulty.
+
+| Machine | Difficulty | Status | Date | Hours | Notes |
+|---------|-----------|--------|------|-------|-------|
+| [Name] | Easy | ⬜ Not Started | Jan 22+ | - | Focus: Basic recon + simple web vulnerability |
+| [Name] | Easy | ⬜ Not Started | Jan 25+ | - | Focus: Parameter tampering/auth bypass |
+| [Name] | Easy | ⬜ Not Started | Jan 28+ | - | Focus: Simple SQL injection or XSS |
+
+**Weekly Summary:**
+- Hours Used: __ / 40
+- Machines Completed: __ / 2-3
+- On Track: [ ] Yes [ ] No
+- Start Date: Jan 22 ✅
+
+---
+
+### Week 2 (Jan 29-Feb 4): Foundation Continued
+**Target:** 40 hours, 2-3 Easy machines  
+**Status:** ⏳ Continuing momentum  
+**Learning Path Status:** All modules internalized, applying in labs
+
+**Box Guidance:** Continue Easy machines to build speed and confidence. By end of this week, you should be comfortable with basic exploitation flow (recon → vulnerability → exploitation → proof).
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
 | [Name] | Easy | ⬜ Not Started | - | - | Focus: Basic recon + simple web vulnerability |
 | [Name] | Easy | ⬜ Not Started | - | - | Focus: Parameter tampering/auth bypass |
-| [Name] | Easy | ⬜ Not Started | - | - | Focus: Simple SQL injection or XSS |
+| [Name] | Easy | ⬜ Not Started | - | - | Focus: Combine 2+ vulnerabilities |
 
 **Weekly Summary:**
-- Hours Used: __ / 80
-- Machines Completed: __ / 3-4
+- Hours Used: __ / 40
+- Machines Completed: __ / 2-3
 - On Track: [ ] Yes [ ] No
-- Learning Path Check: Ensure Common Web Vulns (SQLi/XSS/Auth) covered before tackling machines
 
 ---
 
-### Week 3-4 (Feb 15-28): Intermediate
+### Week 3-4 (Feb 5-18): Intermediate - Ready to Progress
 **Target:** 80 hours, 4-5 Medium machines  
+**Status:** ⏳ After 6-8 Easy boxes completed  
 **Modules:** Vulnerability Assessment, Exploitation  
-**Learning Path Status:** Common Web Vulnerabilities COMPLETE (90%+) + Exploitation Techniques starting
+**Learning Path Status:** Ready for chained exploitation concepts
 
 **Box Guidance:** Medium machines introduce chained exploitation (multiple vulnerabilities in sequence), privilege escalation concepts, and more complex web app logic. By now you should understand SQLi, XSS, file uploads, and command injection deeply. Focus on combining techniques.
+
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
 | [Name] | Medium | ⬜ Not Started | - | - | Focus: Chained vulns (recon → SQLi → privesc) |
 | [Name] | Medium | ⬜ Not Started | - | - | Focus: File upload + execution chain |
 | [Name] | Medium | ⬜ Not Started | - | - | Focus: Complex auth bypass + access control |
+| [Name] | Medium | ⬜ Not Started | - | - | Focus: Kerberos intro / service exploitation |
+| [Name] | Medium | ⬜ Not Started | - | - | Focus: Web logic + privilege escalation |
 
 **Weekly Summary:**
 - Hours Used: __ / 80
 - Machines Completed: __ / 4-5
 - On Track: [ ] Yes [ ] No
-- Learning Path Check: Exploitation Techniques modules should be complete before tackling chains
+- Progress: Should have 4-8 Easy + 4-5 Medium done
 
 ---
 
-### Week 5-6 (Mar 1-14): Advanced
+### Week 5-6 (Feb 19-Mar 4): Advanced
 **Target:** 80 hours, 5-6 Medium/Hard machines  
+**Status:** ⏳ Mid-progression, building advanced skills  
 **Modules:** Privilege Escalation (Linux/Windows), Post-Exploitation  
-**Learning Path Status:** All modules COMPLETE (100%) + Advanced Topics optional
+**Learning Path Status:** All modules internalized, focusing on technique combinations
 
-**Box Guidance:** Hard machines emphasize privilege escalation chains, post-exploitation, and real-world complexity. By this point, Junior Pentester learning is complete and you've seen all fundamental exploitation techniques. Focus on privilege escalation paths (kernel exploits, configuration issues, credential reuse).
+**Box Guidance:** Hard machines emphasize privilege escalation chains, post-exploitation, and real-world complexity. Focus on privilege escalation paths (kernel exploits, configuration issues, credential reuse). Start seeing patterns from Easy/Medium boxes.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
 | [Name] | Medium | ⬜ Not Started | - | - | Focus: Linux privilege escalation |
 | [Name] | Hard | ⬜ Not Started | - | - | Focus: Windows privilege escalation |
 | [Name] | Hard | ⬜ Not Started | - | - | Focus: Post-exploitation + persistence |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Complex exploitation chain |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Advanced web + system interaction |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Multi-step privilege escalation |
 
 **Weekly Summary:**
 - Hours Used: __ / 80
 - Machines Completed: __ / 5-6
 - On Track: [ ] Yes [ ] No
-- Learning Path Check: All fundamentals should be internalized; focus on technique combinations
+- Progress: Should have 8-13 Easy/Medium + starting Hard machines
 
 ---
 
-### Week 7-8 (Mar 15-28): Active Directory
+### Week 7-8 (Mar 5-18): Active Directory Focus
 **Target:** 80 hours, 4-5 AD/Hard machines  
-**Modules:** Active Directory, Complex Networks  
-**Learning Path Status:** All HTB Junior Pentester modules complete; CPTS-specific AD training active
+**Status:** ⏳ Entering specialized AD territory  
+**Modules:** Active Directory, Complex Networks, Kerberos exploitation  
+**Learning Path Status:** Applying all fundamentals to domain environments
 
-**Box Guidance:** AD machines are highly specialized—focus on Kerberos exploitation, trust relationships, group policies, and domain privilege escalation. These are NOT covered in Junior Pentester, but build on all your exploitation fundamentals. Approach each AD box methodically (enum → bloodhound analysis → attack path).
+**Box Guidance:** AD machines are highly specialized—focus on Kerberos exploitation, trust relationships, group policies, and domain privilege escalation. Approach each AD box methodically (enum → bloodhound analysis → attack path → lateral movement).
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
 | [Name] | Hard | ⬜ Not Started | - | - | Focus: Kerberos + ASREP Roasting |
 | [Name] | Hard | ⬜ Not Started | - | - | Focus: Trust relationships + delegation |
 | [Name] | Hard | ⬜ Not Started | - | - | Focus: Domain privilege escalation |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Lateral movement + persistence |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Complex AD environment |
 
 **Weekly Summary:**
 - Hours Used: __ / 80
 - Machines Completed: __ / 4-5
 - On Track: [ ] Yes [ ] No
-- AD-Specific: Use BloodHound heavily, map trust chains, practice Kerberos exploitation
+- Progress: Should have 13-18 machines total + AD foundation strong
+
+---
+
+### Week 9-10 (Mar 19-Apr 1): Final Push + Exam Prep
+**Target:** 80 hours, Last 3-5 Hard/AD machines + Mock exam  
+**Status:** ⏳ Final preparation for April 1-10 exam  
+**Activity Mix:** Live machines (3-5) + Mock exam simulation (8-12 hrs) + Review (20 hrs)
+
+**Box Guidance:** Continue hard boxes, but start dedicating time to exam preparation. By March 28, do a full mock exam scenario - real timing, real pressure, real documentation.
+
+| Machine | Difficulty | Status | Date | Hours | Notes |
+|---------|-----------|--------|------|-------|-------|
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Any weak areas |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Speed improvement |
+| [Name] | Hard | ⬜ Not Started | - | - | Focus: Final practice |
+| Mock Exam | Simulation | ⬜ | Mar 28 | 8-12 | Full 24-hour scenario |
+| Review | Weak areas | ⬜ | Mar 29-31 | 20 | Hammer weak techniques |
+
+**Weekly Summary:**
+- Hours Used: __ / 80
+- Machines Completed: __ / 3-5
+- Mock Exam: [ ] Complete [ ] Pending
+- Ready for April Exam: [ ] Yes [ ] No
+- Total Machines Completed: 25-30+ ✅
 
 ---
 
@@ -147,24 +203,45 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 
 ## Overall Progress Summary
 
-### Month Totals
+### Timeline Overview
+
+**Lab Phase:** Jan 22 - April 1 (70 days)  
+**Exam Phase:** April 1-10 (10 days)  
+**Total Buffer:** 70 days available vs ~55 days needed = 15-day cushion
+
+### Monthly Breakdown
+
+**January 2026** (Partial)
+- Jan 14-21: HTB Junior Pentester learning path (100% ✅)
+- Jan 22: Start CPTS labs with Easy machines
+- Target Hours: 20 (lab initiation)
+- Actual Hours: __ / 20
+- Machines: __ / 2-3 Easy
 
 **February 2026**
 - Target Hours: 160 (40/week × 4 weeks)
 - Actual Hours: __ / 160
-- Machines: __ / 7-9
+- Machines: __ / 6-8 (Easy + starting Medium)
 - Completion: __%
 
 **March 2026**
 - Target Hours: 160 (40/week × 4 weeks)
 - Actual Hours: __ / 160
-- Machines: __ / 9-11
+- Machines: __ / 10-15 (Medium + Hard + AD)
+- Mock Exam: March 28
 - Completion: __%
 
 **April 2026** (Partial)
-- Target Hours: 80 (40/week × 2 weeks + exam)
+- Jan 1 - Apr 1: Lab work + mock exam
+- Target Hours: 80 (40/week × 2 weeks)
 - Actual Hours: __ / 80
 - Machines: __ / 5-7
+- Apr 1-10: CPTS Practical Exam
+
+**TOTAL (Jan 22 - Apr 10):**
+- Target Hours: 400 ✅
+- Actual Hours: __ / 400
+- Machines: __ / 30+
 - Exam: [ ] Passed [ ] Pending
 
 ---
@@ -172,6 +249,8 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 ## Machine Completion Tracker
 
 ### Easy Machines (Target: 8-10)
+*Focus: Jan 22 - Feb 4, Speed 6-8 hrs/machine*
+
 - [ ] Machine 1 - __ hrs - [Link to writeup]
 - [ ] Machine 2 - __ hrs - [Link to writeup]
 - [ ] Machine 3 - __ hrs - [Link to writeup]
@@ -186,6 +265,8 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 ---
 
 ### Medium Machines (Target: 10-12)
+*Focus: Feb 5 - Mar 4, Speed 8-10 hrs/machine*
+
 - [ ] Machine 1 - __ hrs - [Link to writeup]
 - [ ] Machine 2 - __ hrs - [Link to writeup]
 - [ ] Machine 3 - __ hrs - [Link to writeup]
@@ -202,6 +283,8 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 ---
 
 ### Hard Machines (Target: 8-10)
+*Focus: Mar 5 - Mar 25, Speed 10-12 hrs/machine*
+
 - [ ] Machine 1 - __ hrs - [Link to writeup]
 - [ ] Machine 2 - __ hrs - [Link to writeup]
 - [ ] Machine 3 - __ hrs - [Link to writeup]
@@ -216,6 +299,8 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 ---
 
 ### Active Directory Focus (Target: 3-4)
+*Focus: Mar 5 - Mar 18, Speed 12-15 hrs/machine*
+
 - [ ] AD Machine 1 - __ hrs - [Link to writeup]
 - [ ] AD Machine 2 - __ hrs - [Link to writeup]
 - [ ] AD Machine 3 - __ hrs - [Link to writeup]
@@ -236,6 +321,7 @@ Complete these modules BEFORE starting CPTS labs to ensure foundation knowledge:
 | Avg AD Machine | 12-15 hrs | - | - |
 
 ### Skill Development
+
 
 **Reconnaissance Skills**
 - [ ] Nmap mastery
