@@ -1,62 +1,82 @@
 # CPTS Progress Tracking
 
-**Start Date:** ⚡ **January 22, 2026** (Early start!)  
+**Start Date:** ⏳ **February 1, 2026** (After THM completion)  
 **Target Exam:** April 1-10, 2026  
-**Total Hours:** 400 (40 hours/week for ~10 weeks)  
+**Total Hours:** 400 (40 hours/week for 10 weeks)  
 **Machines to Complete:** 30+ vulnerable systems  
-**Lab Duration:** Jan 22 - April 1 (70 days available, ~70 hour buffer)
+**Lab Duration:** Feb 1 - April 1 (60 days, tight but manageable)
 
 ---
 
 ## Learning Path Integration Guide
 
-**Foundation Phase (Jan 14-22):** ✅ **COMPLETE** - HTB Junior Pentester 100%  
-You're finishing the learning path Jan 22, starting machines **same day!**
+**Foundation Phase (Jan 14-22):** ✅ **COMPLETE** - TryHackMe Junior Pentester 100%  
+You're finishing THM Jan 22, then 9 days to prep before starting CPTS machines Feb 1
 
-- **Completed ✅:** Getting Started (25%) + All core modules through Exploitation Techniques (100%)
-- **Ready to Start:** Easy machines Jan 22
-- **Fast Track Advantage:** 9 extra days (Jan 22 start vs Feb 1 plan)
+- **Completing ✅:** TryHackMe Junior Pentester (84% → 100% by Jan 22)
+- **Buffer Week:** Jan 23-31 (Environment setup, rest, preparation)
+- **Ready to Start:** CPTS Easy machines Feb 1
+- **Timeline:** THM foundation → 9-day buffer → CPTS intensive launch
 
 ### Machine Difficulty Recommendations by Learning Module
 
 | Module Completion | Ready For | Box Target | Status | Starting |
 |-------------------|-----------|-----------|--------|----------|
-| Getting Started (25%) | Foundation | Theory only | ✅ Complete | Jan 14 |
-| Pentesting Process (50%) | Basic boxes | Simple recon | ✅ Complete | Jan 14-20 |
-| Core Security Concepts (65%) | Easy boxes | HTTP, DNS basics | ✅ Complete | Jan 14-20 |
-| Web App Fundamentals (80%) | **Easy machines** | Frontend/backend | ✅ Complete | Jan 22 |
-| Common Web Vulns (90%) | **Medium machines** | SQLi, XSS, auth | ✅ Complete | ~Jan 29+ |
-| Exploitation Techniques (100%) | **Hard/AD** | Chaining, privesc | ✅ Complete | ~Feb 8+ |
+| THM Fundamentals | Basic recon | Theory only | ✅ Complete | Jan 14-22 |
+| THM Methodology | Easy boxes | Simple exploitation | ✅ Complete | Jan 14-22 |
+| THM Web Basics | Easy boxes | HTTP, web vulns | ✅ Complete | Jan 14-22 |
+| THM Advanced (84%) | Medium setup | Architecture knowledge | ⏳ Finishing Jan 22 | Jan 22 |
+| HTB Easy machines | **START Feb 1** | Direct application | ⏳ Ready Feb 1 | Feb 1 |
+| HTB Medium machines | **START Feb 15** | Chained exploitation | ⏳ Ready Feb 8+ | Feb 8+ |
 
 ---
 
 ## Weekly Progress
 
-### Week 1 (Jan 22-28): Foundation - Starting NOW! 🚀
-**Target:** 40 hours, 2-3 Easy machines  
-**Status:** Starting Jan 22 (learning path complete today!)  
-**Learning Path Status:** All fundamentals 100% COMPLETE
+### Buffer Week (Jan 23-31): Preparation & Rest
+**Goal:** Finish THM → Prep for CPTS → Rest before intensive  
+**Status:** Starting after THM completion Jan 22
 
-**Box Guidance:** Easy machines focus on basic reconnaissance and simple web app vulnerabilities. You have complete foundation knowledge now. Move fast but methodically - these are confidence builders before Medium difficulty.
+| Activity | Target | Status | Hours | Notes |
+|----------|--------|--------|-------|-------|
+| THM Final Modules | Complete 100% | ✅ | 2-3 | Finish Jan 22 |
+| Review THM weak areas | Strengthen foundation | ⏳ | 5 | Jan 23-25 |
+| CPTS Environment Setup | HTB Academy access | ⏳ | 3 | Jan 26-27 |
+| Lab Testing | Test OpenVPN, tools | ⏳ | 2 | Jan 28 |
+| Rest & Recovery | Mental prep | ⏳ | - | Jan 29-31 |
+
+**Weekly Summary:**
+- Hours Used: __ / 15
+- Status: Preparation complete?
+- Ready for Feb 1: [ ] Yes [ ] No
+
+---
+
+### Week 1 (Feb 1-7): Foundation - CPTS Machines Begin 🚀
+**Target:** 40 hours, 2-3 Easy machines  
+**Status:** ⏳ Starting Feb 1 (after 9-day buffer)  
+**Learning Path Status:** All THM fundamentals complete, applying in HTB labs
+
+**Box Guidance:** Easy machines focus on basic reconnaissance and simple web app vulnerabilities. You have complete THM foundation knowledge now. Move fast but methodically - these are confidence builders before Medium difficulty.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| [Name] | Easy | ⬜ Not Started | Jan 22+ | - | Focus: Basic recon + simple web vulnerability |
-| [Name] | Easy | ⬜ Not Started | Jan 25+ | - | Focus: Parameter tampering/auth bypass |
-| [Name] | Easy | ⬜ Not Started | Jan 28+ | - | Focus: Simple SQL injection or XSS |
+| [Name] | Easy | ⬜ Not Started | Feb 1+ | - | Focus: Basic recon + simple web vulnerability |
+| [Name] | Easy | ⬜ Not Started | Feb 3+ | - | Focus: Parameter tampering/auth bypass |
+| [Name] | Easy | ⬜ Not Started | Feb 6+ | - | Focus: Simple SQL injection or XSS |
 
 **Weekly Summary:**
 - Hours Used: __ / 40
 - Machines Completed: __ / 2-3
 - On Track: [ ] Yes [ ] No
-- Start Date: Jan 22 ✅
+- THM Prep: Complete ✅
 
 ---
 
-### Week 2 (Jan 29-Feb 4): Foundation Continued
+### Week 2 (Feb 8-14): Foundation Continued
 **Target:** 40 hours, 2-3 Easy machines  
 **Status:** ⏳ Continuing momentum  
-**Learning Path Status:** All modules internalized, applying in labs
+**Learning Path Status:** THM knowledge internalized, applying in labs
 
 **Box Guidance:** Continue Easy machines to build speed and confidence. By end of this week, you should be comfortable with basic exploitation flow (recon → vulnerability → exploitation → proof).
 
@@ -73,9 +93,9 @@ You're finishing the learning path Jan 22, starting machines **same day!**
 
 ---
 
-### Week 3-4 (Feb 5-18): Intermediate - Ready to Progress
+### Week 3-4 (Feb 15-28): Intermediate - Ready to Progress
 **Target:** 80 hours, 4-5 Medium machines  
-**Status:** ⏳ After 6-8 Easy boxes completed  
+**Status:** ⏳ After 4-6 Easy boxes completed  
 **Modules:** Vulnerability Assessment, Exploitation  
 **Learning Path Status:** Ready for chained exploitation concepts
 
