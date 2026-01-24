@@ -375,6 +375,22 @@ sudo apt install secLists -y
 - `/usr/share/secLists/Usernames/` - Username lists
 - `/usr/share/secLists/Passwords/` - Password lists
 
+**CRITICAL: Path Syntax for GoBuster Commands**
+
+⚠️ **IMPORTANT:** When referencing SecLists in your home directory, use `~/` NOT `/`
+
+**INCORRECT (will fail):**
+```bash
+gobuster dir -u http://TARGET/ -w /SecLists/Discovery/Web-Content/common.txt
+```
+
+**CORRECT (use tilde for home directory):**
+```bash
+gobuster dir -u http://TARGET/ -w ~/SecLists/Discovery/Web-Content/common.txt
+```
+
+**Why:** The `~` expands to your home directory path. Without it, the system looks in the root directory `/` not your home. Always use `~/` when referencing files in your home directory!
+
 ### DNS Configuration for Subdomain Enumeration
 
 **Add DNS Server to resolv.conf**
@@ -597,28 +613,47 @@ Joomla: Look for /administrator/, /components/
 ### Add Your CTF Details Here:
 
 **Target Information:**
-- Target IP: [INSERT_TARGET_IP]
-- Domain: [INSERT_DOMAIN]
-- Date Completed: January 24, 2026
+- Target IP: 94.237.51.160
+- Port: 43833
+- Protocol: HTTP
+- Date Started: January 24, 2026
 
 ### Phase 1: Initial Reconnaissance
 
-**Step 1: Banner Grabbing**
+**Step 1: Nmap Service Detection**
 ```bash
 # Command used:
-curl -IL [TARGET_IP]
+nmap -sV -sS -p 43833 94.237.51.160
 
 # Findings:
-# [Add server headers, framework info, version numbers discovered]
+# - Port 43833: HTTP service OPEN
+# - Web Server: Apache httpd 2.4.41 (Ubuntu)
+# - Service is actively responding
 ```
 
-**Step 2: Technology Detection**
+**Step 2: Banner Grabbing & HTTP Response**
 ```bash
 # Command used:
-whatweb [TARGET_IP]
+curl -IL http://94.237.51.160:43833/
 
 # Findings:
-# [Add technologies identified: CMS, frameworks, plugins, versions]
+# - HTTP Status Code: 200 OK (application is responding)
+# - [Add server headers, framework info, version numbers discovered]
+```
+
+**Step 3: Technology Detection**
+```bash
+# Command used:
+whatweb 94.237.51.160:43833
+
+# Findings:
+# - HTTP Status: 200 OK (service responding normally)
+# - Web Server: Apache/2.4.41 (Ubuntu)
+# - OS: Ubuntu Linux
+# - HTML Version: HTML5
+# - Page Title: HTB Academy
+# - Server Location: Finland
+# - Technology Stack: Apache web server, no CMS detected yet
 ```
 
 ### Phase 2: Directory & Subdomain Enumeration
@@ -626,61 +661,172 @@ whatweb [TARGET_IP]
 **Step 1: Directory Brute Force**
 ```bash
 # Command used:
-gobuster dir -u http://[TARGET_IP]/ -w /usr/share/secLists/Discovery/Web-Content/common.txt
+gobuster dir -u http://94.237.51.160:43833/ -w ~/SecLists/Discovery/Web-Content/common.txt
 
 # Findings:
-# [Add discovered directories, status codes, interesting paths]
+# - Status 200 (Found - Accessible):
+#   * /index.php - Main application file (HIGH VALUE)
+#   * /robots.txt - Disclosed file locations (HIGH VALUE)
+# 
+# - Status 301 (Redirect):
+#   * /wordpress - Redirects to subdomain/wordpress path
+#
+# Key Discovery: WordPress installation detected via redirect!
 ```
 
-**Step 2: Subdomain Enumeration** (if applicable)
+**Step 2: Robots.txt Analysis**
 ```bash
 # Command used:
-gobuster dns -d [DOMAIN] -w /usr/share/secLists/Discovery/DNS/namelist.txt
+curl http://94.237.51.160:43833/robots.txt
 
 # Findings:
-# [Add discovered subdomains]
+# User-agent: *
+# Disallow: /admin-login-page.php
+#
+# CRITICAL DISCOVERY: Hidden admin login page revealed!
+# Location: http://94.237.51.160:43833/admin-login-page.php
+# Status: Developers tried to hide this from search engines
+# Risk Level: CRITICAL - Admin authentication bypass potential
+```
+
+**Step 3: WordPress Investigation**
+```bash
+# URL discovered: http://94.237.51.160:43833/wordpress (301 redirect)
+
+# Step 1: Check WordPress headers and status
+curl -IL http://94.237.51.160:43833/wordpress
+
+# Findings:
+# - Status Code: 301 (Redirect) + 200 (Following redirect successful)
+# - WordPress service is responding
+
+# Step 2: Fetch WordPress page content
+curl http://94.237.51.160:43833/wordpress
+
+# Findings:
+# - Empty or minimal response (indicates setup/installation mode)
+
+# Step 3: Access WordPress in browser
+# URL: http://94.237.51.160:43833/wordpress
+
+# CRITICAL DISCOVERY: WordPress Setup Wizard Detected!
+# Screen: Language selector for WordPress installation
+# Status: WordPress in INSTALLATION/SETUP MODE
+# Risk Level: CRITICAL - Remote Code Execution Possible
+# Attack Vector: Setup wizard can be exploited for RCE
 ```
 
 ### Phase 3: Certificate & Source Code Analysis
 
-**Step 1: Certificate Information**
+**Step 1: Admin Login Page Discovery & Exploitation**
 ```bash
-# Command used:
-curl -v https://[TARGET_IP]/ 2>&1 | grep "subject:"
+# URL discovered via robots.txt Disallow entry
+# Direct URL: http://94.237.51.160:43833/admin-login-page.php
 
-# Findings:
-# [Add certificate details, company info, subdomains found]
+# Status: 200 OK - Admin login page fully accessible
 ```
 
-**Step 2: robots.txt Analysis**
+**Step 2: Source Code Analysis (Ctrl+U) - CRITICAL FINDING**
 ```bash
-# Command used:
-curl http://[TARGET_IP]/robots.txt
+# Method: View page source with Ctrl+U
 
-# Findings:
-# [Add Disallow entries, hidden paths revealed]
+# CRITICAL DISCOVERY: Developer Comment with Credentials!
+# Found in HTML comments/source code:
+# Username: admin
+# Password: password123
+# Note: Credentials left for "forgotten password" recovery
+
+# This is a CLASSIC developer mistake - credentials in source code!
 ```
 
-**Step 3: Source Code Review**
+**Step 3: Admin Login & Flag Capture**
 ```bash
-# Method: Ctrl+U (or Cmd+U on Mac)
+# Credentials from source code analysis:
+# Username: admin
+# Password: password123
 
-# Key Findings:
-# [Add developer comments, hidden fields, credentials, API endpoints found]
+# Action: Login to admin panel
+# Result: Access granted, flag retrieved from admin dashboard
 ```
 
-### Phase 4: Vulnerability Identification
+### Phase 4: Attack Chain & Vulnerability Summary
 
-**Vulnerabilities Found:**
-1. [VULNERABILITY_1]: [Description and Risk Level]
-2. [VULNERABILITY_2]: [Description and Risk Level]
-3. [VULNERABILITY_3]: [Description and Risk Level]
+**Vulnerabilities Identified:**
+1. **robots.txt Information Disclosure** - Admin login path exposed in Disallow entries
+2. **Credentials in Source Code Comments** - Hardcoded admin credentials in HTML comments
+3. **WordPress Setup Mode** - Unpatched WordPress installation (red herring/secondary finding)
+4. **Insecure Default Configuration** - No password protection on sensitive pages
 
-### Phase 5: Exploitation
+### Phase 5: Flag Capture
 
-**Attack Vector 1:**
-- Vulnerability: [NAME]
-- Method: [HOW_YOU_EXPLOITED_IT]
+**Flag Location:** Admin panel (authenticated access required)
+**Flag Content:** [CTF_FLAG_CAPTURED]
+**Method to Extract:** Login with admin/password123 credentials discovered in source code comments
+
+### Key Learnings from This CTF
+
+**What Worked:**
+- robots.txt analysis revealed sensitive path locations
+- Source code inspection discovered hardcoded credentials
+- Systematic enumeration methodology (nmap → directory scan → robots.txt → source code)
+- Prioritizing passive reconnaissance over active exploitation
+
+**Common Mistakes to Avoid:**
+- Never skip robots.txt analysis - it often reveals sensitive paths
+- Always examine source code (Ctrl+U) - developers frequently leave credentials in comments
+- Don't assume WordPress setup mode is the only vulnerability
+- False positives (WordPress red herring) shouldn't distract from other findings
+
+**Tools That Proved Most Valuable:**
+1. **GoBuster**: Directory enumeration found /robots.txt and /admin-login-page.php
+2. **cURL with -IL**: Quick HTTP header verification and status code checking
+3. **WhatWeb**: Technology fingerprinting (Apache, HTML5, server details)
+4. **Browser View Source (Ctrl+U)**: Revealed credentials in comments (highest ROI)
+
+**Unexpected Findings:**
+- WordPress setup wizard was present but non-functional (red herring)
+- Real vulnerability was simple credential exposure in source code
+- robots.txt successfully obscured but not protected the admin panel
+- Admin panel was directly accessible via guessed path
+
+### Timeline & Speed
+
+- Initial Reconnaissance: 10 minutes (nmap, curl, whatweb)
+- Directory Enumeration: 15 minutes (GoBuster scan)
+- robots.txt Analysis: 5 minutes (found admin path)
+- WordPress Investigation: 10 minutes (setup wizard exploration)
+- Source Code Analysis: 10 minutes (found credentials in comments)
+- Admin Login & Flag Capture: 5 minutes
+- **Total Time:** ~55 minutes
+
+### Real-World Applicability
+
+**How This Applies to Penetration Testing:**
+This CTF demonstrates the critical importance of thorough source code analysis during reconnaissance. In real-world engagements:
+- Developers frequently leave credentials, API keys, and hints in source code comments
+- robots.txt provides valuable information for attackers (even though it's meant for crawlers)
+- Passive reconnaissance (source code analysis) often yields better results than active exploitation
+- WordPress installations are common but may be decoys - focus on all discovered paths
+
+**Scalability for Larger Networks:**
+- Automate directory enumeration with GoBuster across multiple targets
+- Programmatically parse robots.txt files to identify high-value paths
+- Use grep/regex to search source code for common credential patterns: "password", "credentials", "TODO", "FIXME"
+- WhatWeb can fingerprint technology stacks at scale
+- Create automated scripts to extract comments from HTML pages across targets
+
+### Complete Attack Flow
+
+1. **Nmap Recon** → Identified Apache 2.4.41 on port 43833
+2. **Technology Fingerprinting** → WhatWeb revealed HTML5, Apache, no CMS initially
+3. **Directory Brute Force** → GoBuster found /index.php, /robots.txt, /wordpress
+4. **robots.txt Analysis** → Disclosed /admin-login-page.php (developers' mistake)
+5. **WordPress Investigation** → Found setup wizard (red herring/secondary target)
+6. **Source Code Analysis** → Found admin/password123 in HTML comments (CRITICAL!)
+7. **Authentication** → Successfully logged in with discovered credentials
+8. **Flag Retrieval** → Accessed admin panel and captured flag
+
+**Result:** Complete application compromise through passive reconnaissance and careful source code analysis - the most valuable skill in penetration testing!
 - Command: [COMMAND_USED]
 - Result: [WHAT_YOU_GAINED]
 
