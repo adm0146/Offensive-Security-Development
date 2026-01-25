@@ -5,6 +5,87 @@
 
 ---
 
+## ⚡ Quick Reference Card: Web Enumeration Workflow
+
+### Step-by-Step Enumeration Process
+
+```
+1. PORT SCANNING
+   ↓
+   nmap -sV -p 80,443 TARGET
+   Look for HTTP/HTTPS services
+
+2. TECHNOLOGY FINGERPRINTING
+   ↓
+   curl -I TARGET:PORT
+   whatweb TARGET:PORT
+   Identify web server, framework, version
+
+3. DIRECTORY ENUMERATION
+   ↓
+   gobuster dir -u http://TARGET -w ~/SecLists/Discovery/Web-Content/common.txt
+   Find: /robots.txt, /admin, /login, /config files
+
+4. ROBOTS.TXT ANALYSIS
+   ↓
+   curl http://TARGET/robots.txt
+   Check Disallow entries (often reveals sensitive paths)
+
+5. SOURCE CODE ANALYSIS
+   ↓
+   Browser: Press Ctrl+U to view page source
+   Look for: Comments, credentials, API keys, hidden fields, debug info
+
+6. WORDPRESS DETECTION (If Applicable)
+   ↓
+   Look for: /wordpress, /wp-admin/, wp-config.php
+   Check: Setup mode (RCE vulnerability)
+   Command: gobuster dir -u http://TARGET/wordpress -w wordlist.txt
+
+7. SUBDOMAIN ENUMERATION
+   ↓
+   gobuster dns -d TARGET.com -w ~/SecLists/Discovery/DNS/subdomains-top1million.txt
+   Setup: /etc/resolv.conf (nameserver 8.8.8.8)
+```
+
+### Critical Techniques
+
+| Technique | Command | What It Finds |
+|-----------|---------|--------------|
+| **Banner Grabbing** | `curl -IL TARGET` | HTTP headers, server info, version |
+| **robots.txt** | `curl TARGET/robots.txt` | Hidden paths, admin panels, sensitive files |
+| **Source Code** | Ctrl+U in browser | Credentials, API keys, comments, hints |
+| **WhatWeb** | `whatweb TARGET` | Technology stack, CMS, plugins, versions |
+| **Directory Brute Force** | `gobuster dir -u URL -w wordlist.txt` | Hidden directories, files, admin panels |
+| **SSL Certificate** | `openssl s_client -connect TARGET:443` | Domain names, certificate details |
+| **Subdomain Enum** | `gobuster dns -d domain.com -w wordlist.txt` | Subdomains (API, admin, staging) |
+
+### Common High-Value Findings
+
+```
+CRITICAL (Investigate First):
+  /admin, /admin-login-page.php, /administrator
+  /wp-admin/, /wp-login.php, wp-config.php
+  /config, /settings, /database.yml
+  Credentials in source code comments
+  Setup/installation wizards
+
+HIGH VALUE:
+  /robots.txt (reveals hidden paths)
+  /sitemap.xml (site structure)
+  .git, .env, .backup files
+  README, CHANGELOG files
+  API endpoints
+
+MEDIUM VALUE:
+  /index.php, /home.php
+  Technology versions for CVE research
+  JavaScript files (examine for API calls)
+  Form fields and hidden parameters
+```
+
+---
+
 ## Table of Contents
 
 1. [Initial Reconnaissance](#initial-reconnaissance)
