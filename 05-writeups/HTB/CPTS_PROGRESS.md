@@ -48,9 +48,9 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 **Weekly Summary:**
 - Hours Used: 38 / 40 ✅ On target
-- Machines Completed: 1 / 2-3
+- Machines Completed: 5 / 6 Very Easy boxes ✅✅✅✅✅
 - On Track: [✅] Yes [ ] No
-- Start Date: Jan 22 ✅ CONFIRMED → First machine: Jan 25 ✅
+- Start Date: Jan 22 ✅ CONFIRMED → First 5 machines complete by Jan 25 ✅
 
 ---
 
@@ -216,12 +216,17 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 **January 2026** (Partial)
 - Jan 14-22: TryHackMe Junior Pentester learning (100% by Jan 22)
-- Jan 22: **START CPTS LABS** - Easy machines begin
-- Jan 25: ✅ **First Machine Complete** - WordPress 5.6.1 (Simple Backup Plugin RCE)
+- Jan 22: **START CPTS LABS** - Very Easy machines begin
+- Jan 25: ✅ **FIVE Machines Complete!**
+  - MEOW (Very Easy)
+  - FAWN (Very Easy)
+  - DANCING (Very Easy)
+  - REDEEMER (Very Easy)
+  - WordPress 5.6.1 Simple Backup Plugin RCE (Very Easy + Public Exploit Practice)
 - Target Hours: 40 / week
 - Actual Hours: 38 / 40 (Week 1)
-- Machines: 1 / 2-3 Very Easy ✅
-- Skills Developed: Nmap → WhatWeb → Manual Analysis → Plugin Enumeration → CVE Research → Metasploit → Scanner Modules → Flag Capture
+- Machines: 5 / 6 Very Easy ✅✅✅✅✅
+- Skills Developed: Full methodology (reconnaissance → exploitation → privilege escalation → flag capture)
 
 **February 2026**
 - Target Hours: 160 (40/week × 4 weeks)
@@ -253,13 +258,16 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 ## Machine Completion Tracker
 
-### Very Easy Machines (Target: 1-2 for methodology foundation)
+### Very Easy Machines (Target: 4-6 for methodology foundation)
 *Focus: Jan 22-28, Speed 6-8 hrs/machine, Deep learning on techniques*
 
-- [✅] WordPress 5.6.1 Simple Backup Plugin RCE - 80 hrs - [public_exploits.md](public_exploits.md)
-- [ ] Machine 2 - __ hrs - [Link to writeup]
+- [✅] MEOW - Very Easy - [MEOW_Very_Easy.md](01-EASY/MEOW_Very_Easy.md)
+- [✅] FAWN - Very Easy - [FAWN_Very_Easy.md](01-EASY/FAWN_Very_Easy.md)
+- [✅] DANCING - Very Easy - [DANCING_Very_Easy.md](01-EASY/DANCING_Very_Easy.md)
+- [✅] REDEEMER - Very Easy - [REDEEMER_Very_Easy.md](01-EASY/REDEEMER_Very_Easy.md)
+- [✅] WordPress 5.6.1 Simple Backup Plugin RCE - [public_exploits.md](public_exploits.md)
 
-**Very Easy Status:** 1 / 2
+**Very Easy Status:** 5 / 6
 
 ---
 
@@ -569,13 +577,12 @@ After April 10 exam:
 
 ---
 
-**Status:** First Machine Complete ✅ (Jan 25, 2026)  
+**Status:** Week 1 COMPLETE - 5 Machines Exploited ✅✅✅✅✅ (Jan 25, 2026)  
 **Last Updated:** January 25, 2026  
 **Next Update:** Weekly progress review
 
-**First Machine Summary:**
-- Box: WordPress 5.6.1 (Simple Backup Plugin v2.7.10)
-- Hours: 38 (Week 1 - on target)
-- Flag: HTB{my_f1r57_h4ck}
-- Writeup: public_exploits.md
-- Key Skills: Enumeration → Fingerprinting → Manual Analysis → CVE Research → Metasploit → Scanner Modules → Flag Capture
+**Week 1 Summary:**
+- Machines Completed: MEOW, FAWN, DANCING, REDEEMER, WordPress 5.6.1
+- Hours: 38 / 40 (on target)
+- Total Machines: 5 / 30+ (17% complete!)
+- Key Skills: Full penetration testing methodology, multiple exploitation techniques, public exploit research
