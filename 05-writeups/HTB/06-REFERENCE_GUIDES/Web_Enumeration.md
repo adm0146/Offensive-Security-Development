@@ -10,12 +10,7 @@
 1. [Initial Reconnaissance](#initial-reconnaissance)
 2. [HTTP/HTTPS Detection](#httphttps-detection)
 3. [Directory Discovery](#directory-discovery)
-4. [Web Server Identification](#web-server-identification)
-5. [Technology Stack Detection](#technology-stack-detection)
-6. [Vulnerability Scanning](#vulnerability-scanning)
-7. [Common Web Attack Vectors](#common-web-attack-vectors)
-8. [Tools Reference](#tools-reference)
-9. [Command Cheatsheet](#command-cheatsheet)
+4. [Practical CTF Example](#practical-ctf-example-full-web-enumeration-walkthrough)
 
 ---
 
@@ -539,73 +534,6 @@ Joomla: Look for /administrator/, /components/
 
 ---
 
-## Common Web Attack Vectors
-
-### SQL Injection
-```
-
-```
-
-### Cross-Site Scripting (XSS)
-```
-
-```
-
-### Remote File Inclusion (RFI)
-```
-
-```
-
-### Local File Inclusion (LFI)
-```
-
-```
-
-### Authentication Bypass
-```
-
-```
-
-### Directory Traversal
-```
-
-```
-
----
-
-## Tools Reference
-
-### Directory Enumeration Tools
-```
-
-```
-
-### Web Vulnerability Scanners
-```
-
-```
-
-### Proxy Tools
-```
-
-```
-
-### Manual Testing Tools
-```
-
-```
-
----
-
-## Command Cheatsheet
-
-### Quick Reference Commands
-```
-
-```
-
----
-
 ## Practical CTF Example: Full Web Enumeration Walkthrough
 
 **Objective:** Complete web enumeration capture-the-flag exercise on target instance
@@ -827,57 +755,6 @@ This CTF demonstrates the critical importance of thorough source code analysis d
 8. **Flag Retrieval** → Accessed admin panel and captured flag
 
 **Result:** Complete application compromise through passive reconnaissance and careful source code analysis - the most valuable skill in penetration testing!
-- Command: [COMMAND_USED]
-- Result: [WHAT_YOU_GAINED]
-
-**Attack Vector 2:**
-- Vulnerability: [NAME]
-- Method: [HOW_YOU_EXPLOITED_IT]
-- Command: [COMMAND_USED]
-- Result: [WHAT_YOU_GAINED]
-
-### Phase 6: Flag Capture
-
-**Flag Location:** [WHERE_FLAG_WAS_FOUND]
-**Flag Content:** [FLAG_VALUE]
-**Method to Extract:** [HOW_YOU_RETRIEVED_IT]
-
-### Key Learnings from This CTF
-
-**What Worked:**
-- [TECHNIQUE_1]: [WHY_IT_WORKED]
-- [TECHNIQUE_2]: [WHY_IT_WORKED]
-- [TECHNIQUE_3]: [WHY_IT_WORKED]
-
-**Common Mistakes to Avoid:**
-- [MISTAKE_1]: [WHAT_YOU_LEARNED]
-- [MISTAKE_2]: [WHAT_YOU_LEARNED]
-
-**Tools That Proved Most Valuable:**
-1. [TOOL_1]: [WHY_VALUABLE]
-2. [TOOL_2]: [WHY_VALUABLE]
-3. [TOOL_3]: [WHY_VALUABLE]
-
-**Unexpected Findings:**
-- [FINDING_1]: [DESCRIPTION]
-- [FINDING_2]: [DESCRIPTION]
-
-### Timeline & Speed
-
-- Initial Reconnaissance: [TIME]
-- Directory Enumeration: [TIME]
-- Vulnerability Identification: [TIME]
-- Exploitation: [TIME]
-- Flag Capture: [TIME]
-- **Total Time:** [TOTAL_TIME]
-
-### Real-World Applicability
-
-**How This Applies to Penetration Testing:**
-[Description of how techniques used here apply to real-world engagements]
-
-**Scalability for Larger Networks:**
-[How you would adapt this methodology for multiple targets]
 
 ---
 
@@ -887,4 +764,3 @@ This CTF demonstrates the critical importance of thorough source code analysis d
 - Document what works on real machines
 - Include examples from successful box exploitations
 - Update with lessons learned from Medium/Hard boxes
-- Fill in CTF example as you complete the challenge
