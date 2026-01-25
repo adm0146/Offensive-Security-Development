@@ -42,15 +42,15 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| [Name] | Easy | ⬜ Not Started | Jan 22+ | - | Focus: Full methodology (recon → exploit → proof) |
-| [Name] | Easy | ⬜ Not Started | Jan 24+ | - | Focus: Build confidence and speed |
-| [Name] | Easy | ⬜ Not Started | Jan 27+ | - | Focus: Refine attack chain |
+| WordPress 5.6.1 (Simple Backup) | Very Easy | ✅ Complete | Jan 25 | ~80 | Full methodology: nmap → whatweb → manual analysis → plugin enum → CVE research → Metasploit scanner → flag capture |
+| [Next] | Easy | ⏳ In Progress | Jan 25+ | - | Focus: Build on WordPress experience |
+| [Next] | Easy | ⬜ Not Started | Jan 27+ | - | Focus: Refine attack chain |
 
 **Weekly Summary:**
-- Hours Used: __ / 40
-- Machines Completed: __ / 2-3
-- On Track: [ ] Yes [ ] No
-- Start Date: Jan 22 ✅ CONFIRMED
+- Hours Used: 80 / 40 (exceeded target - deep learning on first machine)
+- Machines Completed: 1 / 2-3
+- On Track: [✅] Yes [ ] No
+- Start Date: Jan 22 ✅ CONFIRMED → First machine: Jan 25 ✅
 
 ---
 
@@ -217,8 +217,11 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 **January 2026** (Partial)
 - Jan 14-22: TryHackMe Junior Pentester learning (100% by Jan 22)
 - Jan 22: **START CPTS LABS** - Easy machines begin
+- Jan 25: ✅ **First Machine Complete** - WordPress 5.6.1 (Simple Backup Plugin RCE)
 - Target Hours: 40+ (start of 70-day intensive)
-- Machines: __ / 2-3 Easy
+- Machines: 1 / 2-3 Very Easy ✅
+- Actual Hours: 80 hrs (exceeded target - deep learning on first machine)
+- Skills Developed: Nmap → WhatWeb → Manual Analysis → Plugin Enumeration → CVE Research → Metasploit → Scanner Modules → Flag Capture
 
 **February 2026**
 - Target Hours: 160 (40/week × 4 weeks)
@@ -250,8 +253,17 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 ## Machine Completion Tracker
 
+### Very Easy Machines (Target: 1-2 for methodology foundation)
+*Focus: Jan 22-28, Speed 6-8 hrs/machine, Deep learning on techniques*
+
+- [✅] WordPress 5.6.1 Simple Backup Plugin RCE - 80 hrs - [public_exploits.md](public_exploits.md)
+- [ ] Machine 2 - __ hrs - [Link to writeup]
+
+**Very Easy Status:** 1 / 2
+
+---
+
 ### Easy Machines (Target: 8-10)
-*Focus: Jan 22 - Feb 4, Speed 6-8 hrs/machine*
 
 - [ ] Machine 1 - __ hrs - [Link to writeup]
 - [ ] Machine 2 - __ hrs - [Link to writeup]
@@ -405,17 +417,21 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 ## Notes & Observations
 
 ### Week-by-Week Learnings
-**Week 1-2:**
+**Week 1 (Jan 22-28):**
+- ✅ Manual website inspection > automated scanning (Simple Backup plugin found in blog post, not by tools)
+- ✅ Plugin discovery methodology (search website, look for announcements, identify versions)
+- ✅ SearchSploit before Metasploit (understand vulnerability before loading exploit)
+- ✅ Scanner modules valuable for file read vulnerabilities (don't always need RCE)
+- ✅ Two-stage exploitation reduces risk (verify on /etc/passwd before extracting /flag.txt)
+- ✅ Service version ≠ vulnerability (Apache 2.4.41 wasn't the target, WordPress 5.6.1 was)
+- ✅ Metasploit framework navigation (search, use, set, show options, run)
+- ✅ Strategic pivoting (switched from Elementor → GiveWP → Simple Backup when exploits didn't work)
+
+**Week 2-3:**
 - 
 
-**Week 3-4:**
-- 
-
-**Week 5-6:**
-- 
-
-**Week 7-8:**
-- 
+**Week 4-5:**
+-
 
 ---
 
@@ -553,6 +569,13 @@ After April 10 exam:
 
 ---
 
-**Status:** Ready to Start (Feb 1, 2026)  
-**Last Updated:** January 21, 2026  
+**Status:** First Machine Complete ✅ (Jan 25, 2026)  
+**Last Updated:** January 25, 2026  
 **Next Update:** Weekly progress review
+
+**First Machine Summary:**
+- Box: WordPress 5.6.1 (Simple Backup Plugin v2.7.10)
+- Hours: ~80 (deep learning, excellent methodology practice)
+- Flag: HTB{my_f1r57_h4ck}
+- Writeup: public_exploits.md
+- Key Skills: Enumeration → Fingerprinting → Manual Analysis → CVE Research → Metasploit → Scanner Modules → Flag Capture
