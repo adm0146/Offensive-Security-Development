@@ -47,7 +47,7 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 | [Next] | Easy | ⬜ Not Started | Jan 27+ | - | Focus: Refine attack chain |
 
 **Weekly Summary:**
-- Hours Used: 80 / 40 (exceeded target - deep learning on first machine)
+- Hours Used: 38 / 40 ✅ On target
 - Machines Completed: 1 / 2-3
 - On Track: [✅] Yes [ ] No
 - Start Date: Jan 22 ✅ CONFIRMED → First machine: Jan 25 ✅
@@ -218,9 +218,9 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 - Jan 14-22: TryHackMe Junior Pentester learning (100% by Jan 22)
 - Jan 22: **START CPTS LABS** - Easy machines begin
 - Jan 25: ✅ **First Machine Complete** - WordPress 5.6.1 (Simple Backup Plugin RCE)
-- Target Hours: 40+ (start of 70-day intensive)
+- Target Hours: 40 / week
+- Actual Hours: 38 / 40 (Week 1)
 - Machines: 1 / 2-3 Very Easy ✅
-- Actual Hours: 80 hrs (exceeded target - deep learning on first machine)
 - Skills Developed: Nmap → WhatWeb → Manual Analysis → Plugin Enumeration → CVE Research → Metasploit → Scanner Modules → Flag Capture
 
 **February 2026**
@@ -575,7 +575,7 @@ After April 10 exam:
 
 **First Machine Summary:**
 - Box: WordPress 5.6.1 (Simple Backup Plugin v2.7.10)
-- Hours: ~80 (deep learning, excellent methodology practice)
+- Hours: 38 (Week 1 - on target)
 - Flag: HTB{my_f1r57_h4ck}
 - Writeup: public_exploits.md
 - Key Skills: Enumeration → Fingerprinting → Manual Analysis → CVE Research → Metasploit → Scanner Modules → Flag Capture
