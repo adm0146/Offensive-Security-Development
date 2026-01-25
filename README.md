@@ -70,7 +70,7 @@ offensive-security-development/
   - Aug 17 - Sept 26: 100 hours (pre-exam)
 - **Course:** PwK (PEN-200), 70+ vulnerable machines
 - **Format:** 24-hour proctored exam
-- **Plan:** [OSCP_PREPARATION_PLAN.md](00-roadmap/OSCP_PREPARATION_PLAN.md)
+- **Plan:** [OSCP_PREPARATION_PLAN.md](00-roadmap/OSCP_PREPARATION_PLAN.1md)
 
 ### Phase 4: CRTO
 - **Dates:** Sept 26 - Dec 15, 2026
