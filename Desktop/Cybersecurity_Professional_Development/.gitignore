@@ -6,6 +6,7 @@
 *.swo
 *~
 .Trash/
+.localized
 
 # IDE
 .vscode/
@@ -21,24 +22,14 @@ env/
 Thumbs.db
 Desktop.ini
 
-# Ignore parent directory files
-../.BrowserLock/
-../.CFUserTextEncoding
-../.aws/
-../.bash_profile
-../.cache/
-../.codegpt/
-../.config/
-../.cups/
-../.docker/
-../.gitconfig
-../.lesshst
-../.local/
-../.matplotlib/
-../.nuget/
-../.redhat/
-../.swiftpm/
-../.vcpkg/
-../.zprofile
-../.zsh_history
-../.zsh_sessions/
+# Ignore all files in parent directory (Desktop)
+../../**/*
+!../../Cybersecurity_Professional_Development/
+
+# Backup and database files
+*.db
+*.sqbpro
+
+# Compiled files
+*.class
+*.java
