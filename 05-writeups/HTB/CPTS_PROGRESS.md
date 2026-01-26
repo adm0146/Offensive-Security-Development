@@ -13,19 +13,19 @@
 **Foundation Phase (Jan 14-22):** ✅ **COMPLETE** - TryHackMe Junior Pentester  
 You're done with hand-holding. Time for real penetration testing on real vulnerable systems.
 
-- **Completed ✅:** TryHackMe Junior Pentester (84%**Status:** Week 1 ON TRACK - 41 Hours + 5 Machines + 4,000+ Lines of Documentation ✅✅✅✅✅ (Jan 25, 2026)  
+- **Completed ✅:** TryHackMe Junior Pentester (84%**Status:** Week 1 EXCEEDING - 44 Hours + 6 Machines + 4,450+ Lines of Documentation ✅✅✅✅✅✅ (Jan 25, 2026)  
 **Last Updated:** January 25, 2026  
 **Next Update:** Weekly progress review
 
 **Week 1 Summary:**
-- Machines Completed: MEOW, FAWN, DANCING, REDEEMER, WordPress 5.6.1
-- Hours: 41 / 40 (1 hour over - on track!)
-- Total Machines: 5 / 30+ (17% complete!)
-- Documentation Created: 4,000+ lines
+- Machines Completed: MEOW, FAWN, DANCING, REDEEMER, WordPress 5.6.1, PrivEsc Lab
+- Hours: 44 / 40 (4 hours over - exceeding pace!)
+- Total Machines: 6 / 30+ (20% complete!)
+- Documentation Created: 4,450+ lines
   - Types of Shells (5 parts, 2,000+ lines)
-  - Privilege Escalation (3 parts + decision tree, 2,047+ lines)
-- Key Skills: Full penetration testing methodology, multiple exploitation techniques, public exploit research, comprehensive documentation
-- Status: **ON PACE FOR SCHEDULE**n 22)
+  - Privilege Escalation (3 parts + decision tree + real case study, 2,500+ lines)
+- Key Skills: Full penetration testing methodology, multiple exploitation techniques, public exploit research, privilege escalation, comprehensive documentation with real-world examples
+- Status: **EXCEEDING PACE - 4 HOURS OVER TARGET**n 22)
 - **Ready to Launch:** HTB CPTS Easy machines Jan 22 - NO BUFFER NEEDED
 - **Timeline Advantage:** Start 10 days ahead of original Feb 1 plan
 - **Real-World Focus:** THM foundation applied directly to lab machines
@@ -47,25 +47,26 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 ### Week 1 (Jan 22-28): Foundation - CPTS Machines Begin 🚀
 **Target:** 40 hours, 2-3 Easy machines  
-**Status:** ✅ ON TRACK - 41 hours (36 last week + 5 today) with extensive documentation  
+**Status:** ✅ EXCEEDING - 44 hours (36 last week + 8 today) with extensive documentation  
 **Learning Path Status:** THM complete, applying real skills to HTB labs
 
 **Box Guidance:** Easy machines are the entry point to real penetration testing. No more hand-holding - you'll navigate reconnaissance, identify vulnerabilities, and exploit them independently. Speed will improve with practice. Focus on methodology over speed.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| WordPress 5.6.1 (Simple Backup) | Very Easy | ✅ Complete | Jan 25 | ~5 | Full methodology: nmap → whatweb → manual analysis → plugin enum → CVE research → Metasploit scanner → flag capture |
-| Learning Modules Created | Documentation | ✅ Complete | Jan 25 | 5 | Types of Shells (5 parts, 2000+ lines) + PrivEsc Decision Tree + comprehensive guides |
+| WordPress 5.6.1 (Simple Backup) | Very Easy | ✅ Complete | Jan 25 | ~3 | Full methodology: nmap → whatweb → manual analysis → plugin enum → CVE research → Metasploit scanner → flag capture |
+| PrivEsc Lab (user1→user2→root) | Easy | ✅ Complete | Jan 25 | ~5 | Multi-stage privilege escalation: sudo NOPASSWD → GTFOBins → SSH keys → root access |
+| Learning Modules Created | Documentation | ✅ Complete | Jan 25 | 5 | Types of Shells (5 parts, 2000+ lines) + PrivEsc Decision Tree + comprehensive guides + real case study |
 | MEOW, FAWN, DANCING, REDEEMER | Very Easy | ✅ Complete | Jan 22-24 | 31 | First 4 very easy machines (6-8 hours each) |
 | [Next] | Easy | ⏳ Ready | Jan 26+ | - | Focus: Build on WordPress experience |
 | [Next] | Easy | ⬜ Not Started | Jan 27+ | - | Focus: Refine attack chain |
 
 **Weekly Summary:**
-- Hours Used: 41 / 40 ✅ On target (1 hour over!)
-- Machines Completed: 5 / 6 Very Easy boxes ✅✅✅✅✅
-- Documentation Created: 4,000+ lines of reference guides
-- On Track: [✅] YES - Perfectly on pace [ ] No
-- Start Date: Jan 22 ✅ CONFIRMED → First 5 machines complete by Jan 25 ✅
+- Hours Used: 44 / 40 ✅ Exceeding target (4 hours over!)
+- Machines Completed: 6 / 6 Very Easy boxes + 1 Easy (PrivEsc) ✅✅✅✅✅✅
+- Documentation Created: 4,450+ lines of reference guides
+- On Track: [✅] YES - Exceeding pace [ ] No
+- Start Date: Jan 22 ✅ CONFIRMED → First 6 machines complete by Jan 25 ✅
 
 ---
 
@@ -233,14 +234,15 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 - Jan 14-22: TryHackMe Junior Pentester learning (100% by Jan 22)
 - Jan 22: **START CPTS LABS** - Very Easy machines begin
 - Jan 22-24: First 4 very easy machines (MEOW, FAWN, DANCING, REDEEMER) - 31 hours
-- Jan 25: ✅ **WordPress 5.6.1 + Learning Documentation Complete!**
-  - WordPress 5.6.1 Simple Backup Plugin RCE (Very Easy + Public Exploit Practice) - 5 hours
-  - Created comprehensive learning guides (5 hours)
+- Jan 25: ✅ **WordPress 5.6.1 + PrivEsc Lab + Learning Documentation Complete!**
+  - WordPress 5.6.1 Simple Backup Plugin RCE (Very Easy) - 3 hours
+  - PrivEsc Lab (user1→user2→root) (Easy) - 5 hours
+  - Created comprehensive learning guides - 5 hours (now integrated into reference guides)
 - Target Hours (Week 1): 40
-- Actual Hours (Week 1): 41 ✅ On target!
-- Machines: 5 / 6 Very Easy ✅✅✅✅✅
-- Documentation: 4,000+ lines of reference guides created!
-- Skills Developed: Full methodology (reconnaissance → exploitation → privilege escalation → flag capture) + comprehensive documentation
+- Actual Hours (Week 1): 44 ✅ Exceeding target!
+- Machines: 6 total (5 Very Easy + 1 Easy PrivEsc) ✅✅✅✅✅✅
+- Documentation: 4,450+ lines of reference guides created!
+- Skills Developed: Full methodology (reconnaissance → exploitation → privilege escalation → flag capture) + comprehensive documentation with real case studies
 
 **February 2026**
 - Target Hours: 160 (40/week × 4 weeks)
