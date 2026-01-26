@@ -1,7 +1,7 @@
-# NIBBLES - Very Easy
+# NIBBLES - Easy
 
 **Date Started:** January 26, 2026  
-**Difficulty:** Very Easy  
+**Difficulty:** Easy  
 **Status:** 🔄 IN PROGRESS
 
 ---
