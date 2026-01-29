@@ -87,49 +87,68 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Current Progress (January 28, 2026)
+## Current Progress (January 29, 2026)
 
-## Current Progress (January 28, 2026)
+**Day 8 - Accelerated Pace: 13 Boxes Completed!**
 
 | Category | Status | Details |
 |----------|--------|---------|
 | Security+ | ✅ Complete | 768/900 (85.3%) - Passed Jan 10 |
-| CPTS Labs | 🔄 In Progress | 8 boxes completed (6 Very Easy + 2 Easy) |
-| Box Completion | 🔄 Active | Foundational tier + Early Easy boxes |
-| Reference Guides | ✅ Created | 7 methodology guides established |
-| Days in 2026 | 28 days | Jan 1-28 (start of CPTS prep) |
-| Boxes per Day | ~0.3 avg | 8 boxes in 28 days (ramping up) |
-| Target Speed | 📈 Increasing | Completing boxes faster as patterns emerge |
+| CPTS Labs | 🔄 In Progress | 13 boxes completed (11 Very Easy + 2 Easy) |
+| Very Easy Tier | ✅ COMPLETE | 11/11 foundational boxes mastered |
+| Easy Tier | 🔄 In Progress | 2/6 started (NIBBLES, GETTING_STARTED) |
+| Box Completion | 🔄 Active | 1-2 boxes per day (accelerating) |
+| Reference Guides | ✅ Created | 7 methodology guides + 11 detailed writeups |
+| Days Elapsed | 8 days | Jan 22-29 (CPTS prep) |
+| Pace | 📈 EXCEEDING | 1.625 boxes/day (target: 1/day) |
+| Hours Used | 50+ / 40 | 10+ hours over target (building momentum) |
+| Target Progress | 43% Complete | 13/30 machines done, on pace for 40+ by exam |
 
-**HackTheBox Progress:** 8 boxes completed, targeting 15+ Easy boxes before CPTS exam (April 1-10)
+**HackTheBox Progress:** 13 boxes completed, targeting 15+ Easy boxes before CPTS exam (April 1-10)
 
 ---
 
-## Boxes Completed (Jan 23 - Jan 28, 2026)
+## Boxes Completed (Jan 22 - Jan 29, 2026)
 
-### Foundational Tier (Very Easy)
+### Foundational Tier (Very Easy) - ✅ COMPLETE (11/11)
 1. ✅ **MEOW** - Telnet exploitation, default credentials
 2. ✅ **FAWN** - FTP anonymous access, file exfiltration
-3. ✅ **REDEEMER** - Redis enumeration and exploitation
+3. ✅ **REDEEMER** - Redis database enumeration and exploitation
 4. ✅ **DANCING** - SMB share enumeration, file access
-5. ✅ **EXPLOSION** - Windows RDP (ms-wbt-server), GUI access, bash aliases
+5. ✅ **EXPLOSION** - Windows RDP (ms-wbt-server), GUI access
 6. ✅ **PREIGNITION** - Directory bursting with gobuster, file extension filtering
+7. ✅ **MONGOD** - MongoDB 3.6.8 enumeration, version compatibility, database exploration
+8. ✅ **SYNCED** - Rsync protocol exploitation, file transfer, two-argument syntax
+9. ✅ **APPOINTMENT** - SQL injection fundamentals, comment-based authentication bypass
+10. ✅ **SEQUEL** - MySQL/MariaDB enumeration, SSL/TLS bypass, database access
+11. ✅ **CROCODILE** - FTP anonymous access + credential exfiltration + web login (<15 min)
 
-### Easy Tier
-7. ✅ **NIBBLES** - Web footprinting, admin enumeration, RCE via plugin upload, sudo privesc
-8. ✅ **GETTING_STARTED** - CMS exploitation, theme injection RCE, LinEnum privesc (first solo box!)
+### Easy Tier - 🔄 IN PROGRESS (2/6)
+12. ✅ **NIBBLES** - Web footprinting, admin enumeration, RCE via plugin upload, sudo privesc
+13. ✅ **GETTING_STARTED** - CMS exploitation, theme injection RCE, LinEnum privesc (first solo!)
 
-**Key Skills Acquired:**
-- ✅ Nmap reconnaissance and service enumeration
+**Next Easy Boxes to Complete:**
+- [ ] **LEGACY** - Windows SMB exploitation, privilege escalation
+- [ ] **POPCORN** - PHP file upload, privilege escalation
+- [ ] **LAME** - Samba exploitation, rapid shell access
+- [ ] **BLUE** - EternalBlue (MS17-010), Windows exploitation
+- [ ] **ARCTIC** - ColdFusion exploitation
+
+**Key Skills Acquired (Week 1):**
+- ✅ Multi-protocol service enumeration (Telnet, FTP, Redis, SMB, HTTP, MySQL, RDP)
+- ✅ Nmap reconnaissance with NSE scripts (-sC flag for auto-enumeration)
 - ✅ Web technology fingerprinting (whatweb, curl)
-- ✅ Directory bursting and hidden path discovery (gobuster)
-- ✅ Default credential exploitation
-- ✅ PHP code injection and webshell creation
+- ✅ Directory bursting and hidden path discovery (gobuster with file extensions)
+- ✅ Default credential exploitation strategies
+- ✅ SQL injection (comment-based, UNION-based concepts)
+- ✅ Database enumeration (MySQL, MongoDB, Redis commands)
+- ✅ FTP anonymous access and credential exfiltration
 - ✅ Reverse shell payloads and netcat listeners
-- ✅ Linux privilege escalation (LinEnum.sh, sudo abuse)
+- ✅ Linux privilege escalation (LinEnum.sh, sudo abuse, file permissions)
 - ✅ Windows RDP access and GUI navigation
-- ✅ Bash alias creation for efficiency
+- ✅ Bash alias creation for workflow efficiency
 - ✅ VPN connectivity and file transfer management
+- ✅ Professional writeup documentation (800+ lines per box)
 
 ---
 

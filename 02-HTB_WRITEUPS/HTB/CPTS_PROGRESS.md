@@ -47,47 +47,69 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 ### Week 1 (Jan 22-28): Foundation - CPTS Machines Begin 🚀
 **Target:** 40 hours, 2-3 Easy machines  
-**Status:** ✅ EXCEEDING - 44 hours (36 last week + 8 today) with extensive documentation  
-**Learning Path Status:** THM complete, applying real skills to HTB labs
+**Status:** ✅ EXCEEDING - 50+ hours with extensive documentation  
+**Learning Path Status:** THM complete, applying real skills to HTB labs with accelerated pace
 
-**Box Guidance:** Easy machines are the entry point to real penetration testing. No more hand-holding - you'll navigate reconnaissance, identify vulnerabilities, and exploit them independently. Speed will improve with practice. Focus on methodology over speed.
+**Box Guidance:** Very Easy machines provide solid foundation for methodology. You're now ready to transition to Easy boxes after completing foundational tier. Focus on documenting each exploitation chain and building speed through consistent technique application.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| WordPress 5.6.1 (Simple Backup) | Very Easy | ✅ Complete | Jan 25 | ~3 | Full methodology: nmap → whatweb → manual analysis → plugin enum → CVE research → Metasploit scanner → flag capture |
-| PrivEsc Lab (user1→user2→root) | Easy | ✅ Complete | Jan 25 | ~5 | Multi-stage privilege escalation: sudo NOPASSWD → GTFOBins → SSH keys → root access |
-| Learning Modules Created | Documentation | ✅ Complete | Jan 25 | 5 | Types of Shells (5 parts, 2000+ lines) + PrivEsc Decision Tree + comprehensive guides + real case study |
-| MEOW, FAWN, DANCING, REDEEMER | Very Easy | ✅ Complete | Jan 22-24 | 31 | First 4 very easy machines (6-8 hours each) |
-| [Next] | Easy | ⏳ Ready | Jan 26+ | - | Focus: Build on WordPress experience |
-| [Next] | Easy | ⬜ Not Started | Jan 27+ | - | Focus: Refine attack chain |
+| MEOW, FAWN, DANCING, REDEEMER | Very Easy | ✅ Complete | Jan 22-24 | 31 | First 4 very easy machines (basic telnet, FTP, Redis, SMB) |
+| WordPress 5.6.1 (Simple Backup) | Very Easy | ✅ Complete | Jan 25 | ~3 | Full methodology: nmap → whatweb → plugin enum → CVE research → flag capture |
+| EXPLOSION, PREIGNITION | Very Easy | ✅ Complete | Jan 25-26 | ~5 | Windows RDP access + directory bursting with gobuster |
+| MONGOD | Very Easy | ✅ Complete | Jan 29 | ~2 | MongoDB 3.6.8 database enumeration & version compatibility troubleshooting |
+| SYNCED | Very Easy | ✅ Complete | Jan 29 | ~2 | Rsync protocol exploitation, file transfer, two-argument syntax lesson |
+| APPOINTMENT | Very Easy | ✅ Complete | Jan 29 | ~2 | SQL injection fundamentals, comment-based authentication bypass (admin'#) |
+| SEQUEL | Very Easy | ✅ Complete | Jan 29 | ~2 | MySQL/MariaDB enumeration, SSL/TLS bypass, database exploration (SHOW DATABASES, USE, SELECT) |
+| CROCODILE | Very Easy | ✅ Complete | Jan 29 | <1 | FTP anonymous access, credential file exfiltration, web login (<15 min completion!) |
+| PrivEsc Lab | Easy | ✅ Complete | Jan 25 | ~5 | Multi-stage privilege escalation: sudo NOPASSWD → GTFOBins → SSH keys → root access |
+| Learning Modules Created | Documentation | ✅ Complete | Jan 25-29 | 5 | Types of Shells (5 parts, 2000+ lines) + PrivEsc Decision Tree + 8 detailed writeups |
 
-**Weekly Summary:**
-- Hours Used: 44 / 40 ✅ Exceeding target (4 hours over!)
-- Machines Completed: 6 / 6 Very Easy boxes + 1 Easy (PrivEsc) ✅✅✅✅✅✅
-- Documentation Created: 4,450+ lines of reference guides
-- On Track: [✅] YES - Exceeding pace [ ] No
-- Start Date: Jan 22 ✅ CONFIRMED → First 6 machines complete by Jan 25 ✅
+**Weekly Summary (Updated Jan 29):**
+- Hours Used: 50+ / 40 ✅ Exceeding target significantly!
+- Machines Completed: 11 Very Easy + 1 Easy (PrivEsc) = 12 total ✅✅✅✅✅✅✅✅✅✅✅✅
+- Very Easy Boxes Completed: 11/11 foundational tier
+- Writeups Created: 8 comprehensive (800+ lines each)
+- Documentation Created: 5,000+ lines of reference guides + writeups
+- On Track: [✅] YES - EXCEEDING pace significantly [ ] No
+- Start Date: Jan 22 ✅ CONFIRMED → 11 Very Easy boxes complete by Jan 29 ✅
+- Acceleration: Completing 1-2 boxes per day (faster than expected!)
 
 ---
 
-### Week 2 (Jan 29-Feb 4): Foundation Continued
+### Week 2 (Jan 29-Feb 4): Foundation Continued - Very Easy Mastery ✅
 **Target:** 40 hours, 2-3 Easy machines  
-**Status:** ⏳ Building momentum  
-**Learning Path Status:** Applying THM knowledge to lab environment
+**Status:** ✅ ACCELERATING - 11 Very Easy boxes completed in 8 days!  
+**Learning Path Status:** Very Easy foundational tier complete, ready for Easy boxes
 
-**Box Guidance:** Continue Easy machines to build speed and confidence. By end of this week, you should be comfortable with independent reconnaissance and basic exploitation flow. Start documenting writeups as you go.
+**Box Guidance:** Foundational tier complete! You've established solid methodology and now understand basic service enumeration across multiple protocols (Telnet, FTP, SMB, Redis, HTTP, MySQL, SSH, RDP). Transition to Easy boxes now - build on this foundation with more complex exploitation chains.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| [Name] | Easy | ⬜ Not Started | - | - | Focus: Speed optimization |
-| [Name] | Easy | ⬜ Not Started | - | - | Focus: Documentation quality |
-| [Name] | Easy | ⬜ Not Started | - | - | Focus: Reliable methodology |
+| MEOW | Very Easy | ✅ Complete | Jan 22 | ~2 | Telnet, default credentials |
+| FAWN | Very Easy | ✅ Complete | Jan 23 | ~2 | FTP anonymous access |
+| REDEEMER | Very Easy | ✅ Complete | Jan 23 | ~2 | Redis database enumeration |
+| DANCING | Very Easy | ✅ Complete | Jan 24 | ~2 | SMB share enumeration |
+| EXPLOSION | Very Easy | ✅ Complete | Jan 25 | ~2 | RDP Windows access |
+| PREIGNITION | Very Easy | ✅ Complete | Jan 26 | ~2 | Gobuster directory bursting |
+| MONGOD | Very Easy | ✅ Complete | Jan 29 | ~2 | MongoDB exploitation |
+| SYNCED | Very Easy | ✅ Complete | Jan 29 | ~2 | Rsync file transfer |
+| APPOINTMENT | Very Easy | ✅ Complete | Jan 29 | ~2 | SQL injection basics |
+| SEQUEL | Very Easy | ✅ Complete | Jan 29 | ~2 | MySQL/MariaDB enumeration |
+| CROCODILE | Very Easy | ✅ Complete | Jan 29 | <1 | FTP + web login (<15 min!) |
+| NIBBLES | Easy | ✅ Complete | Jan 26 | ~4 | Web enumeration → plugin RCE → sudo privesc |
+| GETTING_STARTED | Easy | ✅ Complete | Jan 27 | ~4 | CMS exploitation → theme injection → LinEnum |
 
-**Weekly Summary:**
-- Hours Used: __ / 40
-- Machines Completed: __ / 2-3
-- On Track: [ ] Yes [ ] No
-- Total Easy so far: __ / 6
+**Weekly Summary (Updated Jan 29):**
+- Hours Used: 50+ / 40 ✅ Exceeding (10+ hours over!)
+- Machines Completed: 11 Very Easy + 2 Easy = 13 total
+- Very Easy Tier: ✅ COMPLETE (11/11)
+- Easy Tier Progress: 2/6 started
+- Writeups Created: 11 comprehensive (800+ lines each)
+- Documentation: 5,000+ lines of writeups + reference guides
+- Key Achievement: Mastered basic enumeration across all major protocols
+- Next Focus: **Transition to Easy tier, build exploitation chains**
+- Pace: 1-2 boxes per day (accelerating rapidly)
 
 ---
 
