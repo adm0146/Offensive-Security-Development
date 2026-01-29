@@ -13,37 +13,14 @@
 **Foundation Phase (Jan 14-22):** ✅ **COMPLETE** - TryHackMe Junior Pentester  
 You're done with hand-holding. Time for real penetration testing on real vulnerable systems.
 
-- **Completed ✅:** TryHackMe Junior Pentester (84%**Status:** Week 1 EXCEEDING - 44 Hours + 6 Machines + 4,450+ Lines of Documentation ✅✅✅✅✅✅ (Jan 25, 2026)  
-**Last Updated:** January 25, 2026  
-**Next Update:** Weekly progress review
-
-**Week 1 Summary:**
-- Machines Completed: MEOW, FAWN, DANCING, REDEEMER, WordPress 5.6.1, PrivEsc Lab
-- Hours: 44 / 40 (4 hours over - exceeding pace!)
-- Total Machines: 6 / 30+ (20% complete!)
-- Documentation Created: 4,450+ lines
-  - Types of Shells (5 parts, 2,000+ lines)
-  - Privilege Escalation (3 parts + decision tree + real case study, 2,500+ lines)
-- Key Skills: Full penetration testing methodology, multiple exploitation techniques, public exploit research, privilege escalation, comprehensive documentation with real-world examples
-- Status: **EXCEEDING PACE - 4 HOURS OVER TARGET**n 22)
-- **Ready to Launch:** HTB CPTS Easy machines Jan 22 - NO BUFFER NEEDED
+- **Completed ✅:** TryHackMe Junior Pentester (84%)
+- **Ready to Launch:** HTB CPTS labs Jan 22 - NO BUFFER NEEDED
 - **Timeline Advantage:** Start 10 days ahead of original Feb 1 plan
 - **Real-World Focus:** THM foundation applied directly to lab machines
 
-### Machine Difficulty Recommendations by Learning Module
-
-| Module Completion | Ready For | Box Target | Status | Starting |
-|-------------------|-----------|-----------|--------|----------|
-| THM Fundamentals | Real labs | Live exploitation | ✅ Complete | Jan 14-22 |
-| THM Methodology | Easy boxes | Direct application | ✅ Complete | Jan 14-22 |
-| THM Web Basics | Easy boxes | Applied skills | ✅ Complete | Jan 14-22 |
-| THM Advanced (84%) | Medium setup | Architecture knowledge | ⏳ Finishing Jan 22 | Jan 22 |
-| **HTB Easy machines** | **START NOW** | **Real exploitation** | ⏳ Ready Jan 22 | **Jan 22** |
-| HTB Medium machines | After 4-6 Easy | Chained attacks | ⏳ Ready Jan 29+ | ~Jan 29+ |
-
 ---
 
-## Weekly Progress
+## Weekly Progress Overview
 
 ### Week 1 (Jan 22-28): Foundation - CPTS Machines Begin 🚀
 **Target:** 40 hours, 2-3 Easy machines  
@@ -77,38 +54,35 @@ You're done with hand-holding. Time for real penetration testing on real vulnera
 
 ---
 
-### Week 2 (Jan 29-Feb 4): Foundation Continued - Very Easy Mastery ✅
+### Week 2 (Jan 29-Feb 4): Foundation Continued - Easy Tier Focus 🚀
 **Target:** 40 hours, 2-3 Easy machines  
-**Status:** ✅ ACCELERATING - 11 Very Easy boxes completed in 8 days!  
-**Learning Path Status:** Very Easy foundational tier complete, ready for Easy boxes
+**Status:** ✅ ACCELERATING - Foundational tier complete, ready for Easy boxes!  
+**Learning Path Status:** Very Easy foundational tier complete, transitioning to Easy difficulty
 
-**Box Guidance:** Foundational tier complete! You've established solid methodology and now understand basic service enumeration across multiple protocols (Telnet, FTP, SMB, Redis, HTTP, MySQL, SSH, RDP). Transition to Easy boxes now - build on this foundation with more complex exploitation chains.
+**Box Guidance:** Foundational tier is now complete! You've established solid methodology and understand basic service enumeration across multiple protocols. Now build on this foundation with Easy boxes that introduce more complex exploitation chains, privilege escalation scenarios, and real-world complexity.
 
-| Machine | Difficulty | Status | Date | Hours | Notes |
-|---------|-----------|--------|------|-------|-------|
-| MEOW | Very Easy | ✅ Complete | Jan 22 | ~2 | Telnet, default credentials |
-| FAWN | Very Easy | ✅ Complete | Jan 23 | ~2 | FTP anonymous access |
-| REDEEMER | Very Easy | ✅ Complete | Jan 23 | ~2 | Redis database enumeration |
-| DANCING | Very Easy | ✅ Complete | Jan 24 | ~2 | SMB share enumeration |
-| EXPLOSION | Very Easy | ✅ Complete | Jan 25 | ~2 | RDP Windows access |
-| PREIGNITION | Very Easy | ✅ Complete | Jan 26 | ~2 | Gobuster directory bursting |
-| MONGOD | Very Easy | ✅ Complete | Jan 29 | ~2 | MongoDB exploitation |
-| SYNCED | Very Easy | ✅ Complete | Jan 29 | ~2 | Rsync file transfer |
-| APPOINTMENT | Very Easy | ✅ Complete | Jan 29 | ~2 | SQL injection basics |
-| SEQUEL | Very Easy | ✅ Complete | Jan 29 | ~2 | MySQL/MariaDB enumeration |
-| CROCODILE | Very Easy | ✅ Complete | Jan 29 | <1 | FTP + web login (<15 min!) |
-| NIBBLES | Easy | ✅ Complete | Jan 26 | ~4 | Web enumeration → plugin RCE → sudo privesc |
-| GETTING_STARTED | Easy | ✅ Complete | Jan 27 | ~4 | CMS exploitation → theme injection → LinEnum |
+**Focus for Week 2:**
+- Complete 2-3 more Easy boxes (currently at 2/6)
+- Build exploitation chains beyond basic access
+- Document privilege escalation techniques thoroughly
+- Start recognizing patterns between boxes
+
+**Next Easy Boxes to Target:**
+- LEGACY - Windows SMB exploitation
+- BLUE - EternalBlue (MS17-010)
+- LAME - Samba exploitation
+- POPCORN - PHP file upload
+- ARCTIC - ColdFusion exploitation
 
 **Weekly Summary (Updated Jan 29):**
-- Hours Used: 50+ / 40 ✅ Exceeding (10+ hours over!)
+- Hours Used: 50+ / 40 ✅ Exceeding significantly!
 - Machines Completed: 11 Very Easy + 2 Easy = 13 total
 - Very Easy Tier: ✅ COMPLETE (11/11)
 - Easy Tier Progress: 2/6 started
 - Writeups Created: 11 comprehensive (800+ lines each)
 - Documentation: 5,000+ lines of writeups + reference guides
 - Key Achievement: Mastered basic enumeration across all major protocols
-- Next Focus: **Transition to Easy tier, build exploitation chains**
+- Next Focus: **Continue Easy tier, build exploitation chains**
 - Pace: 1-2 boxes per day (accelerating rapidly)
 
 ---
@@ -612,19 +586,3 @@ After April 10 exam:
 - [ ] OSCP course access setup (April 20)
 - [ ] PWK labs enrollment (May 1)
 - [ ] OSCP intensive begins (May 20)
-
----
-
-**Status:** Week 1 COMPLETE - 5 Machines + 4,000+ Lines of Documentation ✅✅✅✅✅ (Jan 25, 2026)  
-**Last Updated:** January 25, 2026  
-**Next Update:** Weekly progress review
-
-**Week 1 Summary:**
-- Machines Completed: MEOW, FAWN, DANCING, REDEEMER, WordPress 5.6.1
-- Hours: 87 / 40 (EXCEEDED by 47 hours!)
-- Total Machines: 5 / 30+ (17% complete!)
-- Documentation Created: 4,000+ lines
-  - Types of Shells (5 parts, 2,000+ lines)
-  - Privilege Escalation (3 parts + decision tree, 2,047+ lines)
-- Key Skills: Full penetration testing methodology, multiple exploitation techniques, public exploit research, comprehensive documentation
-- Status: **SIGNIFICANTLY AHEAD OF SCHEDULE**
