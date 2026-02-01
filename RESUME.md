@@ -15,12 +15,6 @@ Penetration Testing: Network reconnaissance • SQL injection & LFI • Cloud se
 
 **PROFESSIONAL EXPERIENCE**
 
-**Security Researcher & Penetration Testing Specialist** | 2026
-- Network reconnaissance and vulnerability assessment on Linux/Windows systems
-- Multi-stage exploitation chains: FTP enumeration → credential extraction → SSH tunneling → database access
-- Cloud security: S3 bucket exploitation and PHP-based remote code execution
-- Authentication bypass using NTLM capture and hash cracking
-
 **Sous Chef** | Stonebridge Farms | Dec 2020 – May 2021
 - Managed kitchen operations for high-volume restaurant (12+ staff)
 - Led large-scale events (100+ guests) including weddings and corporate functions
@@ -33,6 +27,16 @@ Penetration Testing: Network reconnaissance • SQL injection & LFI • Cloud se
 
 **Pines Crossing Golf Course** | Jul 2025 – Present
 - Course maintenance and operational excellence
+
+---
+
+**CERTIFICATION PREP**
+
+**Security Researcher & Penetration Testing Specialist** | CPTS/OSCP Preparation | 2026
+- Network reconnaissance and vulnerability assessment on Linux/Windows systems
+- Multi-stage exploitation chains: FTP enumeration → credential extraction → SSH tunneling → database access
+- Cloud security: S3 bucket exploitation and PHP-based remote code execution
+- Authentication bypass using NTLM capture and hash cracking
 
 ---
 
