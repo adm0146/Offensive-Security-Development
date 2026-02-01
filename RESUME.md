@@ -59,10 +59,8 @@ Cybersecurity student with CompTIA Security+ certification and hands-on penetrat
 ---
 
 ## CERTIFICATIONS
-| Certification | Issuing Body | Date Achieved | Valid Through |
-|---------------|-------------|---------------|----------------|
-| **CompTIA Security+** | CompTIA | January 2026 | January 2029 |
-| **CPTS (In Progress)** | HackTheBox Academy | Exam: April 2026 | — |
+- **CompTIA Security+** | CompTIA | January 2026 – January 2029
+- **CPTS (In Progress)** | HackTheBox Academy | Exam: April 2026
 
 ---
 
