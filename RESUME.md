@@ -42,6 +42,3 @@ Penetration Testing: Network reconnaissance • SQL injection & LFI • Cloud se
 
 **CERTIFICATIONS**
 CompTIA Security+ (January 2026 – January 2029) | CPTS (In Progress, Exam April 2026)
-
-**PORTFOLIO**
-GitHub: github.com/adm0146/Offensive-Security-Development | Security Clearance: Eligible
