@@ -7,7 +7,7 @@ Cybersecurity Professional | CompTIA Security+ | Penetration Tester
 
 ## EDUCATION
 **Auburn University** | B.S. Computer Science (Cybersecurity Focus)  
-Expected Graduation: Fall 2026 | Coursework: Network Security, Systems Administration, Risk Assessment
+Expected Graduation: Spring 2027 | Coursework: Network Security, Systems Administration, Risk Assessment
 
 ## PROFESSIONAL SUMMARY
 Cybersecurity student with CompTIA Security+ certification and hands-on penetration testing expertise. Practical experience in network reconnaissance, multi-stage exploitation chains, cloud security, and web application testing. Preparing for CPTS exam (April 2026) with demonstrated technical depth and security analysis capabilities.
