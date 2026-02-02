@@ -14,6 +14,7 @@
 | General Dynamics | Cybersecurity Internship | Applied | Feb 2, 2026 | Defense contractor, clearance opportunity |
 | Tevora | Security Internship | Applied | Feb 2, 2026 | Penetration testing & red teaming focus |
 | CACI | Cybersecurity Internship | Applied | Feb 2, 2026 | Federal contractor, IT and security solutions |
+| Peraton | Cybersecurity Internship | Applied | Feb 2, 2026 | Defense and intelligence contractor, security operations |
 
 ---
 
@@ -51,6 +52,15 @@
 - **Materials Submitted:** Resume, LinkedIn Easy Apply statement
 - **Next Steps:** Waiting for recruiter contact
 
+### 5. Peraton
+- **Status:** Applied
+- **Date Applied:** February 2, 2026
+- **Company Type:** Defense and Intelligence Contractor
+- **Opportunity:** Cybersecurity internship in security operations
+- **Relevant Experience:** Defense sector with high-level security operations exposure
+- **Materials Submitted:** Resume, LinkedIn Easy Apply statement
+- **Next Steps:** Waiting for recruiter contact
+
 ---
 
 ## Key Credentials & Assets
@@ -71,6 +81,7 @@
 | Feb 10, 2026 | Follow-up (if no contact) | General Dynamics |
 | Feb 10, 2026 | Follow-up (if no contact) | Tevora |
 | Feb 10, 2026 | Follow-up (if no contact) | CACI |
+| Feb 10, 2026 | Follow-up (if no contact) | Peraton |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
