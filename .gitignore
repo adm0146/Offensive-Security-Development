@@ -34,3 +34,10 @@ build/
 
 # Lab Notes (personal, if needed)
 personal-notes/
+
+# Private/Personal Files
+00-private/
+*.private
+INTERNSHIP_APPLICATIONS.md
+SKILLS_INVENTORY.md
+SKILLS_LIST.md
