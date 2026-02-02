@@ -13,6 +13,7 @@
 | Nightwing Cybersecurity | Cybersecurity Internship | In Progress | Feb 2, 2026 | Meeting with General Budifoke tomorrow to discuss opportunity |
 | General Dynamics | Cybersecurity Internship | Applied | Feb 2, 2026 | Defense contractor, clearance opportunity |
 | Tevora | Security Internship | Applied | Feb 2, 2026 | Penetration testing & red teaming focus |
+| CACI | Cybersecurity Internship | Applied | Feb 2, 2026 | Federal contractor, IT and security solutions |
 
 ---
 
@@ -41,6 +42,15 @@
 - **Materials Submitted:** Resume, LinkedIn Easy Apply statement
 - **Next Steps:** Waiting for recruiter contact
 
+### 4. CACI
+- **Status:** Applied
+- **Date Applied:** February 2, 2026
+- **Company Type:** Federal Contractor (IT and Security Solutions)
+- **Opportunity:** Cybersecurity internship with government contracting exposure
+- **Relevant Experience:** Defense/federal sector aligns with clearance pathway
+- **Materials Submitted:** Resume, LinkedIn Easy Apply statement
+- **Next Steps:** Waiting for recruiter contact
+
 ---
 
 ## Key Credentials & Assets
@@ -60,6 +70,7 @@
 | Feb 3, 2026 | Meeting with General Budifoke | Nightwing Cybersecurity |
 | Feb 10, 2026 | Follow-up (if no contact) | General Dynamics |
 | Feb 10, 2026 | Follow-up (if no contact) | Tevora |
+| Feb 10, 2026 | Follow-up (if no contact) | CACI |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
