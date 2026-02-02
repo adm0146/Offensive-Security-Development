@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>etcd Threat Modeling Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .metadata {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-bottom: 1px solid #e0e0e0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .metadata-item {
+            text-align: center;
+        }
+        
+        .metadata-item strong {
+            color: #667eea;
+            display: block;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 1.1em;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .threat-box {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .threat-box.critical {
+            border-left-color: #e74c3c;
+            background: #ffe6e6;
+        }
+        
+        .threat-box.high {
+            border-left-color: #f39c12;
+            background: #fff8e6;
+        }
+        
+        .threat-box.medium {
+            border-left-color: #3498db;
+            background: #e6f2ff;
+        }
+        
+        .severity {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .severity.critical {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .severity.high {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .severity.medium {
+            background: #3498db;
+            color: white;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .comparison-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .comparison-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-box ul {
+            margin-left: 20px;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .mitigation-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .mitigation-box {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 4px;
+            border-top: 3px solid #667eea;
+        }
+        
+        .mitigation-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .mitigation-box ul {
+            font-size: 0.95em;
+        }
+        
+        .ranking-table {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+        
+        @media (max-width: 768px) {
+            .metadata {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .mitigation-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 etcd Threat Modeling Analysis</h1>
+            <p>Comprehensive Security Assessment Using Claude and Gemini</p>
+        </div>
+        
+        <div class="metadata">
+            <div class="metadata-item">
+                <strong>Date</strong>
+                February 2, 2026
+            </div>
+            <div class="metadata-item">
+                <strong>Assignment</strong>
+                Threat Modeling for etcd
+            </div>
+            <div class="metadata-item">
+                <strong>Student</strong>
+                Andrew Mullins
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- PROMPT SECTION -->
+            <div class="section">
+                <h2>📋 Threat Modeling Prompt</h2>
+                <div class="threat-box" style="border-left-color: #667eea;">
+                    <p><strong>Task:</strong> You are a security expert. Identify 5 distinct threat models for etcd (distributed key-value store used in Kubernetes).</p>
+                    <h4>For each threat, provide:</h4>
+                    <ul>
+                        <li>Threat Description</li>
+                        <li>Threat Actor</li>
+                        <li>Preconditions</li>
+                        <li>Impact</li>
+                        <li>Post-Conditions</li>
+                        <li>Severity Rank (Critical/High/Medium/Low)</li>
+                    </ul>
+                    <p><strong>Context:</strong> etcd stores sensitive data (credentials, certificates, cluster state), uses HTTP/gRPC communication, has auth mechanisms.</p>
+                </div>
+            </div>
+            
+            <!-- CLAUDE ANALYSIS -->
+            <div class="section">
+                <h2>🤖 Claude's Threat Analysis</h2>
+                
+                <div class="threat-box critical">
+                    <span class="severity critical">CRITICAL</span>
+                    <h3>Threat 1: Unauthenticated etcd API Access</h3>
+                    <h4>Threat Description</h4>
+                    <p>An attacker exploits an etcd cluster configured without authentication, gaining direct read/write access to the key-value store via gRPC or HTTP API.</p>
+                    
+                    <h4>Threat Actor</h4>
+                    <ul>
+                        <li>External attacker with network access</li>
+                        <li>Malicious insider on same network segment</li>
+                        <li>Compromised adjacent workload in cluster</li>
+                    </ul>
+                    
+                    <h4>Preconditions</h4>
+                    <ul>
+                        <li>etcd client port (2379) reachable from attacker's network</li>
+                        <li>Authentication disabled (<code>--client-cert-auth=false</code>)</li>
+                        <li>No network segmentation isolating etcd</li>
+                    </ul>
+                    
+                    <h4>Impact</h4>
+                    <ul>
+                        <li><strong>Confidentiality:</strong> Complete exposure of all Kubernetes secrets</li>
+                        <li><strong>Integrity:</strong> Ability to modify cluster state</li>
+                        <li><strong>Availability:</strong> Cluster can be rendered inoperable</li>
+                    </ul>
+                    
+                    <h4>Post-Conditions</h4>
+                    <ul>
+                        <li>Attacker possesses all cluster credentials</li>
+                        <li>Persistent backdoor access possible</li>
+                        <li>Full cluster compromise achievable</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 2: etcd Peer Communication MITM Attack</h3>
+                    <h4>Threat Description</h4>
+                    <p>An attacker with network positioning between etcd members performs MITM on peer communication (port 2380), intercepting Raft protocol messages.</p>
+                    
+                    <h4>Threat Actor</h4>
+                    <ul>
+                        <li>Compromised network device (switch/router)</li>
+                        <li>Cloud provider insider</li>
+                        <li>ARP spoofing attacker on shared network</li>
+                    </ul>
+                    
+                    <h4>Preconditions</h4>
+                    <ul>
+                        <li>Peer TLS disabled (<code>--peer-client-cert-auth=false</code>)</li>
+                        <li>Network positioning between etcd nodes</li>
+                        <li>Certificate validation disabled</li>
+                    </ul>
+                    
+                    <h4>Impact</h4>
+                    <ul>
+                        <li>All replicated data visible in transit</li>
+                        <li>Potential consensus manipulation</li>
+                        <li>Cluster stability compromised</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 3: Snapshot/Backup Data Exfiltration</h3>
+                    <h4>Threat Description</h4>
+                    <p>An attacker gains access to etcd snapshot files containing complete database state with all secrets in portable format.</p>
+                    
+                    <h4>Key Points</h4>
+                    <ul>
+                        <li>Snapshots stored without encryption at rest</li>
+                        <li>Backup storage permissions overly permissive</li>
+                        <li>Complete extraction of all historical secrets</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 4: Resource Exhaustion DoS</h3>
+                    <h4>Threat Description</h4>
+                    <p>Attacker launches DoS via thousands of concurrent watch connections or expensive range queries, exhausting memory/CPU/file descriptors.</p>
+                    
+                    <h4>Impact</h4>
+                    <ul>
+                        <li>Complete Kubernetes control plane outage</li>
+                        <li>Scheduler, controller-manager unable to function</li>
+                        <li>Manual intervention required to restore</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box critical">
+                    <span class="severity critical">CRITICAL</span>
+                    <h3>Threat 5: Client Certificate Private Key Compromise</h3>
+                    <h4>Threat Description</h4>
+                    <p>Attacker obtains etcd client certificate private keys through filesystem access, compromise of cert systems, or IaC repositories.</p>
+                    
+                    <h4>Key Points</h4>
+                    <ul>
+                        <li>Provides authenticated access indistinguishable from legitimate operations</li>
+                        <li>Persistent access until certificates rotated/revoked</li>
+                        <li>Difficult to distinguish malicious from legitimate in audit logs</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- GEMINI ANALYSIS -->
+            <div class="section">
+                <h2>🤖 Gemini's Threat Analysis (STRIDE-Based)</h2>
+                <p>Gemini provides a STRIDE-methodology approach to threat modeling for etcd:</p>
+                
+                <div class="threat-box critical">
+                    <span class="severity critical">CRITICAL</span>
+                    <h3>Threat 1: Rogue Peer Join</h3>
+                    <p><strong>Category:</strong> Spoofing / Information Disclosure</p>
+                    <p>An attacker "joins" a rogue node to the cluster by exploiting unauthenticated peer communication, synchronizing the entire keyspace.</p>
+                    <ul>
+                        <li>Maintains persistent, live-updating mirror of cluster state</li>
+                        <li>Full copy of all cluster data including secrets and tokens</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 2: Plaintext Client Traffic</h3>
+                    <p><strong>Category:</strong> Information Disclosure</p>
+                    <p>Unencrypted client-to-server communication exposes sensitive data sent by API server (Secret objects) in plaintext.</p>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 3: Cold Boot/Disk Access</h3>
+                    <p><strong>Category:</strong> Information Disclosure / Tampering</p>
+                    <p>Attacker with disk access can use etcdutl to dump entire database offline, bypassing all etcd-level RBAC and authentication.</p>
+                </div>
+                
+                <div class="threat-box medium">
+                    <span class="severity medium">MEDIUM</span>
+                    <h3>Threat 4: Storage DoS</h3>
+                    <p><strong>Category:</strong> Denial of Service</p>
+                    <p>Resource exhaustion via large volume of expensive range requests or high-frequency writes.</p>
+                    <ul>
+                        <li>Puts cluster into read-only state</li>
+                        <li>Requires defragmentation and manual intervention</li>
+                    </ul>
+                </div>
+                
+                <div class="threat-box high">
+                    <span class="severity high">HIGH</span>
+                    <h3>Threat 5: RBAC Misconfiguration</h3>
+                    <p><strong>Category:</strong> Elevation of Privilege</p>
+                    <p>Insider with overly broad etcd RBAC permissions can modify ClusterRoleBinding to grant cluster-admin rights.</p>
+                </div>
+            </div>
+            
+            <!-- COMPARATIVE ANALYSIS -->
+            <div class="section">
+                <h2>🔍 Comparative Analysis: Claude vs Gemini</h2>
+                
+                <div class="comparison-section">
+                    <div class="comparison-box">
+                        <h4>Similarities</h4>
+                        <ul>
+                            <li>Both identified critical auth/authz gaps</li>
+                            <li>Both highlighted data confidentiality risks</li>
+                            <li>Both recognized DoS attack vectors</li>
+                            <li>Both provided severity rankings</li>
+                        </ul>
+                    </div>
+                    <div class="comparison-box">
+                        <h4>Differences</h4>
+                        <ul>
+                            <li>Claude focused on transport-layer security</li>
+                            <li>Gemini emphasized physical/storage attacks</li>
+                            <li>Claude addressed credential lifecycle</li>
+                            <li>Gemini used explicit STRIDE methodology</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h3>Unique Insights</h3>
+                <ul>
+                    <li><strong>Claude:</strong> Certificate private key compromise as persistent threat vector</li>
+                    <li><strong>Gemini:</strong> Cold boot/disk-level attacks bypassing application-level security</li>
+                    <li><strong>Claude:</strong> Connection-level rate limiting recommendations</li>
+                    <li><strong>Gemini:</strong> etcd-native RBAC independent from Kubernetes RBAC</li>
+                </ul>
+            </div>
+            
+            <!-- CONSOLIDATED RANKING -->
+            <div class="section">
+                <h2>📊 Consolidated Threat Ranking</h2>
+                
+                <div class="ranking-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Threat</th>
+                                <th>Severity</th>
+                                <th>Primary Impact</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Unauthenticated API Access</td>
+                                <td><span class="severity critical">CRITICAL</span></td>
+                                <td>Complete cluster compromise</td>
+                                <td>Both</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Rogue Peer Join</td>
+                                <td><span class="severity critical">CRITICAL</span></td>
+                                <td>Full data synchronization</td>
+                                <td>Gemini</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Certificate Key Compromise</td>
+                                <td><span class="severity critical">CRITICAL</span></td>
+                                <td>Persistent unauthorized access</td>
+                                <td>Claude</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Peer Communication MITM</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Data exfiltration / corruption</td>
+                                <td>Claude</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>Plaintext Client Traffic</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Secret exposure</td>
+                                <td>Gemini</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>Cold Boot/Disk Access</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Offline data dump</td>
+                                <td>Gemini</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td>Snapshot Exfiltration</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Portable database copy</td>
+                                <td>Claude</td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td>RBAC Misconfiguration</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Privilege escalation</td>
+                                <td>Gemini</td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td>Resource Exhaustion DoS</td>
+                                <td><span class="severity high">HIGH</span></td>
+                                <td>Control plane outage</td>
+                                <td>Claude</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- MITIGATIONS -->
+            <div class="section">
+                <h2>🛡️ Recommended Mitigations</h2>
+                
+                <div class="mitigation-list">
+                    <div class="mitigation-box">
+                        <h4>🔐 Authentication & Authorization</h4>
+                        <ul>
+                            <li>Enable <code>--client-cert-auth=true</code></li>
+                            <li>Enable <code>--peer-client-cert-auth=true</code></li>
+                            <li>Implement etcd RBAC</li>
+                            <li>Use strong, rotated credentials</li>
+                        </ul>
+                    </div>
+                    <div class="mitigation-box">
+                        <h4>🔒 Encryption</h4>
+                        <ul>
+                            <li>Enforce TLS for all client connections (2379)</li>
+                            <li>Enforce mTLS for peer communication (2380)</li>
+                            <li>Enable encryption at rest</li>
+                            <li>Encrypt snapshots and backups</li>
+                        </ul>
+                    </div>
+                    <div class="mitigation-box">
+                        <h4>🔑 Credential Management</h4>
+                        <ul>
+                            <li>Store keys in HSM or secrets manager</li>
+                            <li>Implement certificate rotation</li>
+                            <li>Audit all certificate access</li>
+                            <li>Use automated cert management tools</li>
+                        </ul>
+                    </div>
+                    <div class="mitigation-box">
+                        <h4>📊 Resource Management</h4>
+                        <ul>
+                            <li>Implement rate limiting</li>
+                            <li>Set appropriate storage quotas</li>
+                            <li>Monitor resource consumption</li>
+                            <li>Set connection limits</li>
+                        </ul>
+                    </div>
+                    <div class="mitigation-box">
+                        <h4>💾 Physical/Storage Security</h4>
+                        <ul>
+                            <li>Encrypt etcd volumes at rest</li>
+                            <li>Restrict physical access to etcd nodes</li>
+                            <li>Use hardware security modules</li>
+                            <li>Implement secure boot and attestation</li>
+                        </ul>
+                    </div>
+                    <div class="mitigation-box">
+                        <h4>🌐 Network Security</h4>
+                        <ul>
+                            <li>Isolate etcd from untrusted networks</li>
+                            <li>Use network policies and firewalls</li>
+                            <li>Disable unnecessary exposure</li>
+                            <li>Monitor network access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KEY FINDINGS -->
+            <div class="section">
+                <h2>📈 Key Findings Summary</h2>
+                
+                <div class="threat-box" style="border-left-color: #667eea;">
+                    <h4>Threats Identified</h4>
+                    <ul>
+                        <li><strong>Total Unique Threats:</strong> 8</li>
+                        <li><strong>Critical Severity:</strong> 3 threats</li>
+                        <li><strong>High Severity:</strong> 5 threats</li>
+                        <li><strong>Medium Severity:</strong> 1 threat</li>
+                    </ul>
+                    
+                    <h4>Primary Control Gaps</h4>
+                    <ul>
+                        <li>Authentication: Unauthenticated access to client and peer ports</li>
+                        <li>Encryption: Plaintext communication and unencrypted data at rest</li>
+                        <li>Credential Management: Private key storage and rotation gaps</li>
+                        <li>Access Control: RBAC misconfiguration and overly broad permissions</li>
+                        <li>Resource Management: Missing rate limiting and quota enforcement</li>
+                        <li>Physical Security: Disk-level data protection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>etcd Threat Modeling Analysis</strong> - February 2, 2026</p>
+            <p>Analysis conducted using Claude and Gemini AI platforms with chain-of-thought reasoning</p>
+            <p>Comprehensive security assessment for Kubernetes etcd deployments</p>
+        </div>
+    </div>
+</body>
+</html>

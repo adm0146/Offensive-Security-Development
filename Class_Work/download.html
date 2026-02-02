@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download - etcd Threat Modeling Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .file-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .file-name {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .file-size {
+            color: #888;
+            font-size: 0.95em;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 50px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: none;
+            margin: 0 10px 15px 10px;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .download-btn.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .download-btn.secondary:hover {
+            background: #f8f9fa;
+        }
+        
+        .features {
+            text-align: left;
+            background: #f0f4ff;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .features h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .features ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+        
+        .features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .footer {
+            color: #888;
+            font-size: 0.9em;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .icon {
+                font-size: 3em;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .download-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📄</div>
+        
+        <h1>Download Your Analysis</h1>
+        
+        <p>Your etcd threat modeling analysis is ready to download in multiple formats.</p>
+        
+        <div class="file-info">
+            <div class="file-name">📊 ETCD_THREAT_MODELING_ANALYSIS.html</div>
+            <div class="file-size">Professional HTML with embedded styling</div>
+        </div>
+        
+        <div class="features">
+            <h3>✨ What's Included</h3>
+            <ul>
+                <li>Complete threat model analysis</li>
+                <li>Claude and Gemini perspectives</li>
+                <li>Comparative analysis summary</li>
+                <li>Threat ranking table</li>
+                <li>Mitigation recommendations</li>
+                <li>Print-ready formatting</li>
+                <li>Professional styling and layout</li>
+            </ul>
+        </div>
+        
+        <div class="button-group">
+            <a href="ETCD_THREAT_MODELING_ANALYSIS.html" download="ETCD_THREAT_MODELING_ANALYSIS.html" class="download-btn">
+                ⬇️ Download HTML
+            </a>
+            <a href="ETCD_THREAT_MODELING_ANALYSIS.html" target="_blank" class="download-btn secondary">
+                👁️ View in Browser
+            </a>
+        </div>
+        
+        <p style="font-size: 0.95em; color: #888; margin-top: 20px;">
+            <strong>Tip:</strong> Click "Download HTML" to save the file. You can also print it to PDF directly from your browser (Cmd+P on Mac).
+        </p>
+        
+        <div class="footer">
+            <p>Assignment: etcd Threat Modeling Analysis</p>
+            <p>Date: February 2, 2026 | Student: Andrew Mullins</p>
+        </div>
+    </div>
+</body>
+</html>
