@@ -15,6 +15,7 @@
 | Tevora | Security Internship | Applied | Feb 2, 2026 | Penetration testing & red teaming focus |
 | CACI | Cybersecurity Internship | Applied | Feb 2, 2026 | Federal contractor, IT and security solutions |
 | Peraton | Cybersecurity Internship | Applied | Feb 2, 2026 | Defense and intelligence contractor, security operations |
+| Leidos | Cybersecurity Internship | Applied | Feb 2, 2026 | DMV-based federal contractor, security engineering |
 
 ---
 
@@ -61,6 +62,15 @@
 - **Materials Submitted:** Resume, LinkedIn Easy Apply statement
 - **Next Steps:** Waiting for recruiter contact
 
+### 6. Leidos
+- **Status:** Applied
+- **Date Applied:** February 2, 2026
+- **Company Type:** Federal Contractor (DMV-based)
+- **Opportunity:** Cybersecurity internship in security engineering
+- **Relevant Experience:** Federal sector, clearance sponsorship pathway
+- **Materials Submitted:** Resume, LinkedIn Easy Apply statement
+- **Next Steps:** Waiting for recruiter contact
+
 ---
 
 ## Key Credentials & Assets
@@ -82,6 +92,7 @@
 | Feb 10, 2026 | Follow-up (if no contact) | Tevora |
 | Feb 10, 2026 | Follow-up (if no contact) | CACI |
 | Feb 10, 2026 | Follow-up (if no contact) | Peraton |
+| Feb 10, 2026 | Follow-up (if no contact) | Leidos |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
