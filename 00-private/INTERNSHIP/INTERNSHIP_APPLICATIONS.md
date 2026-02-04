@@ -10,7 +10,7 @@
 
 | Company | Position | Status | Date Applied | Notes |
 |---------|----------|--------|--------------|-------|
-| Nightwing Cybersecurity | Cybersecurity Internship | In Progress | Feb 2, 2026 | Meeting with General Budifoke tomorrow to discuss opportunity |
+| Nightwing Cybersecurity | Cybersecurity Internship | Applied | Feb 2, 2026 | DMV-based cybersecurity firm, potential clearance sponsorship |
 | General Dynamics | Cybersecurity Internship | Applied | Feb 2, 2026 | Defense contractor, clearance opportunity |
 | Tevora | Security Internship | Applied | Feb 2, 2026 | Penetration testing & red teaming focus |
 | CACI | Cybersecurity Internship | Applied | Feb 2, 2026 | Federal contractor, IT and security solutions |
@@ -30,9 +30,10 @@
 ### 1. Nightwing Cybersecurity
 - **Status:** Applied
 - **Date Applied:** February 2, 2026
-- **Contact:** General Budifoke (dad meeting tomorrow)
-- **Focus:** Cybersecurity internship, potential clearance sponsorship
-- **Next Steps:** Meeting with General Budifoke to discuss opportunity and timeline
+- **Company Type:** DMV-based Cybersecurity Firm
+- **Opportunity:** Cybersecurity internship, potential clearance sponsorship
+- **Materials Submitted:** Resume, LinkedIn Easy Apply statement
+- **Next Steps:** Waiting for recruiter contact
 
 ### 2. General Dynamics
 - **Status:** Applied
@@ -154,7 +155,7 @@
 
 | Date | Action | Company |
 |------|--------|---------|
-| Feb 3, 2026 | Meeting with General Budifoke | Nightwing Cybersecurity |
+| Feb 10, 2026 | Follow-up (if no contact) | Nightwing Cybersecurity |
 | Feb 10, 2026 | Follow-up (if no contact) | General Dynamics |
 | Feb 10, 2026 | Follow-up (if no contact) | Tevora |
 | Feb 10, 2026 | Follow-up (if no contact) | CACI |
@@ -210,7 +211,7 @@
 
 ## Notes
 
-- **HIGHEST PRIORITY:** Budifoke meeting (Nightwing) + Sean Colston network leverage
+- **HIGHEST PRIORITY:** Sean Colston network leverage for financial services sector
 - General Dynamics offers best clearance opportunity for long-term career
 - Tevora provides solid technical experience alignment
 - **NEW:** Financial services sector (Ally, Wells Fargo, First Citizens) via Sean Colston
