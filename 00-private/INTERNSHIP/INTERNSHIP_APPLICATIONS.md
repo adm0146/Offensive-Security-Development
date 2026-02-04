@@ -21,6 +21,7 @@
 | Two Six Technologies | Cybersecurity Internship | Applied | Feb 2, 2026 | DMV-based, advanced security research & development |
 | Ally Financial | Summer 2026 Internship – Technology – Cybersecurity | Applied | Feb 4, 2026 | Charlotte, NC; Financial services, direct cybersecurity track |
 | First Citizens Bank | Corporate Intern - General Bank Risk Management | Applied | Feb 4, 2026 | Raleigh, NC; Financial services, risk management track |
+| Wells Fargo | Early Careers Talent Community | Joined | Feb 4, 2026 | Registered for talent community notifications; searching for specific cybersecurity/technology roles |
 
 ---
 
@@ -127,6 +128,16 @@
 - **Additional Info Statement:** "Computer Science student at Auburn University with hands-on security assessment experience. CompTIA Security+ certified (January 2026) and pursuing the Certified Practical Penetration Tester (CPTS) credential. Applied security knowledge to banking risk scenarios. Portfolio: github.com/adm0146"
 - **Next Steps:** Monitor application status, watch for CISO announcement
 
+### 12. Wells Fargo
+- **Status:** Joined Talent Community
+- **Date Joined:** February 4, 2026
+- **Company Type:** Global Financial Services (Fortune 100)
+- **Program:** Early Careers Talent Community
+- **Opportunity:** Access to internship and entry-level opportunities in technology, cybersecurity, and operations
+- **Strategic Value:** Major financial services institution (aligns with Sean Colston network), robust security operations, strong employer brand
+- **Materials Submitted:** Resume, profile created in talent community portal
+- **Next Steps:** Search portal for specific cybersecurity/technology/operations internship roles and apply to matching positions
+
 ---
 
 ## Key Credentials & Assets
@@ -186,7 +197,7 @@
 **Progress on Recommendations:**
 - ✅ Ally Financial - **Applied (Feb 4, 2026)** to Summer 2026 Internship – Technology – Cybersecurity
 - ✅ First Citizens Bank - **Applied (Feb 4, 2026)** to Corporate Intern - General Bank Risk Management
-- ✅ Wells Fargo Early Careers Program - Registered (Feb 4, 2026)
+- ✅ Wells Fargo - **Joined Early Careers Talent Community (Feb 4, 2026)** - actively searching for internship roles
 - ⏳ Charlotte area companies - Pending research completion
 
 **Next Steps:**
