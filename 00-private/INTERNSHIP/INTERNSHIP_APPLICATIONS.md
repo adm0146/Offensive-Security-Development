@@ -22,6 +22,7 @@
 | Ally Financial | Summer 2026 Internship – Technology – Cybersecurity | Applied | Feb 4, 2026 | Charlotte, NC; Financial services, direct cybersecurity track |
 | First Citizens Bank | Corporate Intern - General Bank Risk Management | Applied | Feb 4, 2026 | Raleigh, NC; Financial services, risk management track |
 | Wells Fargo | Early Careers Talent Community | Joined | Feb 4, 2026 | Registered for talent community notifications; searching for specific cybersecurity/technology roles |
+| Jacobs | Computer Science and Engineering Internship | Applied | Feb 4, 2026 | Chantilly, VA; Engineering & technology focus |
 
 ---
 
@@ -139,6 +140,16 @@
 - **Materials Submitted:** Resume, profile created in talent community portal
 - **Next Steps:** Search portal for specific cybersecurity/technology/operations internship roles and apply to matching positions
 
+### 13. Jacobs
+- **Status:** Applied
+- **Date Applied:** February 4, 2026
+- **Company Type:** Engineering and Technology Services
+- **Position:** Computer Science and Engineering Internship
+- **Location:** Chantilly, VA
+- **Opportunity:** Engineering/technology internship with potential security applications
+- **Materials Submitted:** Resume, application profile
+- **Next Steps:** Monitor application status
+
 ---
 
 ## Key Credentials & Assets
@@ -164,6 +175,9 @@
 | Feb 10, 2026 | Follow-up (if no contact) | Mitre |
 | Feb 10, 2026 | Follow-up (if no contact) | CrowdStrike |
 | Feb 10, 2026 | Follow-up (if no contact) | Two Six Technologies |
+| Feb 10, 2026 | Follow-up (if no contact) | Ally Financial |
+| Feb 10, 2026 | Follow-up (if no contact) | First Citizens Bank |
+| Feb 10, 2026 | Follow-up (if no contact) | Jacobs |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
