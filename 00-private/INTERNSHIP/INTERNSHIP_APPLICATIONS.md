@@ -23,6 +23,7 @@
 | First Citizens Bank | Corporate Intern - General Bank Risk Management | Applied | Feb 4, 2026 | Raleigh, NC; Financial services, risk management track |
 | Wells Fargo | Early Careers Talent Community | Joined | Feb 4, 2026 | Registered for talent community notifications; searching for specific cybersecurity/technology roles |
 | Jacobs | Computer Science and Engineering Internship | Applied | Feb 4, 2026 | Chantilly, VA; Engineering & technology focus |
+| Parsons | Engineering Internship | Applied | Feb 4, 2026 | Herndon, VA; Engineering & technology services |
 
 ---
 
@@ -150,6 +151,16 @@
 - **Materials Submitted:** Resume, application profile
 - **Next Steps:** Monitor application status
 
+### 14. Parsons
+- **Status:** Applied
+- **Date Applied:** February 4, 2026
+- **Company Type:** Engineering and Technology Services
+- **Position:** Engineering Internship
+- **Location:** Herndon, VA
+- **Opportunity:** Engineering internship in technology services
+- **Materials Submitted:** Resume, application profile
+- **Next Steps:** Monitor application status
+
 ---
 
 ## Key Credentials & Assets
@@ -178,6 +189,7 @@
 | Feb 10, 2026 | Follow-up (if no contact) | Ally Financial |
 | Feb 10, 2026 | Follow-up (if no contact) | First Citizens Bank |
 | Feb 10, 2026 | Follow-up (if no contact) | Jacobs |
+| Feb 10, 2026 | Follow-up (if no contact) | Parsons |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
