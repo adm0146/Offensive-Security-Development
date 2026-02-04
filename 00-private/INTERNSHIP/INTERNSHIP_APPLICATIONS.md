@@ -24,6 +24,7 @@
 | Wells Fargo | Early Careers Talent Community | Joined | Feb 4, 2026 | Registered for talent community notifications; searching for specific cybersecurity/technology roles |
 | Jacobs | Computer Science and Engineering Internship | Applied | Feb 4, 2026 | Chantilly, VA; Engineering & technology focus |
 | Parsons | Engineering Internship | Applied | Feb 4, 2026 | Herndon, VA; Engineering & technology services |
+| AWS | Network Development Engineer Intern | Applied | Feb 4, 2026 | Cloud infrastructure & network engineering |
 
 ---
 
@@ -161,6 +162,15 @@
 - **Materials Submitted:** Resume, application profile
 - **Next Steps:** Monitor application status
 
+### 15. AWS
+- **Status:** Applied
+- **Date Applied:** February 4, 2026
+- **Company Type:** Cloud Computing (Amazon Web Services)
+- **Position:** Network Development Engineer Intern
+- **Opportunity:** Cloud infrastructure and network engineering internship
+- **Materials Submitted:** Resume, application profile
+- **Next Steps:** Monitor application status
+
 ---
 
 ## Key Credentials & Assets
@@ -190,6 +200,7 @@
 | Feb 10, 2026 | Follow-up (if no contact) | First Citizens Bank |
 | Feb 10, 2026 | Follow-up (if no contact) | Jacobs |
 | Feb 10, 2026 | Follow-up (if no contact) | Parsons |
+| Feb 10, 2026 | Follow-up (if no contact) | AWS |
 | Apr 1, 2026 | CPTS Exam | - |
 
 ---
