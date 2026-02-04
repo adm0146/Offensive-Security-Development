@@ -20,6 +20,7 @@
 | CrowdStrike | Cybersecurity Internship | Applied | Feb 2, 2026 | Elite threat intelligence & incident response |
 | Two Six Technologies | Cybersecurity Internship | Applied | Feb 2, 2026 | DMV-based, advanced security research & development |
 | Ally Financial | Summer 2026 Internship – Technology – Cybersecurity | Applied | Feb 4, 2026 | Charlotte, NC; Financial services, direct cybersecurity track |
+| First Citizens Bank | Corporate Intern - General Bank Risk Management | Applied | Feb 4, 2026 | Raleigh, NC; Financial services, risk management track |
 
 ---
 
@@ -112,6 +113,20 @@
 - **Materials Submitted:** Resume, application profile
 - **Next Steps:** Monitor application status
 
+### 11. First Citizens Bank
+- **Status:** Applied
+- **Date Applied:** February 4, 2026
+- **Company Type:** Financial Services (Raleigh, NC HQ)
+- **Position:** Corporate Intern - General Bank Risk Management
+- **Requisition:** 2025-31365
+- **Location:** Raleigh, NC
+- **Posted:** October 15, 2025
+- **Opportunity:** Risk management internship at regional banking leader
+- **Strategic Value:** Risk management positioning (security-adjacent), Sean Colston financial services recommendation, monitoring CISO hiring signal
+- **Materials Submitted:** Resume, optimized 600-character risk management statement
+- **Additional Info Statement:** "Computer Science student at Auburn University with hands-on security assessment experience. CompTIA Security+ certified (January 2026) and pursuing the Certified Practical Penetration Tester (CPTS) credential. Applied security knowledge to banking risk scenarios. Portfolio: github.com/adm0146"
+- **Next Steps:** Monitor application status, watch for CISO announcement
+
 ---
 
 ## Key Credentials & Assets
@@ -170,8 +185,8 @@
 
 **Progress on Recommendations:**
 - ✅ Ally Financial - **Applied (Feb 4, 2026)** to Summer 2026 Internship – Technology – Cybersecurity
+- ✅ First Citizens Bank - **Applied (Feb 4, 2026)** to Corporate Intern - General Bank Risk Management
 - ✅ Wells Fargo Early Careers Program - Registered (Feb 4, 2026)
-- 🔄 First Citizens Bank - Monitoring for CISO announcement
 - ⏳ Charlotte area companies - Pending research completion
 
 **Next Steps:**
