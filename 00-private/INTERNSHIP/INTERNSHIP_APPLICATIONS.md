@@ -19,6 +19,7 @@
 | Mitre | Cybersecurity Internship | Applied | Feb 2, 2026 | Federal not-for-profit, systems engineering & cybersecurity |
 | CrowdStrike | Cybersecurity Internship | Applied | Feb 2, 2026 | Elite threat intelligence & incident response |
 | Two Six Technologies | Cybersecurity Internship | Applied | Feb 2, 2026 | DMV-based, advanced security research & development |
+| Ally Financial | Summer 2026 Internship – Technology – Cybersecurity | Applied | Feb 4, 2026 | Charlotte, NC; Financial services, direct cybersecurity track |
 
 ---
 
@@ -101,6 +102,16 @@
 - **Materials Submitted:** Resume, LinkedIn Easy Apply statement
 - **Next Steps:** Waiting for recruiter contact
 
+### 10. Ally Financial
+- **Status:** Applied
+- **Date Applied:** February 4, 2026
+- **Company Type:** Financial Services (Charlotte, NC HQ)
+- **Position:** Summer 2026 Internship – Technology – Cybersecurity
+- **Opportunity:** Direct cybersecurity internship (confirmed available despite earlier research suggesting no roles)
+- **Strategic Value:** Financial services sector (aligns with Sean Colston network), strong employer brand, Fortune 100 Best Companies
+- **Materials Submitted:** Resume, application profile
+- **Next Steps:** Monitor application status
+
 ---
 
 ## Key Credentials & Assets
@@ -158,15 +169,15 @@
 - Potential for referral/recommendation to other institutions
 
 **Progress on Recommendations:**
+- ✅ Ally Financial - **Applied (Feb 4, 2026)** to Summer 2026 Internship – Technology – Cybersecurity
 - ✅ Wells Fargo Early Careers Program - Registered (Feb 4, 2026)
-- 🔄 Ally Financial - Research complete, ready to apply
 - 🔄 First Citizens Bank - Monitoring for CISO announcement
 - ⏳ Charlotte area companies - Pending research completion
 
 **Next Steps:**
 - Search Wells Fargo early careers portal for security/technology internship roles
-- Apply to Ally Financial opportunities (ally.avature.net/careers)
-- Monitor First Citizens Bank CISO hiring
+- Monitor First Citizens Bank for CISO announcement and resulting team expansion
+- Revisit Ally Financial in April/May for spring/summer seasonal hiring
 - Schedule Sean Colston mentoring session for interview prep
 
 ---
