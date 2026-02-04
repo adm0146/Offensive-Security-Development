@@ -1,0 +1,17 @@
+ETCD THREAT MODELING PROMPT
+
+You are a security expert. Identify 5 distinct threat models for etcd (distributed key-value store used in Kubernetes).
+
+For each threat, provide:
+1. Threat Description
+2. Threat Actor
+3. Preconditions
+4. Impact
+5. Post-Conditions
+6. Severity Rank (Critical/High/Medium/Low)
+
+Use chain-of-thought reasoning. Format clearly with headers for each threat.
+
+Context: etcd stores sensitive data (credentials, certificates, cluster state), uses HTTP/gRPC communication, has auth mechanisms.
+
+Generate 5 realistic, technically feasible threats across different attack categories.
