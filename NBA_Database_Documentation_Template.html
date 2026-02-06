@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Database Documentation Template</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #000;
+            background-color: #fff;
+            margin: 40px;
+            line-height: 1.6;
+            max-width: 900px;
+        }
+        h1, h2, h3 {
+            color: #000;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        h3 {
+            font-size: 14px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .table-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .key-columns {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .key-columns strong {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .key-columns ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .key-columns li {
+            margin: 3px 0;
+        }
+        .placeholder {
+            color: #666;
+            font-style: italic;
+        }
+        .notes {
+            margin-top: 50px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #000;
+        }
+        .notes h2 {
+            margin-top: 0;
+        }
+        .query-ideas {
+            margin-top: 50px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 3px solid #000;
+        }
+        .query-ideas h2 {
+            margin-top: 0;
+        }
+        .query-ideas ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .query-ideas li {
+            margin: 8px 0;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+
+<h1>NBA Database Documentation Template</h1>
+
+<h2>PART 1: TABLE DOCUMENTATION</h2>
+
+<!-- TABLE 1 -->
+<div class="table-section">
+    <h3>Table 1: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TABLE 2 -->
+<div class="table-section">
+    <h3>Table 2: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TABLE 3 -->
+<div class="table-section">
+    <h3>Table 3: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TABLE 4 -->
+<div class="table-section">
+    <h3>Table 4: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TABLE 5 -->
+<div class="table-section">
+    <h3>Table 5: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- TABLE 6 -->
+<div class="table-section">
+    <h3>Table 6: [TABLE_NAME]</h3>
+    <p><strong>Purpose:</strong> <span class="placeholder">[Describe what information this table stores and why it's important]</span></p>
+    
+    <div class="key-columns">
+        <strong>Key Columns:</strong>
+        <ul>
+            <li><strong>Primary Key:</strong> <span class="placeholder">[column_name]</span> - <span class="placeholder">[Description of what uniquely identifies each row]</span></li>
+            <li><strong>Foreign Keys:</strong> <span class="placeholder">[list foreign keys and what tables they reference]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Name/Identifier Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+            <li><span class="placeholder">[column_name]</span> (e.g., '<span class="placeholder">[example value]</span>')</li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Data/Stat Columns:</strong>
+        <ul>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+            <li><span class="placeholder">[column_name]</span> - <span class="placeholder">[what this measures/represents]</span></li>
+        </ul>
+    </div>
+
+    <div class="key-columns">
+        <strong>Relationships:</strong>
+        <ul>
+            <li><span class="placeholder">[table_name].[column_name]</span> references <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+            <li><span class="placeholder">[table_name].[column_name]</span> is referenced by <span class="placeholder">[other_table_name].[column_name]</span> to <span class="placeholder">[explain connection]</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- PART 2 -->
+<div class="query-ideas">
+    <h2>PART 2: QUERY IDEAS</h2>
+    <p><strong>Query Ideas for Your Tables:</strong></p>
+    <ul>
+        <li><span class="placeholder">[What question could you answer with Table 1 and Table 2?]</span></li>
+        <li><span class="placeholder">[What question could you answer with Table 3 and Table 4?]</span></li>
+        <li><span class="placeholder">[What question could you answer with Table 5 and Table 6?]</span></li>
+        <li><span class="placeholder">[What aggregate or ranking question could you ask?]</span></li>
+        <li><span class="placeholder">[What comparison question could you ask?]</span></li>
+        <li><span class="placeholder">[What time-based or historical question could you ask?]</span></li>
+    </ul>
+</div>
+
+<div class="notes">
+    <h2>Notes on Documentation Style</h2>
+    <ul>
+        <li>Be specific about relationships - don't just say 'connects to team table', say '<span class="placeholder">[table_name].[column_name]</span> connects to <span class="placeholder">[other_table].[column_name]</span>'</li>
+        <li>For name/identifier columns, give examples of actual values when helpful</li>
+        <li>Explain what data/stat columns measure or represent</li>
+        <li>Think about how you would USE these tables in queries - that will help you identify important columns</li>
+    </ul>
+</div>
+
+</body>
+</html>

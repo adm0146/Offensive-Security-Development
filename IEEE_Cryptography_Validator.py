@@ -1,23 +1,9 @@
-"""
-IEEE Secure Design Principle Validator
-Focus: Use cryptography correctly
-
-Violations checked:
-- Do not use your own cryptographic algorithms or implementations
-- Misuse of libraries and algorithms (e.g., MD5, SHA1)
-- Poor key management
-- Randomness that is not random (fixed ranges, predictable RNG)
-- Failure to allow for algorithm adaptation and evolution
-"""
-
 import yaml
 import json
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 class CryptographyValidator:
-    """Validates YAML user stories against IEEE cryptography principles"""
-    
-    # (T3) Key-value based lookup for violations
+    # Key-value based lookup dictionaries for violation detection
     WEAK_ALGORITHMS = {
         'md5': 'MD5 is cryptographically broken - do not use for security',
         'sha1': 'SHA1 is deprecated - vulnerable to collision attacks',
@@ -60,21 +46,13 @@ class CryptographyValidator:
     ]
     
     def __init__(self):
-        """Initialize the validator"""
+        # Initialize validator instance variables
         self.violations = []
         self.parsed_yaml = None
     
     # (T1) YAML Parser Method
     def parse_yaml(self, yaml_content: str) -> Dict:
-        """
-        Parse YAML content and return structured data
-        
-        Args:
-            yaml_content (str): YAML formatted string
-            
-        Returns:
-            Dict: Parsed YAML content
-        """
+        # Parse YAML content and return structured data
         try:
             self.parsed_yaml = yaml.safe_load(yaml_content)
             return self.parsed_yaml
@@ -84,15 +62,7 @@ class CryptographyValidator:
     
     # (T2) Content Extraction Method for Policy Violations
     def extract_violations(self, parsed_data: Dict) -> List[Dict]:
-        """
-        Extract cryptography-related policy violations from parsed YAML
-        
-        Args:
-            parsed_data (Dict): Parsed YAML content
-            
-        Returns:
-            List[Dict]: List of detected violations with details
-        """
+        # Extract cryptography-related policy violations from parsed YAML
         violations_found = []
         
         if not isinstance(parsed_data, list):
@@ -108,7 +78,6 @@ class CryptographyValidator:
                 
                 value_lower = str(value).lower()
                 
-                # Check for weak algorithms (MD5, SHA1, etc.)
                 for algo, description in self.WEAK_ALGORITHMS.items():
                     if algo in value_lower:
                         violations_found.append({
@@ -120,7 +89,6 @@ class CryptographyValidator:
                             'severity': 'CRITICAL'
                         })
                 
-                # Check for custom cryptographic implementations
                 for indicator in self.CUSTOM_CRYPTO_INDICATORS:
                     if indicator in value_lower:
                         violations_found.append({
@@ -132,7 +100,6 @@ class CryptographyValidator:
                             'severity': 'CRITICAL'
                         })
                 
-                # Check for poor key management
                 for indicator in self.POOR_KEY_MANAGEMENT:
                     if indicator in value_lower:
                         violations_found.append({
@@ -144,7 +111,6 @@ class CryptographyValidator:
                             'severity': 'HIGH'
                         })
                 
-                # Check for weak randomness
                 for indicator in self.WEAK_RANDOMNESS:
                     if indicator in value_lower:
                         violations_found.append({
@@ -156,7 +122,6 @@ class CryptographyValidator:
                             'severity': 'HIGH'
                         })
                 
-                # Check for lack of algorithm evolution/adaptation
                 for indicator in self.NO_EVOLUTION_INDICATORS:
                     if indicator in value_lower:
                         violations_found.append({
@@ -173,20 +138,10 @@ class CryptographyValidator:
     
     # (T3) Key-Value Lookup Method for Violation Detection
     def lookup_violations(self, requirement_key: str, requirement_value: str) -> List[Dict]:
-        """
-        Perform key-value based lookup to determine violations
-        
-        Args:
-            requirement_key (str): The requirement identifier (e.g., 'R1', 'R2')
-            requirement_value (str): The requirement content to analyze
-            
-        Returns:
-            List[Dict]: List of violations found for this requirement
-        """
+        # Perform key-value based lookup to determine violations
         violations_for_requirement = []
         value_lower = str(requirement_value).lower()
         
-        # Lookup in weak algorithms
         for algo_key, algo_description in self.WEAK_ALGORITHMS.items():
             if algo_key in value_lower:
                 violations_for_requirement.append({
@@ -195,7 +150,6 @@ class CryptographyValidator:
                     'recommendation': f'Use modern algorithms. {algo_description}'
                 })
         
-        # Lookup in custom crypto indicators
         for indicator in self.CUSTOM_CRYPTO_INDICATORS:
             if indicator in value_lower:
                 violations_for_requirement.append({
@@ -204,7 +158,6 @@ class CryptographyValidator:
                     'recommendation': 'Use well-tested, standard cryptographic libraries (OpenSSL, libsodium, etc.)'
                 })
         
-        # Lookup in poor key management
         for indicator in self.POOR_KEY_MANAGEMENT:
             if indicator in value_lower:
                 violations_for_requirement.append({
@@ -213,7 +166,6 @@ class CryptographyValidator:
                     'recommendation': 'Implement key rotation, secure storage, and lifecycle management'
                 })
         
-        # Lookup in weak randomness
         for indicator in self.WEAK_RANDOMNESS:
             if indicator in value_lower:
                 violations_for_requirement.append({
@@ -222,7 +174,6 @@ class CryptographyValidator:
                     'recommendation': 'Use cryptographically secure RNG (os.urandom, secrets module, etc.)'
                 })
         
-        # Lookup in no evolution
         for indicator in self.NO_EVOLUTION_INDICATORS:
             if indicator in value_lower:
                 violations_for_requirement.append({
@@ -234,7 +185,7 @@ class CryptographyValidator:
         return violations_for_requirement
     
     def generate_report(self) -> str:
-        """Generate a formatted report of all violations"""
+        # Generate formatted report of all violations
         if not self.violations:
             return "✓ No violations detected!"
         
@@ -243,7 +194,6 @@ class CryptographyValidator:
         report += f"{'='*80}\n\n"
         report += f"Total Violations Found: {len(self.violations)}\n\n"
         
-        # Group by severity
         critical = [v for v in self.violations if v['severity'] == 'CRITICAL']
         high = [v for v in self.violations if v['severity'] == 'HIGH']
         medium = [v for v in self.violations if v['severity'] == 'MEDIUM']
@@ -275,7 +225,7 @@ class CryptographyValidator:
 
 # TEST CASES (T4)
 def run_test_cases():
-    """Run comprehensive test cases for all three methods"""
+    # Execute test suite for all three methods
     
     print("\n" + "="*80)
     print("TEST SUITE: IEEE CRYPTOGRAPHY VALIDATOR")
