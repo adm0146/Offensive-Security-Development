@@ -109,7 +109,7 @@
 
 ### Week 3-4 (Feb 5-18): Easy Tier Continuation
 **Target:** 80 hours, 6-8 Easy machines  
-**Status:** 🔄 IN PROGRESS - 20 hours logged this week  
+**Status:** 🔄 IN PROGRESS - 20/80 hours complete  
 **Modules:** Vulnerability Assessment, Exploitation, Privilege Escalation  
 **Learning Path Status:** Building exploitation chain skills
 
@@ -125,8 +125,8 @@
 | [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Windows enumeration + privesc |
 | [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Service exploitation chain |
 
-**Weekly Summary (Feb 3-7):**
-- Hours Used: 20 / 40 (Week in progress)
+**Weekly Summary (Week 3-4: Feb 5-18):**
+- Hours Used: 20 / 80 (25% through 2-week period)
 - Machines Completed: 1 (ARCHETYPE)
 - On Track: [✅] Yes
 - Progress: Building Easy tier skills
