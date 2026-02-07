@@ -1,30 +1,30 @@
 # CPTS Progress Tracking
 
 **Start Date:** 🚀 **January 22, 2026** (No buffer - straight to labs!)  
-**Current Date:** February 2, 2026  
-**Status Update:** ✅ **11-DAY INTENSIVE SPRINT COMPLETE - 16 BOXES FINISHED**  
+**Current Date:** February 7, 2026  
+**Status Update:** ✅ **21 BOXES COMPLETED - EASY TIER IN PROGRESS**  
 **Target Exam:** April 1-10, 2026  
 **Total Hours Allocated:** 400 (40 hours/week for 10 weeks)  
-**Machines Completed:** 16/30+ ✅ (Foundational tier complete)  
-**Lab Duration:** Jan 22 - April 1 (70 days, 9 days ahead of original plan)  
-**Current Pace:** 1.45 boxes/day average (EXCEPTIONAL)
+**Machines Completed:** 21/30+ ✅ (19 Very Easy + 2 Easy)  
+**Lab Duration:** Jan 22 - April 1 (70 days)  
+**Current Pace:** Accelerating - 21 boxes in 16 days
 
 ---
 
-## 🎯 High-Level Progress Summary (Updated Feb 2)
+## 🎯 High-Level Progress Summary (Updated Feb 7)
 
 | Metric | Target | Completed | Status |
 |--------|--------|-----------|--------|
-| Very Easy Machines | 11 | 16* | ✅ EXCEEDED (foundational + Easy tier started) |
-| Easy Machines | 6-8 | 5+ | ✅ ON TRACK |
-| Medium Machines | 4-5 | 0 | ⏳ Next phase (Feb 5+) |
-| Hard/AD Machines | 5-6 | 0 | ⏳ Advanced phase (Feb 19+) |
-| Total Boxes | 30+ | 16 | ✅ 53% complete (7 weeks remaining) |
-| Writeups Created | 30+ | 16 | ✅ PUBLIC GitHub portfolio |
-| Hours Used | 400 | 55+ | ✅ Tracking well |
-| Days Elapsed | 70 | 11 | ✅ Accelerating pace |
+| Very Easy Machines | 11 | 19 | ✅ EXCEEDED |
+| Easy Machines | 6-8 | 2 | 🔄 IN PROGRESS |
+| Medium Machines | 4-5 | 0 | ⏳ After Easy tier |
+| Hard/AD Machines | 5-6 | 0 | ⏳ Advanced phase |
+| Total Boxes | 30+ | 21 | ✅ 70% complete |
+| Writeups Created | 30+ | 21 | ✅ PUBLIC GitHub portfolio |
+| Hours Used | 400 | 75+ | ✅ Tracking well |
+| Hours This Week | 40 | 20 | 🔄 Week of Feb 3-7 |
 
-**Next Milestone:** February 5 - Resume Easy tier, target 2-3 Medium boxes in Week 3
+**Next Milestone:** February 7-14 - Continue Easy tier, target 4-6 more Easy boxes
 
 ---
 
@@ -107,47 +107,47 @@
 
 ---
 
-### Week 3-4 (Feb 5-18): Intermediate - Ready to Progress
-**Target:** 80 hours, 4-5 Medium machines  
-**Status:** ⏳ After 4-6 Easy boxes completed  
+### Week 3-4 (Feb 5-18): Easy Tier Continuation
+**Target:** 80 hours, 6-8 Easy machines  
+**Status:** 🔄 IN PROGRESS - 20 hours logged this week  
 **Modules:** Vulnerability Assessment, Exploitation, Privilege Escalation  
-**Learning Path Status:** Ready for chained exploitation concepts
+**Learning Path Status:** Building exploitation chain skills
 
-**Box Guidance:** Medium machines introduce complexity - multiple vulnerabilities in sequence, privilege escalation chains, and real-world scenarios. No hints. You'll need to think critically, research techniques, and connect dots. This is where real learning happens.
+**Box Guidance:** Easy machines build on foundational skills with more complex exploitation chains and real privilege escalation. Focus on methodology and documentation.
 
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: Chained vulns (recon → SQLi → privesc) |
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: File upload + execution chain |
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: Complex auth bypass + access control |
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: Kerberos intro / service exploitation |
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: Web logic + privilege escalation |
+| ARCHETYPE | Very Easy | ✅ Complete | Feb 7 | ~3 | SMB enum → MSSQL → xp_cmdshell → WinPEAS → PSExec |
+| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Chained vulns (recon → exploit → privesc) |
+| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Web exploitation + shell access |
+| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Linux privilege escalation |
+| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Windows enumeration + privesc |
+| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Service exploitation chain |
 
-**Weekly Summary:**
-- Hours Used: __ / 80
-- Machines Completed: __ / 4-5
-- On Track: [ ] Yes [ ] No
-- Progress: Should have 4-8 Easy + 4-5 Medium done
+**Weekly Summary (Feb 3-7):**
+- Hours Used: 20 / 40 (Week in progress)
+- Machines Completed: 1 (ARCHETYPE)
+- On Track: [✅] Yes
+- Progress: Building Easy tier skills
 
 ---
 
-### Week 5-6 (Feb 19-Mar 4): Advanced
-**Target:** 80 hours, 5-6 Medium/Hard machines  
-**Status:** ⏳ Mid-progression, building advanced skills  
+### Week 5-6 (Feb 19-Mar 4): Easy/Medium Transition
+**Target:** 80 hours, 4-6 Easy + 2-3 Medium machines  
+**Status:** ⏳ Upcoming - continue Easy, start Medium  
 **Modules:** Privilege Escalation (Linux/Windows), Post-Exploitation  
-**Learning Path Status:** All modules internalized, focusing on technique combinations
+**Learning Path Status:** Mastering Easy tier, preparing for Medium
 
-**Box Guidance:** Hard machines emphasize privilege escalation chains, post-exploitation, and real-world complexity. Focus on privilege escalation paths (kernel exploits, configuration issues, credential reuse). Start seeing patterns from Easy/Medium boxes.
+**Box Guidance:** Complete Easy tier mastery before transitioning to Medium. Medium boxes emphasize privilege escalation chains, post-exploitation, and real-world complexity.
 
 | Machine | Difficulty | Status | Date | Hours | Notes |
 |---------|-----------|--------|------|-------|-------|
-| [Name] | Medium | ⬜ Not Started | - | - | Focus: Linux privilege escalation |
-| [Name] | Hard | ⬜ Not Started | - | - | Focus: Windows privilege escalation |
-| [Name] | Hard | ⬜ Not Started | - | - | Focus: Post-exploitation + persistence |
-| [Name] | Hard | ⬜ Not Started | - | - | Focus: Complex exploitation chain |
-| [Name] | Hard | ⬜ Not Started | - | - | Focus: Advanced web + system interaction |
-| [Name] | Hard | ⬜ Not Started | - | - | Focus: Multi-step privilege escalation |
+| [Name] | Easy | ⬜ Not Started | - | - | Focus: Linux privilege escalation |
+| [Name] | Easy | ⬜ Not Started | - | - | Focus: Windows privilege escalation |
+| [Name] | Easy | ⬜ Not Started | - | - | Focus: Web + system interaction |
+| [Name] | Medium | ⬜ Not Started | - | - | Focus: Complex exploitation chain |
+| [Name] | Medium | ⬜ Not Started | - | - | Focus: Multi-step privilege escalation |
 
 **Weekly Summary:**
 - Hours Used: __ / 80
