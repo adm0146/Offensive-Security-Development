@@ -878,6 +878,74 @@ sudo nmap 10.129.2.28 -p- -sV -sC -O
 
 ---
 
+## Practical Examples
+
+### Example 1: TCP Connect Scan (-sT)
+```bash
+nmap -sT -oA tcp_connect 10.129.34.15
+```
+
+**Output:**
+```
+# Nmap 7.98 scan initiated Mon Feb  9 15:16:49 2026 as: /usr/lib/nmap/nmap -sT -oA tcp_connect 10.129.34.15
+Nmap scan report for 10.129.34.15
+Host is up (0.059s latency).
+Not shown: 993 closed tcp ports (conn-refused)
+PORT      STATE SERVICE
+22/tcp    open  ssh
+80/tcp    open  http
+110/tcp   open  pop3
+139/tcp   open  netbios-ssn
+143/tcp   open  imap
+445/tcp   open  microsoft-ds
+31337/tcp open  Elite
+
+# Nmap done at Mon Feb  9 15:16:51 2026 -- 1 IP address (1 host up) scanned in 1.60 seconds
+```
+
+**Analysis:**
+- 7 open ports identified via full TCP handshake
+- Fast scan (1.60s) showing services: SSH, HTTP, POP3, NetBIOS, IMAP, SMB, and unknown service on 31337
+- No version information (need -sV for service detection)
+
+### Example 2: Service Detection (-sV)
+```bash
+nmap --privileged -sT -Pn -sV -oA host_discovery 10.129.34.15
+```
+
+**Output:**
+```
+# Nmap 7.98 scan initiated Mon Feb  9 15:17:21 2026 as: /usr/lib/nmap/nmap --privileged -sT -Pn -sV -oA host_discovery 10.129.34.15
+Nmap scan report for 10.129.34.15
+Host is up (0.064s latency).
+Not shown: 993 closed tcp ports (conn-refused)
+PORT      STATE SERVICE     VERSION
+22/tcp    open  ssh         OpenSSH 7.6p1 Ubuntu 4ubuntu0.7 (Ubuntu Linux; protocol 2.0)
+80/tcp    open  http        Apache httpd 2.4.29 ((Ubuntu))
+110/tcp   open  pop3        Dovecot pop3d
+139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+143/tcp   open  imap        Dovecot imapd (Ubuntu)
+445/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+31337/tcp open  Elite?
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nma>
+SF-Port31337-TCP:V=7.98%I=7%D=2/9%Time=698A4EE9%P=aarch64-unknown-linux-gn
+SF:u%r(GetRequest,1F,"220\x20HTB{pr0F7pDv3r510nb4nn3r}\r\n");
+Service Info: Host: NIX-NMAP-DEFAULT; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Mon Feb  9 15:19:57 2026 -- 1 IP address (1 host up) scanned in 155.93 seconds
+```
+
+**Analysis:**
+- Service detection adds detailed version information (155.93s vs 1.60s)
+- Identified OS: Linux with specific service versions
+- Port 31337 returns banner with HTB flag pattern: `HTB{pr0F7pDv3r510nb4nn3r}`
+- Service fingerprinting useful for CVE research and vulnerability assessment
+- Samba on ports 139 and 445 indicates Windows filesharing capability
+- OpenSSH, Apache, and Dovecot versions suggest older Ubuntu system
+
+---
+
 ## Next Steps
 
 - [NSE Scripts](NSE_Scripts.md) - Automate service enumeration with scripts
