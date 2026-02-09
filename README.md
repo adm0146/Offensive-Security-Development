@@ -55,6 +55,7 @@ Cybersecurity_Professional_Development/
 │       │   │   └── Types_of_Shells.md
 │       │   │
 │       │   └── Network_Enumeration_With_Nmap/
+│       │       ├── Host_Discovery.md
 │       │       └── Host_and_Port_Scanning.md ← Quick ref + detailed sections
 │       │
 │       ├── CPTS_PROGRESS.md           # CPTS lab tracking
