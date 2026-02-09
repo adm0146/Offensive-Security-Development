@@ -107,29 +107,38 @@
 
 ---
 
-### Week 3-4 (Feb 5-18): Easy Tier Continuation
-**Target:** 80 hours, 6-8 Easy machines  
+### Week 3-4 (Feb 5-18): Academy Modules + Easy Tier Practice
+**Target:** 80 hours total (50 modules + 30 boxes)  
 **Status:** 🔄 IN PROGRESS - 20/80 hours complete  
-**Modules:** Vulnerability Assessment, Exploitation, Privilege Escalation  
-**Learning Path Status:** Building exploitation chain skills
+**Strategy:** Daytime: Academy modules | Evening: Retired Easy boxes for reinforcement  
+**Current Module:** Network Enumeration with Nmap (Started Feb 9)  
+**Learning Path Status:** Building scanning & enumeration foundation through modules, practicing with boxes
 
-**Box Guidance:** Easy machines build on foundational skills with more complex exploitation chains and real privilege escalation. Focus on methodology and documentation.
+**Module Guidance:** Network Enumeration is critical for CPTS. Focus on Nmap fundamentals, service detection, OS fingerprinting, and timing options. Apply each module concept immediately to evening boxes.
 
+**Academy Modules This Week:**
+| Module | Status | Date Started | Hours | Key Topics | Notes |
+|--------|--------|--------------|-------|-----------|-------|
+| Network Enumeration with Nmap | 🔄 In Progress | Feb 9 | -- | Basic nmap, service detection, timing, output formats | Foundational tool mastery |
+| [Next Module] | ⬜ Not Started | - | - | - | Plan to start after Nmap |
+| [Next Module] | ⬜ Not Started | - | - | - | Build scanning & exploitation foundation |
 
-| Machine | Difficulty | Status | Date | Hours | Notes |
-|---------|-----------|--------|------|-------|-------|
-| ARCHETYPE | Very Easy | ✅ Complete | Feb 7 | ~3 | SMB enum → MSSQL → xp_cmdshell → WinPEAS → PSExec |
-| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Chained vulns (recon → exploit → privesc) |
-| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Web exploitation + shell access |
-| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Linux privilege escalation |
-| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Windows enumeration + privesc |
-| [Next Box] | Easy | ⬜ Not Started | - | - | Focus: Service exploitation chain |
+**Evening Box Practice:**
+| Machine | Difficulty | Status | Date | Hours | Focus | Notes |
+|---------|-----------|--------|------|-------|-------|-------|
+| ARCHETYPE | Very Easy | ✅ Complete | Feb 7 | ~3 | SMB enum → MSSQL → xp_cmdshell → WinPEAS → PSExec | Lab Foundation |
+| [Easy Box] | Easy | ⬜ Not Started | - | - | Apply Nmap to web box | Reinforce scanning |
+| [Easy Box] | Easy | ⬜ Not Started | - | - | Apply Nmap to system enum | Practice service detection |
+| [Easy Box] | Easy | ⬜ Not Started | - | - | Chained exploitation | Real-world scenario |
+| [Easy Box] | Easy | ⬜ Not Started | - | - | Privilege escalation chain | Post-exploit focus |
 
 **Weekly Summary (Week 3-4: Feb 5-18):**
 - Hours Used: 20 / 80 (25% through 2-week period)
-- Machines Completed: 1 (ARCHETYPE)
+- Academy Modules: 1 in progress (Nmap)
+- Boxes Completed: 1 (ARCHETYPE)
 - On Track: [✅] Yes
-- Progress: Building Easy tier skills
+- Strategy: Theory → Practice = Better retention
+- Progress: Building enumeration foundation
 
 ---
 
