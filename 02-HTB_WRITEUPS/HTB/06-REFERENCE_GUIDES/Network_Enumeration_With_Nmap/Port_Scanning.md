@@ -419,9 +419,317 @@ PORT    STATE    SERVICE
 
 ---
 
+## UDP Port Scanning (-sU)
+
+### Overview
+
+UDP is a **stateless protocol** that doesn't require a three-way handshake like TCP. This fundamental difference makes UDP scanning very different from TCP scanning.
+
+### Key Differences: UDP vs TCP Scanning
+
+| Aspect | TCP | UDP |
+|--------|-----|-----|
+| **Handshake** | 3-way (SYN, SYN-ACK, ACK) | Connectionless (no handshake) |
+| **Acknowledgment** | Explicit ACK received | No acknowledgment |
+| **Timeout** | Fast (~0.05s per port) | Much longer (1-2s per port) |
+| **Speed** | Quick scans | Very slow scans |
+| **Response** | Always expected | Often no response |
+| **Reliability** | Reliable delivery | Best-effort delivery |
+
+### Why UDP Scans are Slow
+
+1. **No acknowledgment** - Can't confirm packet arrival
+2. **Longer timeouts** - Wait longer for potential responses
+3. **Unreliable protocol** - Packets may be silently dropped
+4. **Application-dependent** - Only get response if app is configured to respond
+
+### Full UDP Fast Scan
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -F -sU
+```
+
+**Options Explained:**
+| Option | Purpose |
+|--------|---------|
+| `-F` | Fast scan (top 100 ports) |
+| `-sU` | UDP scan |
+
+**Sample Output:**
+```
+Not shown: 95 closed ports
+PORT     STATE         SERVICE
+68/udp   open|filtered dhcpc
+137/udp  open          netbios-ns
+138/udp  open|filtered netbios-dgm
+631/udp  open|filtered ipp
+5353/udp open          zeroconf
+
+Nmap done: 1 IP address (1 host up) scanned in 98.07 seconds.
+```
+
+**Key Observation:** Scan took **98 seconds** for only 100 ports (very slow!)
+
+### UDP Port States and Responses
+
+#### Open UDP Port (Response Received)
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 137 --reason
+```
+
+**Options Explained:**
+| Option | Purpose |
+|--------|---------|
+| `-sU` | UDP scan |
+| `-Pn` | Skip ping |
+| `-n` | No DNS resolution |
+| `--disable-arp-ping` | Disable ARP ping |
+| `--packet-trace` | Show packets |
+| `-p 137` | Scan port 137 (NetBIOS) |
+| `--reason` | Show detection reason |
+
+**Packet Trace:**
+```
+SENT (0.0367s) UDP 10.10.14.2:55478 > 10.129.2.28:137 ttl=57 id=9122 iplen=78
+RCVD (0.0398s) UDP 10.129.2.28:137 > 10.10.14.2:55478 ttl=64 id=13222 iplen=257
+```
+
+**Output:**
+```
+PORT    STATE SERVICE    REASON
+137/udp open  netbios-ns udp-response ttl 64
+```
+
+**Analysis:**
+- ✅ Nmap sends UDP packet (empty datagram)
+- ✅ Application responds with data
+- ✅ Port marked as **OPEN**
+- ✅ **REASON:** `udp-response` (got UDP response back)
+
+---
+
+#### Closed UDP Port (ICMP Error)
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 100 --reason
+```
+
+**Packet Trace:**
+```
+SENT (0.0445s) UDP 10.10.14.2:63825 > 10.129.2.28:100 ttl=57 id=29925 iplen=28
+RCVD (0.1498s) ICMP [10.129.2.28 > 10.10.14.2 Port unreachable (type=3/code=3)] IP [ttl=64 id=11903 iplen=56]
+```
+
+**Output:**
+```
+PORT    STATE  SERVICE REASON
+100/udp closed unknown port-unreach ttl 64
+```
+
+**Analysis:**
+- Nmap sends UDP packet to port 100
+- Receives **ICMP type 3, code 3** (Port Unreachable)
+- Port marked as **CLOSED**
+- **REASON:** `port-unreach` (ICMP error received)
+
+---
+
+#### Open|Filtered UDP Port (No Response)
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 138 --reason
+```
+
+**Packet Trace:**
+```
+SENT (0.0380s) UDP 10.10.14.2:52341 > 10.129.2.28:138 ttl=50 id=65159 iplen=28
+SENT (1.0392s) UDP 10.10.14.2:52342 > 10.129.2.28:138 ttl=40 id=24444 iplen=28
+```
+
+**Output:**
+```
+PORT    STATE         SERVICE     REASON
+138/udp open|filtered netbios-dgm no-response
+```
+
+**Analysis:**
+- Nmap sends UDP packet to port 138
+- **No response** received (silence)
+- Retries after ~1 second
+- Port marked as **OPEN|FILTERED**
+- **REASON:** `no-response` (firewall or no app listening)
+- **Scan duration:** ~2.06 seconds (includes retry timeout)
+
+### UDP Port State Summary
+
+| State | Trigger | Meaning |
+|-------|---------|---------|
+| **open** | UDP response received | Application is listening and responds |
+| **closed** | ICMP type 3 error | Port accessible but no service |
+| **open\|filtered** | No response (timeout) | Either filtered by firewall OR no app response |
+
+### Why UDP Scans are Problematic
+
+❌ **Can't distinguish between:** Open port with silent app vs. Filtered port  
+❌ **Very slow** - Default timeout ~1 second per port  
+❌ **Empty datagrams** - Often no response even if port open  
+❌ **App-dependent** - Only responds if configured to do so  
+❌ **Firewall bypass needed** - Many firewalls drop UDP silently  
+
+### When to Use UDP Scanning
+
+✅ Looking for DNS (port 53)  
+✅ Looking for SNMP (port 161)  
+✅ Looking for DHCP (port 67/68)  
+✅ Looking for NTP (port 123)  
+✅ Looking for specific UDP services  
+
+---
+
+## Service Detection Scanning (-sV)
+
+### Overview
+
+The `-sV` option performs **service version detection** on open ports. It sends application-specific probes and analyzes responses to identify:
+- Service names
+- Service versions
+- Configuration details
+- Operating system
+
+### How Service Detection Works
+
+1. **Connects** to open port (establishes TCP connection)
+2. **Sends probes** - Application-specific payloads (e.g., SMB, SSH, HTTP)
+3. **Analyzes response** - Matches against service signatures database
+4. **Identifies service** - Returns service name, version, details
+
+### Service Detection Example
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -Pn -n --disable-arp-ping --packet-trace -p 445 --reason -sV
+```
+
+**Options Explained:**
+| Option | Purpose |
+|--------|---------|
+| `-Pn` | Skip ping |
+| `-n` | No DNS |
+| `--disable-arp-ping` | Disable ARP |
+| `--packet-trace` | Show packets |
+| `-p 445` | Port 445 only |
+| `--reason` | Show reason |
+| `-sV` | Service version detection |
+
+### Service Detection Packet Sequence
+
+**Phase 1: TCP Connection**
+```
+SENT (0.3426s) TCP 10.10.14.2:44641 > 10.129.2.28:445 S ...
+RCVD (0.3556s) TCP 10.129.2.28:445 > 10.10.14.2:44641 SA ...
+```
+- Establishes connection with SYN-ACK
+
+**Phase 2: Probe Sending**
+```
+NSOCK INFO [0.5130s] nsock_connect_tcp(): TCP connection requested to 10.129.2.28:445
+NSOCK INFO [0.5130s] Service scan sending probe NULL to 10.129.2.28:445 (tcp)
+NSOCK INFO [6.5190s] Service scan sending probe SMBProgNeg to 10.129.2.28:445 (tcp)
+```
+- Sends NULL probe (waits for response)
+- Sends SMBProgNeg probe (SMB-specific)
+
+**Phase 3: Response Analysis**
+```
+NSOCK INFO [6.5320s] Service scan match (Probe SMBProgNeg matched with SMBProgNeg line 13836): 
+10.129.2.28:445 is netbios-ssn
+Version: |Samba smbd|3.X - 4.X|workgroup: WORKGROUP|
+```
+- Identifies SMB response
+- Determines Samba version 3.X - 4.X
+
+### Service Detection Output
+
+```
+PORT    STATE SERVICE     REASON         VERSION
+445/tcp open  netbios-ssn syn-ack ttl 63 Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+Service Info: Host: Ubuntu
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/
+```
+
+**Key Information Extracted:**
+- **Port:** 445/tcp
+- **State:** open
+- **Service:** netbios-ssn (SMB)
+- **Version:** Samba 3.X - 4.X
+- **Workgroup:** WORKGROUP
+- **OS Hint:** Ubuntu
+
+### Service Detection Timing
+
+- **Fast scans** (open ports): ~6-10 seconds
+- **Probe matching**: Varies by service complexity
+- **Multiple probes**: Several attempts per port
+- **Full scan** (20 ports): ~30-60 seconds
+
+### Common Service Probes
+
+| Service | Port | Probe Type | Information |
+|---------|------|-----------|-------------|
+| SSH | 22 | Banner grab | SSH version, OS |
+| HTTP | 80 | HTTP request | Web server, version |
+| HTTPS | 443 | TLS handshake | Certificate, server |
+| SMTP | 25 | SMTP commands | Mail server, version |
+| SMB | 445 | SMB negotiation | Samba/Windows version |
+| DNS | 53 | DNS query | DNS server version |
+| FTP | 21 | FTP banner | FTP server, version |
+
+---
+
+## Combining Scans: Full Reconnaissance
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -p- -sV -sC -O
+```
+
+**Options:**
+| Option | Purpose |
+|--------|---------|
+| `-p-` | All ports |
+| `-sV` | Service version detection |
+| `-sC` | NSE scripts (default safe) |
+| `-O` | OS detection |
+
+**What This Does:**
+1. Scans all 65,535 TCP ports
+2. Detects services and versions on open ports
+3. Runs safe default NSE scripts
+4. Attempts OS fingerprinting
+5. Provides comprehensive target profile
+
+---
+
+## Key Takeaways
+
+✅ **UDP scans are SLOW** - Expect 1+ second per port  
+✅ **No responses don't mean closed** - Could be filtered or silent app  
+✅ **Service detection (-sV) is powerful** - Reveals version info for exploitation  
+✅ **Probe matching** - Nmap has signature database for services  
+✅ **Scan duration scales** - More ports = exponentially longer (especially UDP)  
+✅ **UDP useful for specific services** - DNS, SNMP, DHCP, NTP  
+✅ **Combine techniques** - Use TCP for broad scan, UDP for specific services  
+
+---
+
 ## Next Steps
 
-- [Service Detection](Service_Detection.md) - Determine service versions on open ports
 - [NSE Scripts](NSE_Scripts.md) - Automate service enumeration with scripts
 - [Firewall/IDS Evasion](Firewall_IDS_Evasion.md) - Bypass filtering to discover hidden ports
 
