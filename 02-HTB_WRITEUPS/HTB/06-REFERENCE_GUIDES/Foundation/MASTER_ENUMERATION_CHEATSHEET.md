@@ -1,8 +1,82 @@
 # 🎯 MASTER ENUMERATION CHEAT SHEET
 
 **Author:** Andrew Mullins  
-**Last Updated:** February 7, 2026  
+**Last Updated:** February 9, 2026  
 **Purpose:** Systematic approach for every new box
+
+---
+
+## 🚀 NMAP SCANNING METHODS - Quick Reference
+
+### Host Discovery Scans
+
+**Network Range Reconnaissance**
+```bash
+sudo nmap 10.129.2.0/24 -sn -oA network_scan
+```
+Discovers all active hosts on a network subnet to identify potential targets.
+
+**Scan from IP List**
+```bash
+sudo nmap -sn -oA ip_list_scan -iL hosts.txt
+```
+Tests multiple targets from a file for quick online/offline status check.
+
+**Specific Port Range with Version Detection**
+```bash
+sudo nmap 10.129.2.28 --top-ports=20 -sV -oA quick_enum
+```
+Fast scan of 20 most common ports with service version identification.
+
+---
+
+### Port Scanning Methods
+
+**SYN Stealth Scan (Default - Root Only)**
+```bash
+sudo nmap 10.129.2.28 -sS -p- -oA syn_full_scan
+```
+Half-open TCP scan that doesn't complete handshake; faster and stealthier than Connect scan.
+
+**TCP Connect Scan (Non-Root User)**
+```bash
+sudo nmap 10.129.2.28 -sT -p- -oA tcp_connect_scan
+```
+Full TCP three-way handshake; more reliable but easily logged by IDS/IPS systems.
+
+**UDP Port Scan**
+```bash
+sudo nmap 10.129.2.28 -sU -F -oA udp_scan
+```
+Identifies open UDP services like DNS, SNMP, DHCP; much slower than TCP due to stateless protocol.
+
+**All Ports Comprehensive Scan**
+```bash
+sudo nmap 10.129.2.28 -p- -sV -sC -oA comprehensive
+```
+Complete enumeration of all 65,535 ports with version detection and default NSE scripts.
+
+---
+
+### Advanced Enumeration Techniques
+
+**Service Version Detection**
+```bash
+sudo nmap 10.129.2.28 -sV -oA service_versions
+```
+Probes open ports to identify service names, versions, and configuration details for CVE research.
+
+**Packet-Level Analysis**
+```bash
+sudo nmap 10.129.2.28 -p 445 -Pn -n --disable-arp-ping --packet-trace --reason -oA packet_analysis
+```
+Shows every packet sent/received; reveals firewall behavior and exact port state determination method.
+
+**Default Port Detection**
+```bash
+sudo nmap 10.129.2.28 -F -sV -oA fast_services
+```
+Quick scan of top 100 ports with service identification; good for initial reconnaissance.
 
 ---
 
