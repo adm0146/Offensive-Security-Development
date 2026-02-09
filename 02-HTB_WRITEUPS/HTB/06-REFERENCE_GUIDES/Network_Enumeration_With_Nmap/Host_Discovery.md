@@ -188,6 +188,29 @@ sudo nmap 10.129.2.18 -sn -oA host -PE --packet-trace --disable-arp-ping
             # - tnet.gnmap (greppable format for filtering)
 ```
 
+### Naming Convention & Custom Filenames
+
+**Important:** You can name the output files whatever you want! Use descriptive names to avoid accidentally overwriting previous scans.
+
+**Good Examples:**
+```bash
+sudo nmap 10.129.2.18 -sn -oA my_awesome_scan
+# Creates: my_awesome_scan.nmap, my_awesome_scan.xml, my_awesome_scan.gnmap
+
+sudo nmap 10.129.2.0/24 -sn -oA subnet_reconnaissance_feb9
+# Creates: subnet_reconnaissance_feb9.nmap, subnet_reconnaissance_feb9.xml, subnet_reconnaissance_feb9.gnmap
+
+sudo nmap 10.129.2.18 -sV -oA detailed_service_scan_target1
+# Creates: detailed_service_scan_target1.nmap, detailed_service_scan_target1.xml, detailed_service_scan_target1.gnmap
+```
+
+**Best Practice:**
+- Use descriptive filenames that include:
+  - Target identifier (IP, subnet, or hostname)
+  - Scan type (reconnaissance, detailed, service-detection)
+  - Date or chronological order (optional but helpful)
+- Example pattern: `[target]_[scantype]_[date].nmap`
+
 **Parsing Output Examples:**
 
 Extract only IPs from greppable output:
