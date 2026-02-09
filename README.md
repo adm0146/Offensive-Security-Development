@@ -44,14 +44,18 @@ Cybersecurity_Professional_Development/
 │       │   └── GETTING_STARTED_Easy.md
 │       │
 │       ├── 06-REFERENCE_GUIDES/       # Methodology & technique guides
-│       │   ├── MASTER_ENUMERATION_CHEATSHEET.md ← NEW (Feb 7)
-│       │   ├── Enumeration_Process.md
-│       │   ├── Service_Scanning_Enumeration.md
-│       │   ├── Web_Enumeration.md
-│       │   ├── File_Transfer.md
-│       │   ├── Privilege_Escalation.md
-│       │   ├── Public_Exploits.md
-│       │   └── Types_of_Shells.md
+│       │   ├── Foundation/
+│       │   │   ├── MASTER_ENUMERATION_CHEATSHEET.md
+│       │   │   ├── Enumeration_Process.md
+│       │   │   ├── Service_Scanning_Enumeration.md
+│       │   │   ├── Web_Enumeration.md
+│       │   │   ├── File_Transfer.md
+│       │   │   ├── Privilege_Escalation.md
+│       │   │   ├── Public_Exploits.md
+│       │   │   └── Types_of_Shells.md
+│       │   │
+│       │   └── Network_Enumeration_With_Nmap/  ← NEW (Feb 9)
+│       │       └── Host_Discovery.md
 │       │
 │       ├── CPTS_PROGRESS.md           # CPTS lab tracking
 │       └── README.md                  # HTB progress overview
@@ -91,7 +95,7 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Current Progress (February 7, 2026)
+## Current Progress (February 9, 2026)
 
 ### 📊 Overall Stats
 
@@ -100,7 +104,8 @@ Cybersecurity_Professional_Development/
 | Security+ | ✅ Complete | 768/900 (85.3%) |
 | Very Easy Boxes | ✅ Complete | 19/19 |
 | Easy Boxes | 🔄 In Progress | 2 completed |
-| Reference Guides | ✅ Complete | 8 guides |
+| Academy Modules | 🔄 In Progress | Nmap Host Discovery ✅ |
+| Reference Guides | ✅ Complete | 8 foundation + modules |
 | **Total Boxes** | **21** | |
 
 ---
@@ -140,18 +145,33 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Reference Guides
+## Reference Guides & Learning Modules
 
-| Guide | Description |
-|-------|-------------|
-| **MASTER_ENUMERATION_CHEATSHEET.md** | 🆕 Complete flowchart & methodology for every box |
-| Enumeration_Process.md | Systematic enumeration approach |
-| Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP commands |
-| Web_Enumeration.md | HTTP/HTTPS, directory brute, source analysis |
-| File_Transfer.md | wget, curl, SCP, Base64 methods |
-| Privilege_Escalation.md | Linux & Windows privesc techniques |
-| Public_Exploits.md | Finding and using public exploits |
-| Types_of_Shells.md | Reverse, bind, web shells |
+### Foundation Guides
+Core reference materials covering essential pentesting techniques.
+
+| Guide | Description | Location |
+|-------|-------------|----------|
+| **MASTER_ENUMERATION_CHEATSHEET.md** | Complete flowchart & decision tree for box methodology | Foundation/ |
+| Enumeration_Process.md | Systematic 5-phase enumeration approach | Foundation/ |
+| Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP service enumeration | Foundation/ |
+| Web_Enumeration.md | HTTP/HTTPS, directory brute, technology fingerprinting | Foundation/ |
+| File_Transfer.md | wget, curl, SCP, Base64, SMB transfer methods | Foundation/ |
+| Privilege_Escalation.md | Linux & Windows privilege escalation techniques | Foundation/ |
+| Public_Exploits.md | Finding, evaluating, and using public CVE exploits | Foundation/ |
+| Types_of_Shells.md | Comprehensive guide to all shell types | Foundation/ |
+
+### Academy Learning Modules
+Detailed notes from CPTS Academy modules organized by topic.
+
+**Network Enumeration with Nmap** (In Progress)
+| Section | Description | Status |
+|---------|-------------|--------|
+| [Host_Discovery.md](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_Discovery.md) | Host discovery methods (ICMP, ARP, network ranges) | ✅ Complete |
+| Port_Scanning.md | Port scanning techniques and options | ⏳ Coming |
+| Service_Detection.md | Service version detection and OS fingerprinting | ⏳ Coming |
+| NSE_Scripts.md | Nmap Scripting Engine usage and examples | ⏳ Coming |
+| Firewall_IDS_Evasion.md | Bypassing firewalls and IDS detection | ⏳ Coming |
 
 ---
 
@@ -208,4 +228,4 @@ Cybersecurity_Professional_Development/
 
 ---
 
-**Last Updated:** February 7, 2026
+**Last Updated:** February 9, 2026
