@@ -44,8 +44,8 @@ Cybersecurity_Professional_Development/
 │       │   └── GETTING_STARTED_Easy.md
 │       │
 │       ├── 06-REFERENCE_GUIDES/       # Methodology & technique guides
+│       │   ├── MASTER_ENUMERATION_CHEATSHEET.md ← Master flowchart + all scans
 │       │   ├── Foundation/
-│       │   │   ├── MASTER_ENUMERATION_CHEATSHEET.md
 │       │   │   ├── Enumeration_Process.md
 │       │   │   ├── Service_Scanning_Enumeration.md
 │       │   │   ├── Web_Enumeration.md
@@ -54,8 +54,8 @@ Cybersecurity_Professional_Development/
 │       │   │   ├── Public_Exploits.md
 │       │   │   └── Types_of_Shells.md
 │       │   │
-│       │   └── Network_Enumeration_With_Nmap/  ← NEW (Feb 9)
-│       │       └── Host_Discovery.md
+│       │   └── Network_Enumeration_With_Nmap/
+│       │       └── Host_and_Port_Scanning.md ← Quick ref + detailed sections
 │       │
 │       ├── CPTS_PROGRESS.md           # CPTS lab tracking
 │       └── README.md                  # HTB progress overview
@@ -104,7 +104,7 @@ Cybersecurity_Professional_Development/
 | Security+ | ✅ Complete | 768/900 (85.3%) |
 | Very Easy Boxes | ✅ Complete | 19/19 |
 | Easy Boxes | 🔄 In Progress | 2 completed |
-| Academy Modules | 🔄 In Progress | Nmap Host Discovery ✅ |
+| Academy Modules | 🔄 In Progress | Nmap Host & Port Scanning ✅ |
 | Reference Guides | ✅ Complete | 8 foundation + modules |
 | **Total Boxes** | **21** | |
 
@@ -147,12 +147,18 @@ Cybersecurity_Professional_Development/
 
 ## Reference Guides & Learning Modules
 
+### Master Enumeration Reference
+The central guide for all pentesting enumeration approaches.
+
+| Guide | Description | Location |
+|-------|-------------|----------|
+| **MASTER_ENUMERATION_CHEATSHEET.md** | Complete flowchart, Nmap scanning methods, service-specific enumeration | Top level |
+
 ### Foundation Guides
 Core reference materials covering essential pentesting techniques.
 
 | Guide | Description | Location |
 |-------|-------------|----------|
-| **MASTER_ENUMERATION_CHEATSHEET.md** | Complete flowchart & decision tree for box methodology | Foundation/ |
 | Enumeration_Process.md | Systematic 5-phase enumeration approach | Foundation/ |
 | Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP service enumeration | Foundation/ |
 | Web_Enumeration.md | HTTP/HTTPS, directory brute, technology fingerprinting | Foundation/ |
@@ -167,11 +173,7 @@ Detailed notes from CPTS Academy modules organized by topic.
 **Network Enumeration with Nmap** (In Progress)
 | Section | Description | Status |
 |---------|-------------|--------|
-| [Host_Discovery.md](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_Discovery.md) | Host discovery methods (ICMP, ARP, network ranges) | ✅ Complete |
-| Port_Scanning.md | Port scanning techniques and options | ⏳ Coming |
-| Service_Detection.md | Service version detection and OS fingerprinting | ⏳ Coming |
-| NSE_Scripts.md | Nmap Scripting Engine usage and examples | ⏳ Coming |
-| Firewall_IDS_Evasion.md | Bypassing firewalls and IDS detection | ⏳ Coming |
+| [Host_and_Port_Scanning.md](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md) | Host discovery, port scanning, UDP, service detection (Quick Ref + 3 full sections) | ✅ Complete |
 
 ---
 
@@ -222,9 +224,10 @@ Detailed notes from CPTS Academy modules organized by topic.
 
 ## Quick Links
 
-- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md)
+- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md) ← **START HERE**
+- [Host and Port Scanning Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md)
+- [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
 - [CPTS Progress Tracker](02-HTB_WRITEUPS/HTB/CPTS_PROGRESS.md)
-- [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Privilege_Escalation.md)
 
 ---
 
