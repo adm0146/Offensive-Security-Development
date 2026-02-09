@@ -227,6 +227,198 @@ sudo nmap 10.129.2.28 -F
 
 ---
 
+## TCP Connect Scan (-sT)
+
+### Overview
+
+The TCP Connect Scan uses the **complete three-way handshake** to determine port state. It's more accurate but less stealthy than SYN scans.
+
+### How It Works
+
+1. **Sends SYN** to target port
+2. **Waits for response:**
+   - **SYN-ACK** → Port is OPEN
+   - **RST** → Port is CLOSED
+3. **Completes handshake** if port is open
+4. **Properly closes connection** (not abrupt)
+
+### Advantages
+
+✅ **Highly Accurate** - Complete handshake confirms exact port state  
+✅ **Polite** - Behaves like normal client connection  
+✅ **Less Service Disruption** - Proper TCP handling, minimal errors  
+✅ **Widely Compatible** - Works as non-root user  
+
+### Disadvantages
+
+❌ **Easily Detected** - Full connection creates logs on systems  
+❌ **IDS/IPS Triggering** - Modern security solutions alert on Connect scans  
+❌ **Slow** - Three-way handshake takes longer than SYN scan  
+❌ **Not Stealthy** - Every connection is logged  
+
+### When to Use Connect Scan
+
+- Accuracy is priority over stealth
+- Network mapping without service disruption
+- Situations where SYN scan not available (non-root user)
+- Testing from networks with extensive logging
+
+### Connect Scan on TCP Port 443
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -p 443 --packet-trace --disable-arp-ping -Pn -n --reason -sT
+```
+
+**Options Explained:**
+| Option | Purpose |
+|--------|---------|
+| `-p 443` | Scan only port 443 (HTTPS) |
+| `--packet-trace` | Show all packets sent/received |
+| `--disable-arp-ping` | Force ICMP/TCP (disable ARP) |
+| `-Pn` | Skip ping scan |
+| `-n` | Disable DNS resolution |
+| `--reason` | Show why port is in that state |
+| `-sT` | TCP Connect scan |
+
+**Expected Packet Sequence:**
+- SENT: SYN packet to port 443
+- RCVD: SYN-ACK packet (port is open)
+- Port marked as OPEN (connection established)
+
+---
+
+## Filtered Ports
+
+### Understanding Filtered State
+
+When Nmap shows a port as **filtered**, it indicates uncertainty about the port state due to firewall rules. The firewall can handle packets in two ways:
+
+| Action | Result | Meaning |
+|--------|--------|---------|
+| **Drops** | No response received | Firewall silently discards packet |
+| **Rejects** | ICMP error response | Firewall actively rejects connection |
+
+### Retry Mechanism
+
+When packets are dropped:
+- **Default retries:** `--max-retries 10`
+- Nmap resends request up to 10 times
+- Confirms if packet was lost or truly filtered
+- Increases scan time for filtered ports (~2+ seconds)
+
+### Dropped Packets (Silent Filtering)
+
+**Example: Scanning TCP Port 139 (Dropped)**
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -p 139 --packet-trace -n --disable-arp-ping -Pn
+```
+
+**Options Explained:**
+| Option | Purpose |
+|--------|---------|
+| `-p 139` | Scan only port 139 (NetBIOS) |
+| `--packet-trace` | Show all packets sent/received |
+| `-n` | Disable DNS resolution |
+| `--disable-arp-ping` | Disable ARP ping |
+| `-Pn` | Skip ping scan |
+
+**Expected Behavior:**
+- Nmap sends multiple SYN packets
+- **No response** received from target
+- Scan duration: **~2+ seconds** (retries happening)
+- Port marked as **filtered** (uncertain state)
+- Firewall is silently dropping packets
+
+**Why Longer Duration?** Nmap retries 10 times by default, waiting for response each time.
+
+### Rejected Packets (Active Rejection)
+
+**Example: Scanning TCP Port 445 (Rejected)**
+
+**Command:**
+```bash
+sudo nmap 10.129.2.28 -p 445 --packet-trace -n --disable-arp-ping -Pn
+```
+
+**Sample Output:**
+```
+SENT (0.0388s) TCP 10.129.2.28:52472 > 10.129.2.28:445 S ttl=49 id=21763 iplen=44 seq=1418633433 win=1024 <mss 1460>
+RCVD (0.0487s) ICMP [10.129.2.28 > 10.129.2.28 Port 445 unreachable (type=3/code=3)] IP [ttl=64 id=20998 iplen=72]
+
+PORT    STATE    SERVICE
+445/tcp filtered microsoft-ds
+```
+
+**Analysis:**
+
+| Component | Meaning |
+|-----------|---------|
+| `SENT ... S` | Nmap sends SYN to port 445 |
+| `RCVD ... ICMP type=3/code=3` | ICMP "Port Unreachable" response |
+| `STATE filtered` | Port marked filtered (firewall rejection) |
+| `Duration ~0.05s` | Fast response (active rejection) |
+
+**ICMP Error Code Reference:**
+- **Type 3, Code 3** = "Port Unreachable" → Firewall actively rejecting
+- **Type 3, Code 1** = "Host Unreachable" → Different network unreachable
+- **Type 3, Code 13** = "Administratively Prohibited" → Explicit firewall rule
+
+### Dropped vs Rejected (Comparison)
+
+| Behavior | Dropped | Rejected |
+|----------|---------|----------|
+| **Packet Handling** | Silently discarded | Active ICMP response |
+| **Scan Duration** | ~2+ seconds (retries) | ~0.05 seconds (fast) |
+| **Nmap State** | filtered | filtered |
+| **Firewall Type** | Stealth-mode firewall | Standard firewall |
+| **Assumption** | Port likely filtered | Firewall definitely present |
+
+### Handling Filtered Ports
+
+**Next Steps When Port is Filtered:**
+
+1. **Note the port** - May be important service behind firewall
+2. **Try firewall evasion** - Adjust scan timing, fragmentation, decoys
+3. **Use service detection** - If can bypass, identify service with -sV
+4. **Document for reporting** - Indicate firewall presence and strictness
+5. **Schedule for phase 2** - May need alternative approach (social engineering, internal access)
+
+---
+
+## Scan Duration Analysis
+
+### Quick Scans (Open/Closed Ports)
+- **Duration:** ~0.05 seconds per port
+- **Reason:** Immediate response from target
+- **Example:** Port 443 responds with SYN-ACK immediately
+
+### Slow Scans (Filtered Ports - Dropped)
+- **Duration:** ~2+ seconds per port
+- **Reason:** Nmap retries 10 times waiting for response
+- **Example:** Port 139 gets no response, retries occur
+
+### Impact on Full Scans
+- **10 open ports:** ~0.5 seconds total
+- **10 filtered ports:** ~20+ seconds total
+- **Mixed network:** Varies by ratio of open/filtered
+
+---
+
+## Key Takeaways
+
+✅ **Connect scans (-sT) are accurate but loud**  
+✅ **Dropped packets = silence; Rejected = ICMP error**  
+✅ **Filtered status means firewall presence**  
+✅ **Scan duration reveals packet handling** (fast = rejection, slow = dropped)  
+✅ **Default retries = 10** (can adjust with --max-retries)  
+✅ **Know the difference:** open ≠ filtered ≠ closed  
+✅ **ICMP errors help identify firewall behavior**  
+
+---
+
 ## Next Steps
 
 - [Service Detection](Service_Detection.md) - Determine service versions on open ports
