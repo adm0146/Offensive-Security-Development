@@ -1,4 +1,154 @@
-# Port Scanning
+# Host and Port Scanning
+
+---
+
+## 🚀 Quick Reference - Copy/Paste Commands
+
+### Host Discovery Scans
+
+**Scan Network Range**
+```bash
+sudo nmap 10.129.2.0/24 -sn -oA network_scan
+```
+Discovers all active hosts on a network subnet using ping sweep (ICMP echo requests).
+
+**Scan IP List**
+```bash
+sudo nmap -sn -oA ip_list_scan -iL hosts.txt
+```
+Scans multiple targets from a file list and identifies which hosts are online.
+
+**Scan Multiple Individual IPs**
+```bash
+sudo nmap -sn -oA individual_ips 10.129.2.18-20
+```
+Discovers active hosts in a specific range using consecutive IP notation for quick reconnaissance.
+
+**Scan Single IP**
+```bash
+sudo nmap 10.129.2.18 -sn -oA single_host_scan
+```
+Determines if a single target host is alive before conducting deeper port and service scans.
+
+---
+
+### Port Scanning Scans
+
+**Quick Port Scan (Top 1000)**
+```bash
+sudo nmap 10.129.2.28 -sS -oA quick_port_scan
+```
+Scans the 1000 most common TCP ports using SYN scan (stealth method) for fast reconnaissance.
+
+**Fast Port Scan (Top 100)**
+```bash
+sudo nmap 10.129.2.28 -F -oA fast_scan
+```
+Scans only the top 100 most common ports for rapid target assessment.
+
+**Top N Ports**
+```bash
+sudo nmap 10.129.2.28 --top-ports=20 -oA top20_ports
+```
+Scans the N most frequently used ports from Nmap database (customize number as needed).
+
+**All Ports Scan**
+```bash
+sudo nmap 10.129.2.28 -p- -oA all_ports
+```
+Scans all 65,535 TCP ports for comprehensive target mapping (slow but thorough).
+
+**Specific Port Range**
+```bash
+sudo nmap 10.129.2.28 -p 20-25,80,443,3306 -oA custom_ports
+```
+Scans custom port selection combining ranges and individual ports for targeted reconnaissance.
+
+**TCP Connect Scan (Non-root)**
+```bash
+sudo nmap 10.129.2.28 -sT -oA tcp_connect
+```
+Performs full TCP three-way handshake for accurate port detection (completes connection, easily logged).
+
+**TCP SYN Scan (Default - Root)**
+```bash
+sudo nmap 10.129.2.28 -sS -oA syn_scan
+```
+Half-open SYN scan that doesn't complete handshake (stealthier, faster, requires root privileges).
+
+**UDP Port Scan**
+```bash
+sudo nmap 10.129.2.28 -sU -F -oA udp_scan
+```
+Scans UDP ports for stateless protocols (DNS, SNMP, DHCP); much slower than TCP scanning.
+
+---
+
+### Service Detection & Analysis
+
+**Service Version Detection**
+```bash
+sudo nmap 10.129.2.28 -sV -oA service_detection
+```
+Identifies service names, versions, and configurations on open ports using probe matching.
+
+**Detailed Service Scan**
+```bash
+sudo nmap 10.129.2.28 -sV -sC -oA detailed_scan
+```
+Combines service detection with default NSE scripts for deeper service enumeration and vulnerability checks.
+
+**Service Detection on Specific Port**
+```bash
+sudo nmap 10.129.2.28 -p 445 -sV -oA smb_detection
+```
+Detects and fingerprints service version on a specific port (useful for targeted service identification).
+
+---
+
+### Packet-Level Analysis
+
+**Packet Trace - Host Discovery**
+```bash
+sudo nmap 10.129.2.28 -sn -Pn -n --disable-arp-ping --packet-trace -oA packet_trace_host
+```
+Shows every packet sent and received during host discovery (reveals ARP vs ICMP behavior).
+
+**Packet Trace - Port Scan**
+```bash
+sudo nmap 10.129.2.28 -p 445 -Pn -n --disable-arp-ping --packet-trace --reason -oA packet_trace_port
+```
+Displays detailed packet exchange during port scan with reason explanations (SYN/RST analysis).
+
+**Packet Trace - Service Detection**
+```bash
+sudo nmap 10.129.2.28 -p 445 -sV -Pn -n --disable-arp-ping --packet-trace -oA packet_trace_service
+```
+Shows probes sent and responses received during service version detection and fingerprinting.
+
+---
+
+### Advanced Options for All Scans
+
+**Add These to Any Command for More Info:**
+```bash
+-Pn              # Skip ping (assume host is up)
+-n               # Disable DNS resolution (faster)
+--disable-arp-ping   # Disable ARP ping, force ICMP/TCP
+--packet-trace   # Show all packets sent/received
+--reason         # Display why port is in current state
+-oA filename     # Save all formats (.nmap, .xml, .gnmap)
+-v               # Verbose output
+-vv              # Very verbose output
+```
+
+**Example with All Options:**
+```bash
+sudo nmap 10.129.2.28 -p 445 -sV -Pn -n --disable-arp-ping --packet-trace --reason -oA comprehensive_scan
+```
+Complete scan showing packet details, service versions, reasons for port states, and saved results.
+
+---
 
 ---
 
