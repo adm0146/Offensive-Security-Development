@@ -368,6 +368,175 @@ This site provides:
 
 ---
 
+## Real-World Practice Problem: Multi-Service Enumeration
+
+### Scenario
+Target: 10.129.35.145 - A machine with multiple open services requiring systematic enumeration.
+
+### Step 1: Service Detection with Default Scripts
+
+**Command:**
+```bash
+nmap -sV -sC 10.129.35.145
+```
+
+**Output:**
+```
+Starting Nmap 7.98 ( https://nmap.org ) at 2026-02-10 10:43 -0600
+Stats: 0:01:49 elapsed; 0 hosts completed (1 up), 1 undergoing Service Scan
+Service scan Timing: About 85.71% done; ETC: 10:45 (0:00:18 remaining)
+Nmap scan report for 10.129.35.145
+Host is up (0.054s latency).
+Not shown: 993 closed tcp ports (reset)
+PORT      STATE SERVICE     VERSION
+22/tcp    open  ssh         OpenSSH 7.6p1 Ubuntu 4ubuntu0.7 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   2048 71:c1:89:90:7f:fd:4f:60:e0:54:f3:85:e6:35:6c:2b (RSA)
+|   256 e1:8e:53:18:42:af:2a:de:c0:12:1e:2e:54:06:4f:70 (ECDSA)
+|_  256 1a:cc:ac:d4:94:5c:d6:1d:71:e7:39:de:14:27:3c:3c (ED25519)
+80/tcp    open  http        Apache httpd 2.4.29 ((Ubuntu))
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+|_http-title: Apache2 Ubuntu Default Page: It works
+110/tcp   open  pop3        Dovecot pop3d
+|_pop3-capabilities: RESP-CODES SASL PIPELINING TOP UIDL CAPA AUTH-RESP-CODE
+139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+143/tcp   open  imap        Dovecot imapd (Ubuntu)
+|_imap-capabilities: listed ID LOGIN-REFERRALS post-login LOGINDISABLEDA0001 more have Pre-login SASL-IR capabilities IDLE OK IMAP4rev1 LITERAL+ ENABLE
+445/tcp   open  netbios-ssn Samba smbd 4.7.6-Ubuntu (workgroup: WORKGROUP)
+31337/tcp open  Elite?
+| fingerprint-strings: 
+|   GetRequest: 
+|_    220 HTB{pr0F7pDv3r510nb4nn3r}
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port31337-TCP:V=7.98%I=7%D=2/10%Time=698B6034%P=aarch64-unknown-linux-g
+SF:nu%r(GetRequest,1F,"220\x20HTB{pr0F7pDv3r510nb4nn3r}\r\n");
+Service Info: Host: NIX-NMAP-DEFAULT; OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Host script results:
+|_clock-skew: mean: -20m00s, deviation: 34m38s, median: 0s
+| smb2-time: 
+|   date: 2026-02-10T16:45:59
+|_  start_date: N/A
+|_nbstat: NetBIOS name: NIX-NMAP-DEFAUL, NetBIOS user: <unknown>, NetBIOS MAC: <unknown> (unknown)
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled (dangerous, but default)
+| smb2-security-mode: 
+|   3.1.1: 
+|_    Message signing enabled but not required
+| smb-os-discovery: 
+|   OS: Windows 6.1 (Samba 4.7.6-Ubuntu)
+|   Computer name: nix-nmap-default
+|   NetBIOS computer name: NIX-NMAP-DEFAULT\x00
+|   Domain name: \x00
+|   FQDN: nix-nmap-default
+|_  System time: 2026-02-10T17:45:59+01:00
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 171.11 seconds
+```
+
+**Discoveries from First Scan:**
+
+| Service | Version | Key Finding |
+|---------|---------|-------------|
+| **SSH** | OpenSSH 7.6p1 Ubuntu 4ubuntu0.7 | Multiple key types exposed via NSE |
+| **HTTP** | Apache httpd 2.4.29 (Ubuntu) | Default Apache page (interesting target for enum) |
+| **POP3** | Dovecot pop3d | Email service available (user enumeration possible) |
+| **NetBIOS** | Samba smbd 3.X - 4.X | SMB shares may be accessible |
+| **IMAP** | Dovecot imapd (Ubuntu) | Email service with capabilities listed |
+| **SMB** | Samba smbd 4.7.6-Ubuntu | Guest auth available, message signing disabled |
+| **Port 31337** | Elite? (Unknown) | **Banner captured: `HTB{pr0F7pDv3r510nb4nn3r}`** |
+
+**NSE Script Results:**
+- SSH key fingerprints captured
+- SMB guest authentication confirmed
+- Message signing disabled (security concern)
+- Clock skew detected (-20 minutes)
+- Unknown service on port 31337 (but banner grabbed)
+
+---
+
+### Step 2: HTTP Enumeration with http-enum Script
+
+**Command:**
+```bash
+sudo nmap 10.129.35.145 -p 80 --script http-enum
+```
+
+**Output:**
+```
+Starting Nmap 7.98 ( https://nmap.org ) at 2026-02-10 11:17 -0600
+Nmap scan report for 10.129.35.145
+Host is up (0.044s latency).
+
+PORT   STATE SERVICE
+80/tcp open  http
+| http-enum: 
+|_  /robots.txt: Robots file
+
+Nmap done: 1 IP address (1 http-enum port in 10.48 seconds
+```
+
+**Discoveries:**
+- **robots.txt found** - Web application enumeration opportunity
+- Standard web server enumeration path discovered
+
+---
+
+### Step 3: Manual Enumeration of robots.txt
+
+**Command:**
+```bash
+curl http://10.129.35.145/robots.txt
+```
+
+**Output:**
+```
+User-agent: *
+
+Allow: /
+
+HTB{873nniuc71bu6usbs1i96as6dsv26}
+```
+
+**Discoveries:**
+- **robots.txt doesn't restrict any paths** (Allow: /)
+- **Second flag captured: `HTB{873nniuc71bu6usbs1i96as6dsv26}`**
+- No specific directory restrictions
+
+---
+
+### Enumeration Workflow Summary
+
+**Phase 1: Service Discovery**
+- Used `-sV -sC` for comprehensive service version detection
+- Identified 7 open ports with version information
+- Captured banner from unknown port 31337
+- Found first flag in service banner
+
+**Phase 2: Web Application Targeting**
+- Used `http-enum` NSE script on port 80
+- Discovered robots.txt file (common enumeration point)
+
+**Phase 3: Manual Verification**
+- Used curl to access robots.txt directly
+- Confirmed web server accessibility
+- Captured second flag from web content
+
+### Key Takeaways
+
+✅ **Combine automated and manual enumeration** - NSE scripts find targets, manual review extracts details  
+✅ **Don't overlook service banners** - Unrecognized services often contain valuable information  
+✅ **Always check common web paths** - robots.txt, /readme.html, /.git, etc.  
+✅ **Review NSE script output thoroughly** - Service capabilities reveal attack surfaces  
+✅ **Follow up NSE findings with manual tools** - curl, nc, telnet for direct verification  
+✅ **Document all discoveries** - Every flag, user, version, and path is valuable  
+
+---
+
 ## Next Steps
 
 - [Firewall/IDS Evasion](Firewall_IDS_Evasion.md) - Techniques to bypass network defenses
