@@ -1,17 +1,17 @@
 # CPTS Progress Tracking
 
 **Start Date:** 🚀 **January 22, 2026** (No buffer - straight to labs!)  
-**Current Date:** February 7, 2026  
-**Status Update:** ✅ **21 BOXES COMPLETED - EASY TIER IN PROGRESS**  
+**Current Date:** February 11, 2026  
+**Status Update:** ✅ **21 BOXES COMPLETED + NMAP MODULE COMPLETE - Academy + Easy Tier Phase**  
 **Target Exam:** April 1-10, 2026  
 **Total Hours Allocated:** 400 (40 hours/week for 10 weeks)  
 **Machines Completed:** 21/30+ ✅ (19 Very Easy + 2 Easy)  
 **Lab Duration:** Jan 22 - April 1 (70 days)  
-**Current Pace:** Accelerating - 21 boxes in 16 days
+**Current Pace:** Academy modules + box practice - 21 boxes in 16 days + Nmap module complete
 
 ---
 
-## 🎯 High-Level Progress Summary (Updated Feb 7)
+## 🎯 High-Level Progress Summary (Updated Feb 11)
 
 | Metric | Target | Completed | Status |
 |--------|--------|-----------|--------|
@@ -21,10 +21,11 @@
 | Hard/AD Machines | 5-6 | 0 | ⏳ Advanced phase |
 | Total Boxes | 30+ | 21 | ✅ 70% complete |
 | Writeups Created | 30+ | 21 | ✅ PUBLIC GitHub portfolio |
-| Hours Used | 400 | 75+ | ✅ Tracking well |
-| Hours This Week | 40 | 20 | 🔄 Week of Feb 3-7 |
+| Academy Modules | Core Path | 1 Complete (Nmap) | 🔄 IN PROGRESS |
+| Hours Used | 400 | 97+ | ✅ Tracking well |
+| Hours This 2-Week Block | 80 | 42 | 🔄 Week 3-4 (Feb 5-18) |
 
-**Next Milestone:** February 7-14 - Continue Easy tier, target 4-6 more Easy boxes
+**Next Milestone:** February 11-18 - Next Academy module + Evening Easy box practice
 
 ---
 
@@ -109,19 +110,30 @@
 
 ### Week 3-4 (Feb 5-18): Academy Modules + Easy Tier Practice
 **Target:** 80 hours total (50 modules + 30 boxes)  
-**Status:** 🔄 IN PROGRESS - 20/80 hours complete  
+**Status:** 🔄 IN PROGRESS - 42/80 hours complete  
 **Strategy:** Daytime: Academy modules | Evening: Retired Easy boxes for reinforcement  
-**Current Module:** Network Enumeration with Nmap (Started Feb 9)  
-**Learning Path Status:** Building scanning & enumeration foundation through modules, practicing with boxes
+**Current Module:** Network Enumeration with Nmap ✅ COMPLETE (Feb 9-10)  
+**Learning Path Status:** Nmap module finished — 7 comprehensive reference guides created (3,500+ lines)
 
-**Module Guidance:** Network Enumeration is critical for CPTS. Focus on Nmap fundamentals, service detection, OS fingerprinting, and timing options. Apply each module concept immediately to evening boxes.
+**Module Guidance:** Network Enumeration module complete! Built deep understanding of Nmap scanning, service detection, NSE scripting, performance tuning, and firewall/IDS evasion. All concepts documented with real examples and CTF flags. Ready for next Academy module.
 
-**Academy Modules This Week:**
-| Module | Status | Date Started | Hours | Key Topics | Notes |
-|--------|--------|--------------|-------|-----------|-------|
-| Network Enumeration with Nmap | 🔄 In Progress | Feb 9 | -- | Basic nmap, service detection, timing, output formats | Foundational tool mastery |
-| [Next Module] | ⬜ Not Started | - | - | - | Plan to start after Nmap |
+**Academy Modules This Block:**
+| Module | Status | Date Completed | Hours | Key Topics | Notes |
+|--------|--------|----------------|-------|-----------|-------|
+| Network Enumeration with Nmap | ✅ Complete | Feb 9-10 | ~20 | Host discovery, port scanning, service enum, NSE scripts, timing, firewall evasion | 7 reference guides, 3,500+ lines, real flags captured |
+| [Next Module] | ⬜ Not Started | - | - | - | Plan to start Feb 11 |
 | [Next Module] | ⬜ Not Started | - | - | - | Build scanning & exploitation foundation |
+
+**Nmap Module Breakdown (7 Sections Completed):**
+| Section | File | Lines | Key Concepts Covered |
+|---------|------|-------|---------------------|
+| 1. Host Discovery | Host_Discovery.md | 225 | Network range scans, IP lists, ICMP/ARP analysis, output naming |
+| 2. Host & Port Scanning | Host_and_Port_Scanning.md | 900+ | TCP states (6 types), SYN/Connect/UDP scans, filtered port analysis, service detection |
+| 3. Saving & Converting Results | Saving_and_Converting_Results.md | ~150 | Output formats (-oN, -oG, -oX, -oA), xsltproc HTML conversion |
+| 4. Service Enumeration | Service_Enumeration.md | 421 | Version detection (-sV), banner grabbing, tcpdump packet analysis, flag: HTB{pr0F7pDv3r510nb4nn3r} |
+| 5. NSE Scripts | NSE_Scripts.md | 374 | 14 NSE categories, default/category/specific scripts, WordPress enum, vuln scanning, 2 flags captured |
+| 6. Scanning Performance | Scanning_Performance.md | 387 | Timing templates (T0-T5), timeout tuning (3.2x speedup), retry optimization, packet rates |
+| 7. Firewall/IDS Evasion | Firewall_IDS_Evasion.md | 906 | Firewall/IDS fundamentals, SYN vs ACK scans, decoy scanning, source IP spoofing, DNS port 53 abuse |
 
 **Evening Box Practice:**
 | Machine | Difficulty | Status | Date | Hours | Focus | Notes |
@@ -132,13 +144,15 @@
 | [Easy Box] | Easy | ⬜ Not Started | - | - | Chained exploitation | Real-world scenario |
 | [Easy Box] | Easy | ⬜ Not Started | - | - | Privilege escalation chain | Post-exploit focus |
 
-**Weekly Summary (Week 3-4: Feb 5-18):**
-- Hours Used: 20 / 80 (25% through 2-week period)
-- Academy Modules: 1 in progress (Nmap)
+**Weekly Summary (Week 3-4: Feb 5-18, Updated Feb 11):**
+- Hours Used: 42 / 80 (53% through 2-week period)
+- Academy Modules: 1 COMPLETE (Network Enumeration with Nmap - 7 sections, 3,500+ lines)
 - Boxes Completed: 1 (ARCHETYPE)
-- On Track: [✅] Yes
+- Reference Guides Created: 7 comprehensive Nmap guides
+- Flags Captured: 3 (HTB{pr0F7pDv3r510nb4nn3r}, HTB{873nniuc71bu6usbs1i96as6dsv26}, + 1 from Service Enum)
+- On Track: [✅] Yes — Nmap module done, ready for next module
 - Strategy: Theory → Practice = Better retention
-- Progress: Building enumeration foundation
+- Progress: Nmap enumeration foundation COMPLETE, moving to next module
 
 ---
 
@@ -271,9 +285,12 @@
 
 **February 2026**
 - Target Hours: 160 (40/week × 4 weeks)
-- Actual Hours: __ / 160
-- Machines: __ / 6-8 (Easy + starting Medium)
-- Completion: __%
+- Actual Hours: 42 / 160 (through Feb 10)
+- Machines: 1 (ARCHETYPE) + 21 total cumulative
+- Academy Modules Completed: Network Enumeration with Nmap (7 sections, 3,500+ lines)
+- Reference Guides Created: 7 comprehensive Nmap guides in Network_Enumeration_With_Nmap/
+- Flags Captured: 3 from Nmap module exercises
+- Completion: 26% (on pace for 2-week block)
 
 **March 2026**
 - Target Hours: 160 (40/week × 4 weeks)
@@ -291,8 +308,9 @@
 
 **TOTAL (Jan 22 - Apr 10):**
 - Target Hours: 400 ✅
-- Actual Hours: 41 (so far - perfectly on pace!)
-- Machines: 5 / 30+ (17% complete)
+- Actual Hours: 97+ (75 prior + 22 this block)
+- Machines: 21 / 30+ (70% complete)
+- Academy Modules: 1 complete (Network Enumeration with Nmap)
 - Exam: [ ] Passed [ ] Pending
 
 ---
@@ -387,8 +405,8 @@
 
 
 **Reconnaissance Skills**
-- [ ] Nmap mastery
-- [ ] Service enumeration
+- [✅] Nmap mastery
+- [✅] Service enumeration
 - [ ] Web app analysis
 - [ ] Information gathering
 
@@ -477,7 +495,16 @@
 - ✅ Strategic pivoting (switched from Elementor → GiveWP → Simple Backup when exploits didn't work)
 
 **Week 2-3:**
-- 
+- ✅ Nmap is a full offensive toolkit, not just a port scanner — scripts, timing, evasion all chain together
+- ✅ SYN scans (-sS) are default for a reason — stealthy, fast, and reliable
+- ✅ ACK scans (-sA) reveal firewall rules even when ports are filtered to SYN
+- ✅ NSE scripts transform Nmap from scanner to vulnerability assessor (14 categories)
+- ✅ Timing templates matter: T5 for CTFs, T1-T2 for real engagements with IDS/IPS
+- ✅ Source port 53 (DNS) bypasses many firewalls — trusted port abuse is powerful
+- ✅ Decoy scanning obscures real IP but ISP filtering can limit effectiveness
+- ✅ Banner grabbing + version detection (-sV) reveals exploitable service versions
+- ✅ Always save results in multiple formats (-oA) — grepable for parsing, XML for reports
+- ✅ tcpdump packet analysis alongside Nmap reveals exactly what's happening on the wire
 
 **Week 4-5:**
 -
