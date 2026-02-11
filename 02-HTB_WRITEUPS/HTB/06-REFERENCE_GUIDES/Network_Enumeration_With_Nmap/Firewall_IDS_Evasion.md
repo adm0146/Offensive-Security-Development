@@ -898,6 +898,30 @@ These Part 2 techniques (IP spoofing, decoys, port manipulation) are **more aggr
 
 ---
 
+## Lab Practice: UDP DNS Enumeration (Medium Nmap Lab)
+
+**Lesson Learned:** TCP scans alone miss critical UDP services. DNS on port 53 primarily uses UDP, so a TCP SYN scan will identify the port but fail to extract version/banner information.
+
+**Problem:** Port 53 detected as open via TCP `-sS`, but version detection returned only `NLnet Labs NSD` with no flag.
+
+**Solution:** Switch to UDP scan with version detection:
+
+```bash
+sudo nmap 10.129.1.139 -p 53 -sU -sV -Pn -vv -oA Working_Medium_Scan
+```
+
+**Flags Used:**
+- `-sU` — UDP scan (required for DNS version probes)
+- `-sV` — Version detection (triggers DNSVersionBindReq probe)
+- `-Pn` — Skip host discovery (already know host is up)
+- `-vv` — Extra verbosity
+
+**Result:** Nmap sent a `DNSVersionBindReq` probe over UDP, and the DNS server responded with its version string containing the flag embedded in the TXT record response.
+
+**Key Takeaway:** When you see DNS (port 53) open on a TCP scan but can't extract version info, always follow up with `-sU` on port 53. DNS version bind requests only work reliably over UDP.
+
+---
+
 ## Next Steps
 
 - Continue with additional Nmap modules
