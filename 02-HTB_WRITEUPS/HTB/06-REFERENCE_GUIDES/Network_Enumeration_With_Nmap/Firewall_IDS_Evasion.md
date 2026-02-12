@@ -922,9 +922,95 @@ sudo nmap 10.129.1.139 -p 53 -sU -sV -Pn -vv -oA Working_Medium_Scan
 
 ---
 
+## Lab Practice: Filtered Port Evasion via DNS Source Port Abuse (Hard Nmap Lab)
+
+**Scenario:** Target host with a filtered database port (50000/tcp ibm-db2) behind a firewall/IDS. The goal was to bypass the filtering and connect to the database service to retrieve the flag.
+
+### Phase 1: VPN Troubleshooting (2+ Hours Lost)
+
+**Problem:** Initial scans returned only 2 filtered ports with no useful results.
+
+**Root Cause:** Connected via UDP VPN instead of TCP VPN. The VPN transport method affected scan reliability and results.
+
+**Fix:** Switched from UDP VPN to TCP VPN connection. Immediately got meaningful results.
+
+**Lesson:** Always verify your VPN connection type. If scans return almost nothing, check whether you're on TCP vs UDP VPN before spending hours troubleshooting scan techniques.
+
+### Phase 2: Initial Scan Results (After TCP VPN)
+
+```
+PORT      STATE    SERVICE
+22/tcp    open     ssh
+80/tcp    open     http
+110/tcp   open     pop3
+139/tcp   open     netbios-ssn
+143/tcp   open     imap
+445/tcp   open     microsoft-ds
+50000/tcp filtered ibm-db2
+```
+
+7 ports discovered, 6 open, 1 filtered. The database port (50000) was the target but showed as **filtered** -- meaning a firewall was actively dropping or rejecting packets to that port.
+
+### Phase 3: Enumerating the Filtered Port
+
+**Attempted techniques from the IDS/IPS Evasion section:**
+- Various scan types and timing adjustments
+- Different packet manipulation approaches
+- Multiple evasion flags
+
+**Breakthrough:** Used `-g 53` (source port spoofing) to abuse DNS trust:
+
+```bash
+sudo nmap 10.129.2.207 -p 50000 -sS -Pn -g 53
+```
+
+**Result:** Port 50000 changed from `filtered` to **`open`**.
+
+**Why it works:** Firewalls commonly allow traffic from port 53 (DNS) because DNS responses need to pass through. By setting our source port to 53 with `-g 53`, the firewall treats our SYN packets as DNS-related traffic and lets them through.
+
+### Phase 4: Version Scan Failure and Pivot
+
+**Problem:** Running `-sV` (version detection) on port 50000 with `-g 53`:
+```bash
+sudo nmap 10.129.2.207 -p 50000 -sS -sV -Pn -g 53
+```
+Resulted in a **timeout** and returned `tcpwrapped` -- the service accepted the TCP handshake but then closed the connection without revealing version information.
+
+**Pivot Decision:** Nmap's version detection wasn't going to work here. Instead of continuing to tweak Nmap flags, switched to a manual tool that could maintain a raw connection.
+
+### Phase 5: Manual Connection with Ncat
+
+```bash
+ncat -nv --source-port 53 10.129.2.207 50000
+```
+
+**Flags Used:**
+- `-nv` -- No DNS resolution + verbose output
+- `--source-port 53` -- Same DNS port abuse technique, but for ncat
+
+**Result:** Successful connection to the database service. The flag was returned directly in the connection banner/response.
+
+### Key Takeaways
+
+1. **Verify VPN connection type first.** UDP vs TCP VPN can completely change scan results. If you're getting almost nothing back, check this before anything else.
+
+2. **Pivot from Nmap when scans fail.** If `-sV` returns `tcpwrapped` or times out, don't keep running more Nmap scans. Switch to manual tools (ncat, netcat, curl, etc.) that give you direct control over the connection.
+
+3. **DNS source port abuse (`-g 53`) bypasses common firewall rules.** Firewalls that whitelist DNS traffic can be exploited by spoofing source port 53. This works because many firewall rulesets allow inbound traffic from port 53 to support DNS responses. Apply this technique whenever you see filtered ports that standard scans can't reach.
+
+### Techniques Applied
+
+| Technique | Tool | Purpose |
+|---|---|---|
+| Source port spoofing (`-g 53`) | Nmap | Bypass firewall filtering on port 50000 |
+| Manual connection (`--source-port 53`) | Ncat | Direct service interaction after Nmap version scan failed |
+| TCP VPN over UDP VPN | OpenVPN | Reliable scan results through the tunnel |
+
+---
+
 ## Next Steps
 
-- Continue with additional Nmap modules
+- Continue with additional HTB Academy modules
 - Practice evasion techniques in lab environments
-- Understand firewall/IDS configurations
-- Learn IDS evasion detection methods
+- Apply DNS source port abuse in future engagements with filtered ports
+- Document firewall bypass patterns for quick reference
