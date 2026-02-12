@@ -2,9 +2,12 @@
 
 Documenting my path through security certifications and hands-on penetration testing in 2026.
 
-- **Security+** -- Passed Jan 10, 2026 (768/900, 85.3%)
-- **CPTS** -- HackTheBox Certified Penetration Tester Specialist (In Progress)
-- **OSCP** -- Planned after CPTS
+| Certification | Status | Target |
+|---------------|--------|--------|
+| Security+ | Passed (768/900, 85.3%) | Jan 2026 |
+| CPTS | In Progress | April 2026 |
+| OSCP | Planned | August 2026 |
+| CRTO | Planned | October 2026 |
 
 ---
 
