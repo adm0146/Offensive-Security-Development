@@ -89,7 +89,7 @@ Progress: ██████████████░░░░░░░░░�
 
 | Module | Status | Key Topics |
 |--------|--------|------------|
-| **Network Enumeration with Nmap** | Complete | 7 sections, 3,500+ lines of reference guides |
+| **Network Enumeration with Nmap** | Complete (all labs) | 7 sections, 3 labs (E/M/H), 3,500+ lines of reference guides |
 
 **Nmap Module Sections Completed:**
 
@@ -102,6 +102,14 @@ Progress: ██████████████░░░░░░░░░�
 | 5 | NSE Scripts | 14 categories, WordPress enumeration, vulnerability scanning |
 | 6 | Scanning Performance | Timing templates (T0-T5), timeout tuning, packet rate optimization |
 | 7 | Firewall/IDS Evasion | SYN vs ACK scans, decoy scanning, source IP spoofing, DNS port 53 abuse |
+
+**Skill Assessment Labs:**
+
+| Lab | Difficulty | Technique |
+|-----|-----------|-----------|
+| Easy | Easy | Standard service enumeration |
+| UDP DNS Enumeration | Medium | `-sU -sV` triggered DNSVersionBindReq on port 53 |
+| Filtered Port Bypass | Hard | `-g 53` DNS source port abuse + ncat `--source-port 53` to bypass firewall on port 50000 |
 
 ---
 
@@ -128,10 +136,11 @@ Progress: ██████████████░░░░░░░░░�
 | Category | Skills | Status |
 |----------|--------|--------|
 | Reconnaissance | Nmap mastery, service enumeration, banner grabbing | Done |
+| Firewall Evasion | Source port spoofing, DNS trust abuse, filtered port bypass | Done |
 | Web Exploitation | SQLi, directory brute-forcing, plugin enumeration | Done |
 | Privilege Escalation | GTFOBins, sudo abuse, SSH key extraction, WinPEAS | Done |
 | Protocols | FTP, SMB, RDP, MySQL, MongoDB, Redis, Rsync, Telnet | Done |
-| Tools | Nmap, Gobuster, Metasploit, WhatWeb, SearchSploit, tcpdump | Done |
+| Tools | Nmap, Gobuster, Metasploit, WhatWeb, SearchSploit, tcpdump, Ncat | Done |
 | Active Directory | Kerberos, Bloodhound, lateral movement | Upcoming |
 | Reporting | Professional writeups, flag documentation | Done |
 

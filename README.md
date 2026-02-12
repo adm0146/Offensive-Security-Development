@@ -32,13 +32,13 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Current Status (February 11, 2026)
+## Current Status (February 12, 2026)
 
 | Metric | Status |
 |--------|--------|
-| Total Hours | 117 / 400 |
+| Total Hours | 122 / 400 |
 | Machines Completed | 21 (19 Very Easy, 2 Easy) |
-| Academy Modules | 1 complete (Network Enumeration with Nmap) |
+| Academy Modules | 1 complete (Network Enumeration with Nmap -- all labs) |
 | Writeups Published | 21 |
 | Target Exam | April 1-10, 2026 |
 
@@ -81,9 +81,9 @@ Cybersecurity_Professional_Development/
 
 ## Academy Modules
 
-### Network Enumeration with Nmap -- Complete
+### Network Enumeration with Nmap -- Complete (All Labs Passed)
 
-7 sections covering the full Nmap module from the CPTS Academy path.
+7 sections + 3 skill assessment labs (Easy, Medium, Hard) covering the full Nmap module from the CPTS Academy path.
 
 | Section | Guide | Topics |
 |---------|-------|--------|
@@ -94,6 +94,14 @@ Cybersecurity_Professional_Development/
 | 5 | NSE_Scripts.md | 14 categories, WordPress enum, vuln scanning |
 | 6 | Scanning_Performance.md | Timing templates (T0-T5), timeout tuning, packet rates |
 | 7 | Firewall_IDS_Evasion.md | ACK scans, decoys, source spoofing, DNS port 53 abuse |
+
+**Skill Assessment Labs:**
+
+| Lab | Difficulty | Key Technique |
+|-----|-----------|---------------|
+| Easy | Easy | Standard enumeration |
+| UDP DNS Enumeration | Medium | `-sU -sV` to trigger DNSVersionBindReq on port 53 |
+| Filtered Port Bypass | Hard | `-g 53` source port abuse + ncat manual connection to filtered db2 port |
 
 ---
 
@@ -116,7 +124,7 @@ Cybersecurity_Professional_Development/
 
 ## Tools
 
-Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (mssqlclient.py, psexec.py), LinPEAS, WinPEAS, Netcat, Metasploit, WhatWeb, SearchSploit, tcpdump
+Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (mssqlclient.py, psexec.py), LinPEAS, WinPEAS, Netcat, Ncat, Metasploit, WhatWeb, SearchSploit, tcpdump
 
 ---
 
@@ -129,4 +137,4 @@ Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (
 
 ---
 
-Last Updated: February 11, 2026
+Last Updated: February 12, 2026
