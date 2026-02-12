@@ -1,11 +1,10 @@
-# Offensive Security Development - 2026 Certification Pathway
+# Offensive Security Development
 
-A comprehensive guide and repository documenting my journey to **advanced security certifications and hands-on penetration testing skills** in 2026:
-- **Security+** ✅ (Jan 10 - PASSED 768/900, 85.3%)
-- **CPTS** (HackTheBox Academy - Feb 1 - April 10, 2026)
-- **OSCP** (PwK/PEN-200 - Future focus after CPTS)
+Documenting my path through security certifications and hands-on penetration testing in 2026.
 
-**Current Focus:** HackTheBox Academy labs and practical exploitation skills for CPTS exam (April 1-10, 2026)
+- **Security+** -- Passed Jan 10, 2026 (768/900, 85.3%)
+- **CPTS** -- HackTheBox Certified Penetration Tester Specialist (In Progress)
+- **OSCP** -- Planned after CPTS
 
 ---
 
@@ -13,223 +12,118 @@ A comprehensive guide and repository documenting my journey to **advanced securi
 
 ```
 Cybersecurity_Professional_Development/
-├── 01-SECURITY_PLUS/                  # Security+ study notes (completed)
-│   └── Domain study guides
-│
-├── 02-HTB_WRITEUPS/                   # HackTheBox lab writeups & guides
-│   └── HTB/
-│       ├── 01-FOUNDATIONAL/           # Very Easy boxes (19 completed)
-│       │   ├── MEOW_Very_Easy.md
-│       │   ├── FAWN_Very_Easy.md
-│       │   ├── DANCING_Very_Easy.md
-│       │   ├── REDEEMER_Very_Easy.md
-│       │   ├── EXPLOSION_Very_Easy.md
-│       │   ├── PREIGNITION_Very_Easy.md
-│       │   ├── MONGOD_Very_Easy.md
-│       │   ├── SYNCED_Very_Easy.md
-│       │   ├── APPOINTMENT_Very_Easy.md
-│       │   ├── SEQUEL_Very_Easy.md
-│       │   ├── CROCODILE_Very_Easy.md
-│       │   ├── RESPONDER_Very_Easy.md
-│       │   ├── THREE_Very_Easy.md
-│       │   ├── IGNITION_Very_Easy.md
-│       │   ├── BIKE_Very_Easy.md
-│       │   ├── FUNNEL_Very_Easy.md
-│       │   ├── PENNYWORTH_Very_Easy.md
-│       │   ├── TACTICS_Very_Easy.md
-│       │   └── ARCHETYPE_Very_Easy.md  ← NEW (Feb 7)
-│       │
-│       ├── 02-EASY/                   # Easy boxes (2 completed)
-│       │   ├── NIBBLES_Easy.md
-│       │   └── GETTING_STARTED_Easy.md
-│       │
-│       ├── 06-REFERENCE_GUIDES/       # Methodology & technique guides
-│       │   ├── MASTER_ENUMERATION_CHEATSHEET.md ← Master flowchart + all scans
-│       │   ├── Foundation/
-│       │   │   ├── Enumeration_Process.md
-│       │   │   ├── Service_Scanning_Enumeration.md
-│       │   │   ├── Web_Enumeration.md
-│       │   │   ├── File_Transfer.md
-│       │   │   ├── Privilege_Escalation.md
-│       │   │   ├── Public_Exploits.md
-│       │   │   └── Types_of_Shells.md
-│       │   │
-│       │   └── Network_Enumeration_With_Nmap/
-│       │       ├── Host_Discovery.md
-│       │       └── Host_and_Port_Scanning.md ← Quick ref + detailed sections
-│       │
-│       ├── CPTS_PROGRESS.md           # CPTS lab tracking
-│       └── README.md                  # HTB progress overview
-│
-├── 00-archived/                       # Archived materials & roadmaps
-├── 00-private/                        # Private class work (gitignored)
-├── Class_Work/                        # Class assignments (gitignored)
-│
-├── README.md (this file)
-└── .git/
+|
+|-- 01-SECURITY_PLUS/              Security+ study notes (completed)
+|
+|-- 02-HTB_WRITEUPS/HTB/
+|   |-- 01-FOUNDATIONAL/           Very Easy boxes (19 completed)
+|   |-- 02-EASY/                   Easy boxes (2 completed)
+|   |-- 06-REFERENCE_GUIDES/
+|   |   |-- Foundation/            Core methodology guides
+|   |   |-- Network_Enumeration_With_Nmap/   7 Nmap module guides
+|   |   |-- MASTER_ENUMERATION_CHEATSHEET.md
+|   |-- CPTS_PROGRESS.md           Hours and progress tracker
+|
+|-- 00-archived/                   Old materials
 ```
 
 ---
 
-## 2026 Timeline (CPTS FOCUSED)
+## Current Status (February 11, 2026)
 
-### Phase 1: Security+ ✅ COMPLETE
-- **Date:** January 10, 2026
-- **Result:** PASSED 768/900 (85.3%)
-- **Materials:** `/01-SECURITY_PLUS/` (study notes, practice exams, domain guides)
-
-### Phase 2: CPTS (CURRENT - In Progress)
-- **Dates:** January 23 - April 10, 2026
-- **HackTheBox Academy:** Certified Penetration Tester Specialist
-- **Format:** 10-day lab-based practical exam (April 1-10, 2026)
-- **Estimated Hours:** 300-350 hours
-- **Current Status:** 21 boxes completed
-  - 19 Very Easy boxes (Foundational level) ✅
-  - 2 Easy boxes (Solo difficulty)
-- **Progress:** `/02-HTB_WRITEUPS/HTB/` (writeups + reference guides)
-- **Next Milestone:** Continue Easy boxes → Medium boxes
-- **Spring Semester:** 12 credits concurrent with CPTS prep
-
-### Phase 3: OSCP (Future)
-- **Target:** Post-CPTS focus
-- **Status:** Planning phase
-
----
-
-## Current Progress (February 9, 2026)
-
-### 📊 Overall Stats
-
-| Category | Status | Count |
-|----------|--------|-------|
-| Security+ | ✅ Complete | 768/900 (85.3%) |
-| Very Easy Boxes | ✅ Complete | 19/19 |
-| Easy Boxes | 🔄 In Progress | 2 completed |
-| Academy Modules | 🔄 In Progress | Nmap Host & Port Scanning ✅ |
-| Reference Guides | ✅ Complete | 8 foundation + modules |
-| **Total Boxes** | **21** | |
+| Metric | Status |
+|--------|--------|
+| Total Hours | 117 / 400 |
+| Machines Completed | 21 (19 Very Easy, 2 Easy) |
+| Academy Modules | 1 complete (Network Enumeration with Nmap) |
+| Writeups Published | 21 |
+| Target Exam | April 1-10, 2026 |
 
 ---
 
 ## Completed Boxes
 
-### 🟢 Foundational Tier (Very Easy) - 19 Boxes
+### Very Easy (19)
 
-| # | Box | Key Skills | Date |
-|---|-----|-----------|------|
-| 1 | MEOW | Telnet, default creds | Jan 23 |
-| 2 | FAWN | FTP anonymous access | Jan 23 |
-| 3 | DANCING | SMB null session | Jan 23 |
-| 4 | REDEEMER | Redis enumeration | Jan 23 |
-| 5 | EXPLOSION | Windows RDP | Jan 24 |
-| 6 | PREIGNITION | Directory brute force | Jan 24 |
-| 7 | MONGOD | MongoDB enumeration | Jan 24 |
-| 8 | SYNCED | Rsync enumeration | Jan 25 |
-| 9 | APPOINTMENT | SQL Injection | Jan 29 |
-| 10 | SEQUEL | MySQL enumeration | Jan 29 |
-| 11 | CROCODILE | FTP + Web combo | Jan 29 |
-| 12 | RESPONDER | NTLM capture, Responder | Jan 29 |
-| 13 | THREE | AWS S3 bucket | Jan 29 |
-| 14 | IGNITION | Web enumeration | Jan 29 |
-| 15 | BIKE | SSTI exploitation | Jan 29 |
-| 16 | FUNNEL | SSH tunneling | Jan 29 |
-| 17 | PENNYWORTH | Jenkins exploitation | Jan 29 |
-| 18 | TACTICS | SMB, PSExec | Jan 29 |
-| 19 | ARCHETYPE | SMB, MSSQL, WinPEAS, PSExec | **Feb 7** |
+| Box | Key Skills |
+|-----|------------|
+| MEOW | Telnet, default creds |
+| FAWN | FTP anonymous access |
+| DANCING | SMB null session |
+| REDEEMER | Redis enumeration |
+| EXPLOSION | Windows RDP |
+| PREIGNITION | Directory brute force (Gobuster) |
+| MONGOD | MongoDB enumeration |
+| SYNCED | Rsync enumeration |
+| APPOINTMENT | SQL injection auth bypass |
+| SEQUEL | MySQL/MariaDB enumeration |
+| CROCODILE | FTP credential exfil + web login |
+| RESPONDER | NTLM capture with Responder |
+| THREE | AWS S3 bucket exploitation |
+| IGNITION | Web enumeration |
+| BIKE | SSTI exploitation |
+| FUNNEL | SSH tunneling |
+| PENNYWORTH | Jenkins script console RCE |
+| TACTICS | SMB + PSExec |
+| ARCHETYPE | SMB + MSSQL + xp_cmdshell + WinPEAS + PSExec |
 
-### 🔵 Easy Tier - 2 Boxes
+### Easy (2)
 
-| # | Box | Key Skills | Date |
-|---|-----|-----------|------|
-| 1 | NIBBLES | Web exploitation, Linux PrivEsc | Jan 26 |
-| 2 | GETTING_STARTED | Theme injection, RCE | Jan 26 |
-
----
-
-## Reference Guides & Learning Modules
-
-### Master Enumeration Reference
-The central guide for all pentesting enumeration approaches.
-
-| Guide | Description | Location |
-|-------|-------------|----------|
-| **MASTER_ENUMERATION_CHEATSHEET.md** | Complete flowchart, Nmap scanning methods, service-specific enumeration | Top level |
-
-### Foundation Guides
-Core reference materials covering essential pentesting techniques.
-
-| Guide | Description | Location |
-|-------|-------------|----------|
-| Enumeration_Process.md | Systematic 5-phase enumeration approach | Foundation/ |
-| Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP service enumeration | Foundation/ |
-| Web_Enumeration.md | HTTP/HTTPS, directory brute, technology fingerprinting | Foundation/ |
-| File_Transfer.md | wget, curl, SCP, Base64, SMB transfer methods | Foundation/ |
-| Privilege_Escalation.md | Linux & Windows privilege escalation techniques | Foundation/ |
-| Public_Exploits.md | Finding, evaluating, and using public CVE exploits | Foundation/ |
-| Types_of_Shells.md | Comprehensive guide to all shell types | Foundation/ |
-
-### Academy Learning Modules
-Detailed notes from CPTS Academy modules organized by topic.
-
-**Network Enumeration with Nmap** (In Progress)
-| Section | Description | Status |
-|---------|-------------|--------|
-| [Host_and_Port_Scanning.md](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md) | Host discovery, port scanning, UDP, service detection (Quick Ref + 3 full sections) | ✅ Complete |
+| Box | Key Skills |
+|-----|------------|
+| NIBBLES | Web exploitation, Linux privilege escalation |
+| GETTING_STARTED | Theme injection, RCE |
 
 ---
 
-## Skills Developed
+## Academy Modules
 
-### Reconnaissance & Enumeration
-- ✅ Nmap port scanning & service detection
-- ✅ FTP anonymous access exploitation
-- ✅ SMB null session enumeration
-- ✅ Web directory brute forcing (Gobuster, FFuF)
-- ✅ Technology fingerprinting (WhatWeb, curl)
+### Network Enumeration with Nmap -- Complete
 
-### Exploitation Techniques
-- ✅ SQL Injection (authentication bypass)
-- ✅ SSTI (Server-Side Template Injection)
-- ✅ Default credential exploitation
-- ✅ MSSQL xp_cmdshell command execution
-- ✅ Jenkins script console RCE
-- ✅ NTLM hash capture with Responder
+7 sections covering the full Nmap module from the CPTS Academy path.
 
-### Post-Exploitation
-- ✅ Reverse shell establishment (Linux & Windows)
-- ✅ File transfer methods
-- ✅ Linux privilege escalation (sudo, SUID, cron)
-- ✅ Windows privilege escalation (WinPEAS, history files)
-- ✅ Credential discovery & reuse
-- ✅ PSExec for administrative access
-
-### Tools Mastered
-- Nmap, Gobuster, FFuF, Nikto
-- SMBclient, enum4linux
-- Hydra, Responder
-- Impacket (mssqlclient.py, psexec.py)
-- LinPEAS, WinPEAS
-- Netcat, Metasploit
+| Section | Guide | Topics |
+|---------|-------|--------|
+| 1 | Host_Discovery.md | Network range scans, IP lists, ICMP/ARP |
+| 2 | Host_and_Port_Scanning.md | TCP states, SYN/Connect/UDP scans, filtered ports |
+| 3 | Saving_and_Converting_Results.md | Output formats (-oN, -oG, -oX), xsltproc |
+| 4 | Service_Enumeration.md | Version detection (-sV), banner grabbing, tcpdump |
+| 5 | NSE_Scripts.md | 14 categories, WordPress enum, vuln scanning |
+| 6 | Scanning_Performance.md | Timing templates (T0-T5), timeout tuning, packet rates |
+| 7 | Firewall_IDS_Evasion.md | ACK scans, decoys, source spoofing, DNS port 53 abuse |
 
 ---
 
-## Next Steps
+## Reference Guides
 
-1. **Continue Easy Tier** - 4 more Easy boxes
-2. **Start Medium Tier** - Increase difficulty
-3. **CPTS Modules** - Complete remaining HTB Academy content
-4. **Mock Exam** - Practice full exam simulation
-5. **CPTS Exam** - April 1-10, 2026
+### Foundation
+
+| Guide | Description |
+|-------|-------------|
+| Enumeration_Process.md | Systematic 5-phase enumeration |
+| Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP service enumeration |
+| Web_Enumeration.md | HTTP/HTTPS, directory brute force, fingerprinting |
+| File_Transfer.md | wget, curl, SCP, Base64, SMB transfers |
+| Privilege_Escalation.md | Linux and Windows privilege escalation |
+| Public_Exploits.md | Finding and using public CVE exploits |
+| Types_of_Shells.md | Comprehensive shell type guide |
+| MASTER_ENUMERATION_CHEATSHEET.md | Full enumeration flowchart |
 
 ---
 
-## Quick Links
+## Tools
 
-- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md) ← **START HERE**
-- [Host and Port Scanning Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md)
-- [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
+Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (mssqlclient.py, psexec.py), LinPEAS, WinPEAS, Netcat, Metasploit, WhatWeb, SearchSploit, tcpdump
+
+---
+
+## Links
+
 - [CPTS Progress Tracker](02-HTB_WRITEUPS/HTB/CPTS_PROGRESS.md)
+- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md)
+- [Nmap Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/)
+- [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
 
 ---
 
-**Last Updated:** February 9, 2026
+Last Updated: February 11, 2026
