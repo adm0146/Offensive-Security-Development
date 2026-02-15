@@ -283,3 +283,133 @@ ftp> ls -R
 | **Banner grabbing** | Version info for known exploits |
 
 **Note:** Modern infrastructure uses fail2ban to block brute-force attempts.
+
+---
+
+## File Operations
+
+### Download Single File
+```bash
+ftp> get Important\ Notes.txt
+# Escapes spaces in filename
+# File saved to current local directory
+```
+
+### Download ALL Files (wget)
+```bash
+wget -m --no-passive ftp://anonymous:anonymous@10.129.14.136
+
+# Creates directory named after IP
+# Downloads entire FTP structure
+# ⚠️ May trigger alarms - unusual behavior
+```
+
+**Result:**
+```
+tree .
+└── 10.129.14.136
+    ├── Calendar.pptx
+    ├── Clients
+    │   └── Inlanefreight
+    │       ├── appointments.xlsx
+    │       └── contract.docx
+    ├── Documents
+    └── Important Notes.txt
+```
+
+### Upload Files
+```bash
+# Create local file
+touch testupload.txt
+
+# Upload via FTP
+ftp> put testupload.txt
+226 Transfer complete.
+```
+
+**Why uploads matter:** If FTP syncs to webserver → upload malicious file → LFI/RCE
+
+---
+
+## Nmap FTP Enumeration
+
+### Update NSE Scripts
+```bash
+sudo nmap --script-updatedb
+```
+
+### Find FTP Scripts
+```bash
+find / -type f -name ftp* 2>/dev/null | grep scripts
+
+# Key scripts:
+/usr/share/nmap/scripts/ftp-anon.nse      # Anonymous access check
+/usr/share/nmap/scripts/ftp-syst.nse      # Server status/version
+/usr/share/nmap/scripts/ftp-brute.nse     # Brute force
+/usr/share/nmap/scripts/ftp-bounce.nse    # Bounce attack check
+/usr/share/nmap/scripts/ftp-vsftpd-backdoor.nse  # Known backdoor
+/usr/share/nmap/scripts/ftp-proftpd-backdoor.nse # Known backdoor
+/usr/share/nmap/scripts/ftp-vuln-cve2010-4221.nse
+```
+
+### Standard FTP Scan
+```bash
+sudo nmap -sV -p21 -sC -A 10.129.14.136
+```
+
+**Example Output:**
+```
+21/tcp open  ftp     vsftpd 2.0.8 or later
+| ftp-anon: Anonymous FTP login allowed (FTP code 230)
+| -rwxrwxrwx    1 ftp  ftp  8138592 Calendar.pptx [NSE: writeable]
+| drwxrwxrwx    4 ftp  ftp     4096 Clients [NSE: writeable]
+|_-rwxrwxrwx    1 ftp  ftp       41 Important Notes.txt [NSE: writeable]
+| ftp-syst: 
+|   STAT: 
+|      Connected to 10.10.14.4
+|      vsFTPd 3.0.3 - secure, fast, stable
+```
+
+**Key findings from scan:**
+- Anonymous login allowed ✓
+- Files are writeable ✓
+- Version info: vsFTPd 3.0.3
+
+### Script Trace (Debug)
+```bash
+sudo nmap -sV -p21 -sC -A 10.129.14.136 --script-trace
+# Shows exact commands sent/received at network level
+```
+
+---
+
+## Alternative Connection Methods
+
+### Netcat
+```bash
+nc -nv 10.129.14.136 21
+```
+
+### Telnet
+```bash
+telnet 10.129.14.136 21
+```
+
+### OpenSSL (TLS/SSL FTP)
+```bash
+openssl s_client -connect 10.129.14.136:21 -starttls ftp
+```
+
+**Why OpenSSL matters:** Shows SSL certificate with:
+- Hostname (e.g., `master.inlanefreight.htb`)
+- Email (e.g., `admin@inlanefreight.htb`)
+- Organization info
+- Location info
+
+**Example Certificate Info:**
+```
+depth=0 C = US, ST = California, L = Sacramento, 
+O = Inlanefreight, OU = Dev, 
+CN = master.inlanefreight.htb, 
+emailAddress = admin@inlanefreight.htb
+```
