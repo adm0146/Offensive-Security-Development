@@ -96,3 +96,82 @@ anonymous:anonymous
 anonymous:guest
 ftp:ftp
 ```
+
+---
+
+## TFTP (Trivial File Transfer Protocol)
+
+> Simpler than FTP - no authentication, uses UDP instead of TCP.
+
+### FTP vs TFTP
+
+| Feature | FTP | TFTP |
+|---------|-----|------|
+| Protocol | TCP | UDP |
+| Authentication | Yes | No |
+| Directory listing | Yes | No |
+| Security | Basic | None |
+| Use case | General transfers | Local/protected networks only |
+
+### TFTP Commands
+
+| Command | Description |
+|---------|-------------|
+| `connect` | Set remote host and port for transfers |
+| `get` | Download file(s) from remote to local |
+| `put` | Upload file(s) from local to remote |
+| `quit` | Exit TFTP |
+| `status` | Show current status (mode, connection, timeout) |
+| `verbose` | Toggle verbose mode on/off |
+
+**Key limitation:** No directory listing functionality
+
+---
+
+## vsFTPd Configuration (Linux)
+
+Default config: `/etc/vsftpd.conf`
+
+```bash
+# Install
+sudo apt install vsftpd
+
+# View active settings (exclude comments)
+cat /etc/vsftpd.conf | grep -v "#"
+```
+
+### Key Settings
+
+| Setting | Description |
+|---------|-------------|
+| `listen=NO` | Run from inetd or standalone daemon |
+| `listen_ipv6=YES` | Listen on IPv6 |
+| `anonymous_enable=NO` | Enable anonymous access |
+| `local_enable=YES` | Allow local users to login |
+| `dirmessage_enable=YES` | Display directory messages |
+| `use_localtime=YES` | Use local time |
+| `xferlog_enable=YES` | Log uploads/downloads |
+| `connect_from_port_20=YES` | Connect from port 20 |
+| `secure_chroot_dir=/var/run/vsftpd/empty` | Empty directory for chroot |
+| `pam_service_name=vsftpd` | PAM service name |
+| `ssl_enable=NO` | Enable SSL connections |
+
+### SSL Certificate Settings
+```
+rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+```
+
+### Deny User Access
+
+File: `/etc/ftpusers` - users listed here are **blocked** from FTP
+
+```bash
+cat /etc/ftpusers
+# Example output:
+guest
+john
+kevin
+```
+
+Users in this file cannot login even if they exist on the system.
