@@ -11,3 +11,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [Enumeration_Methodology.md](Enumeration_Methodology.md) — Six-layer framework covering internet presence, gateway, services, processes, privileges, and OS setup.
 
 - [Domain_Information.md](Domain_Information.md) — Passive recon using SSL certificates, crt.sh, DNS records, Shodan, and extracting third-party providers from TXT records.
+
+- [FTP.md](FTP.md) — File Transfer Protocol: ports 20/21, active vs passive mode, anonymous access, and security risks.
