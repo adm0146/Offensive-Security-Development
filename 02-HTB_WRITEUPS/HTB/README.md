@@ -1,46 +1,90 @@
-# HackTheBox - CPTS Preparation# CPTS Progress Tracking
+# HackTheBox - CPTS Preparation# HackTheBox - CPTS Preparation# CPTS Progress Tracking
 
 
 
-Quick navigation to reference guides, foundational materials, and machine writeups.**Start Date:** January 22, 2026  
-
-**Target Exam:** April 1-10, 2026  
-
----**Current Date:** February 13, 2026
+Quick navigation to reference guides, foundational materials, and machine writeups.
 
 
 
-## Reference Guides---
+---Quick navigation to reference guides, foundational materials, and machine writeups.**Start Date:** January 22, 2026  
 
 
 
-### Network Enumeration with Nmap## Total Hours
+## Reference Guides**Target Exam:** April 1-10, 2026  
+
+
+
+### Network Enumeration with Nmap---**Current Date:** February 13, 2026
 
 - [Host Discovery](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_Discovery.md) — Network reconnaissance techniques including ICMP, ARP, and TCP/UDP sweeps to identify active hosts.
 
-- [Host and Port Scanning](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md) — TCP states, SYN/Connect/UDP scanning methods, and analyzing filtered vs closed ports.| Period | Hours | Target |
+- [Host and Port Scanning](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md) — TCP states, SYN/Connect/UDP scanning methods, and analyzing filtered vs closed ports.
 
-- [Saving and Converting Results](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Saving_and_Converting_Results.md) — Output format options (-oN, -oG, -oX, -oA) and HTML report generation with xsltproc.|--------|-------|--------|
+- [Saving and Converting Results](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Saving_and_Converting_Results.md) — Output format options (-oN, -oG, -oX, -oA) and HTML report generation with xsltproc.
 
-- [Service Enumeration](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Service_Enumeration.md) — Banner grabbing, version detection, and service identification techniques.| Week 1 (Jan 22-28) | 50 | 40 |
+- [Service Enumeration](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Service_Enumeration.md) — Banner grabbing, version detection, and service identification techniques.## Reference Guides---
 
-- [NSE Scripts](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/NSE_Scripts.md) — 14 NSE script categories with real practice problems and automation examples.| Week 2 (Jan 29-Feb 4) | 25 | 40 |
+- [NSE Scripts](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/NSE_Scripts.md) — 14 NSE script categories with real practice problems and automation examples.
 
-- [Scanning Performance](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Scanning_Performance.md) — Timing templates (-T 0-5), optimization strategies, and speed vs stealth tradeoffs.| Week 3-4 (Feb 5-18) | 52 / 80 | 80 |
+- [Scanning Performance](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Scanning_Performance.md) — Timing templates (-T 0-5), optimization strategies, and speed vs stealth tradeoffs.
 
-- [Firewall/IDS Evasion](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Firewall_IDS_Evasion.md) — ACK scans, decoy scans, DNS spoofing, and other evasion techniques to bypass security controls.| Week 5-6 (Feb 19-Mar 4) | — | 80 |
+- [Firewall/IDS Evasion](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Firewall_IDS_Evasion.md) — ACK scans, decoy scans, DNS spoofing, and other evasion techniques to bypass security controls.
 
-| Week 7-8 (Mar 5-18) | — | 80 |
+### Network Enumeration with Nmap## Total Hours
 
-### Footprinting| Week 9-10 (Mar 19-Apr 1) | — | 80 |
+### Footprinting
 
-- [Enumeration Principles](06-REFERENCE_GUIDES/Footprinting/Enumeration_Principles.md) — Three core principles: see beyond the obvious, distinguish visible from invisible, and always find more information.| **Total** | **127 / 400** | **400** |
+- [Enumeration Principles](06-REFERENCE_GUIDES/Footprinting/Enumeration_Principles.md) — Three core principles: see beyond the obvious, distinguish visible from invisible, and always find more information.- [Host Discovery](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_Discovery.md) — Network reconnaissance techniques including ICMP, ARP, and TCP/UDP sweeps to identify active hosts.
 
 - [Enumeration Methodology](06-REFERENCE_GUIDES/Footprinting/Enumeration_Methodology.md) — Six-layer framework covering internet presence, gateway, services, processes, privileges, and OS setup.
 
+- [Domain Information](06-REFERENCE_GUIDES/Footprinting/Domain_Information.md) — Certificate transparency lookup, DNS record enumeration, and Shodan recon for passive infrastructure discovery.- [Host and Port Scanning](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Host_and_Port_Scanning.md) — TCP states, SYN/Connect/UDP scanning methods, and analyzing filtered vs closed ports.| Period | Hours | Target |
+
+- [Staff Enumeration](06-REFERENCE_GUIDES/Footprinting/Staff_Enumeration.md) — LinkedIn job postings and employee profiles reveal technology stack, required skills, and infrastructure insights.
+
+- [Saving and Converting Results](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Saving_and_Converting_Results.md) — Output format options (-oN, -oG, -oX, -oA) and HTML report generation with xsltproc.|--------|-------|--------|
+
+---
+
+- [Service Enumeration](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Service_Enumeration.md) — Banner grabbing, version detection, and service identification techniques.| Week 1 (Jan 22-28) | 50 | 40 |
+
+## Foundational Materials
+
+- [NSE Scripts](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/NSE_Scripts.md) — 14 NSE script categories with real practice problems and automation examples.| Week 2 (Jan 29-Feb 4) | 25 | 40 |
+
+- [01-FOUNDATIONAL/](01-FOUNDATIONAL/) — Core concepts and fundamentals for penetration testing preparation.
+
+- [Scanning Performance](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Scanning_Performance.md) — Timing templates (-T 0-5), optimization strategies, and speed vs stealth tradeoffs.| Week 3-4 (Feb 5-18) | 52 / 80 | 80 |
+
+---
+
+- [Firewall/IDS Evasion](06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/Firewall_IDS_Evasion.md) — ACK scans, decoy scans, DNS spoofing, and other evasion techniques to bypass security controls.| Week 5-6 (Feb 19-Mar 4) | — | 80 |
+
+## Machines & Writeups
+
+| Week 7-8 (Mar 5-18) | — | 80 |
+
+- [02-EASY/](02-EASY/) — Easy difficulty machines including Nmap skill assessment labs (Easy, Medium UDP/DNS, Hard filtered port).
+
+### Footprinting| Week 9-10 (Mar 19-Apr 1) | — | 80 |
+
+---
+
+- [Enumeration Principles](06-REFERENCE_GUIDES/Footprinting/Enumeration_Principles.md) — Three core principles: see beyond the obvious, distinguish visible from invisible, and always find more information.| **Total** | **127 / 400** | **400** |
+
+## Progress Tracking
+
+- [Enumeration Methodology](06-REFERENCE_GUIDES/Footprinting/Enumeration_Methodology.md) — Six-layer framework covering internet presence, gateway, services, processes, privileges, and OS setup.
+
+See [CPTS_PROGRESS.md](CPTS_PROGRESS.md) for detailed hour tracking, machine completion status, and module progress.
+
 - [Domain Information](06-REFERENCE_GUIDES/Footprinting/Domain_Information.md) — Certificate transparency lookup, DNS record enumeration, and Shodan recon for passive infrastructure discovery.```
 
+---
+
 - [Cloud Resources](06-REFERENCE_GUIDES/Footprinting/Cloud_Resources.md) — AWS/Azure/GCP discovery via Google Dorks, GreyHatWarefare, and domain.glass for exposed cloud storage.Progress: ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░ 31%
+
+**Status:** 130/400 hours (32%) — On track for April 2026 exam
 
 - [Staff Enumeration](06-REFERENCE_GUIDES/Footprinting/Staff_Enumeration.md) — LinkedIn job postings and employee profiles reveal technology stack, required skills, and infrastructure insights.```
 
