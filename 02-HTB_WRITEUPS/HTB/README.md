@@ -1,8 +1,8 @@
 # CPTS Progress Tracking
 
 **Start Date:** January 22, 2026  
-**Target Exam:** April 1-10, 2026  
-**Current Date:** February 15, 2026
+**Target Exam:** May 20, 2026  
+**Current Date:** February 16, 2026
 
 ---
 
@@ -16,10 +16,14 @@
 | Week 5-6 (Feb 19-Mar 4) | — | 80 |
 | Week 7-8 (Mar 5-18) | — | 80 |
 | Week 9-10 (Mar 19-Apr 1) | — | 80 |
-| **Total** | **150 / 400** | **400** |
+| Week 11-12 (Apr 2-15) | — | 80 |
+| Week 13-14 (Apr 16-29) | — | 80 |
+| Week 15-16 (Apr 30-May 13) | — | 80 |
+| Week 17 (May 14-20) | — | 40 |
+| **Total** | **150 / 680** | **680** |
 
 ```
-Progress: ███████████████░░░░░░░░░░░░░░░░░░░░░░░░░ 37%
+Progress: █████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 22%
 ```
 
 ---
@@ -139,7 +143,31 @@ Progress: ███████████████░░░░░░░░�
 
 ## Week 9-10 — Mar 19-Apr 1 | Upcoming
 
-**Plan:** Hard machines, mock exam simulation, final review
+**Plan:** Hard machines, AD exploitation continued
+
+---
+
+## Week 11-12 — Apr 2-15 | Upcoming
+
+**Plan:** Advanced techniques, complex exploitation chains
+
+---
+
+## Week 13-14 — Apr 16-29 | Upcoming
+
+**Plan:** Mock exam simulations, time management practice
+
+---
+
+## Week 15-16 — Apr 30-May 13 | Upcoming
+
+**Plan:** Final review, weak area focus, exam prep
+
+---
+
+## Week 17 — May 14-20 | Exam Week
+
+**Plan:** Light review, rest, CPTS exam
 
 ---
 
@@ -160,6 +188,6 @@ Progress: ███████████████░░░░░░░░�
 
 ## Post-CPTS Goals
 
-- OSCP course access setup (April 20)
-- PWK labs enrollment (May 1)
-- OSCP intensive begins (May 20)
+- OSCP course access setup (June 1)
+- PWK labs enrollment (June 15)
+- OSCP intensive begins (July 1)

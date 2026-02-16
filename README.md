@@ -37,11 +37,11 @@ Cybersecurity_Professional_Development/
 
 | Metric | Status |
 |--------|--------|
-| Total Hours | 150 / 400 (37%) |
+| Total Hours | 150 / 680 (22%) |
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
 | Academy Modules | 1 complete (Nmap), 1 in progress (Footprinting) |
 | Writeups Published | 22 |
-| Target Exam | April 1-10, 2026 |
+| Target Exam | May 20, 2026 |
 
 ---
 
