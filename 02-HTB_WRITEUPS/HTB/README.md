@@ -6,6 +6,17 @@
 
 ---
 
+## Exam Strategy
+
+⚠️ **Important:** The CPTS exam tests knowledge from **Academy modules**, NOT box-solving ability. Labs/boxes are supplementary practice to reinforce module concepts.
+
+**Priority:**
+1. **Academy Modules** — Primary focus (exam content comes from here)
+2. **Module Labs** — Skill assessments within modules
+3. **HTB Boxes** — Supplementary practice (evening/weekend)
+
+---
+
 ## Total Hours
 
 | Period | Hours | Target |
@@ -28,76 +39,120 @@ Progress: █████████░░░░░░░░░░░░░░�
 
 ---
 
-## Overview
+## Academy Module Progress (Primary Focus)
 
-| Metric | Completed | Target |
-|--------|-----------|--------|
-| Machines Completed | 22 | 30+ |
-| Very Easy | 19 | 11 — EXCEEDED |
-| Easy | 3 | 6-8 |
-| Medium | 0 | 4-5 |
-| Hard/AD | 0 | 5-6 |
-| Academy Modules | 2 (Nmap, Footprinting in progress) | Core Path |
-| Writeups Published | 21 | 30+ |
-
----
-
-## Week 1 — Jan 22-28 | 50 hrs
-
-**Focus:** Very Easy machines — building methodology foundation
-
-| Machine | Difficulty | Key Skills |
-|---------|-----------|------------|
-| MEOW | Very Easy | Telnet enumeration |
-| FAWN | Very Easy | FTP anonymous access |
-| DANCING | Very Easy | SMB share enumeration |
-| REDEEMER | Very Easy | Redis database access |
-| WordPress 5.6.1 | Very Easy | Nmap → WhatWeb → plugin enum → CVE → Metasploit RCE |
-| EXPLOSION | Very Easy | Windows RDP access |
-| PREIGNITION | Very Easy | Directory brute-forcing with Gobuster |
-| MONGOD | Very Easy | MongoDB enumeration |
-| SYNCED | Very Easy | Rsync protocol exploitation |
-| APPOINTMENT | Very Easy | SQL injection auth bypass |
-| SEQUEL | Very Easy | MySQL/MariaDB enumeration |
-| CROCODILE | Very Easy | FTP credential exfil → web login |
-| PrivEsc Lab | Easy | sudo NOPASSWD → GTFOBins → SSH keys → root |
-
-**Output:** 13 machines, 8 writeups (800+ lines each), reference guides created (Types of Shells, PrivEsc Decision Tree)
+| Module | Status | Sections | Labs |
+|--------|--------|----------|------|
+| Network Enumeration with Nmap | ✅ Complete | 7/7 | 3/3 (E/M/H) |
+| Footprinting | 🔄 In Progress | 5/? | — |
+| Information Gathering - Web | ⬚ Not Started | — | — |
+| Vulnerability Assessment | ⬚ Not Started | — | — |
+| File Transfers | ⬚ Not Started | — | — |
+| Shells & Payloads | ⬚ Not Started | — | — |
+| Using the Metasploit Framework | ⬚ Not Started | — | — |
+| Password Attacks | ⬚ Not Started | — | — |
+| Attacking Common Services | ⬚ Not Started | — | — |
+| Pivoting, Tunneling, Port Forwarding | ⬚ Not Started | — | — |
+| Active Directory Enumeration & Attacks | ⬚ Not Started | — | — |
+| Using Web Proxies | ⬚ Not Started | — | — |
+| Attacking Web Applications with FFuF | ⬚ Not Started | — | — |
+| Login Brute Forcing | ⬚ Not Started | — | — |
+| SQL Injection Fundamentals | ⬚ Not Started | — | — |
+| SQLMap Essentials | ⬚ Not Started | — | — |
+| Cross-Site Scripting (XSS) | ⬚ Not Started | — | — |
+| File Inclusion | ⬚ Not Started | — | — |
+| File Upload Attacks | ⬚ Not Started | — | — |
+| Command Injections | ⬚ Not Started | — | — |
+| Web Attacks | ⬚ Not Started | — | — |
+| Attacking Common Applications | ⬚ Not Started | — | — |
+| Linux Privilege Escalation | ⬚ Not Started | — | — |
+| Windows Privilege Escalation | ⬚ Not Started | — | — |
+| Documentation & Reporting | ⬚ Not Started | — | — |
+| Attacking Enterprise Networks | ⬚ Not Started | — | — |
 
 ---
 
-## Week 2 — Jan 29-Feb 4 | 25 hrs
+## Supplementary Box Practice
 
-**Focus:** Completing Very Easy tier + Easy tier progression
+| Metric | Completed |
+|--------|-----------|
+| Very Easy | 19 |
+| Easy | 3 |
+| Medium | 0 |
+| Hard/AD | 0 |
+| **Total** | **22** |
 
-| Machine | Difficulty | Key Skills |
-|---------|-----------|------------|
-| Additional Very Easy boxes | Very Easy | Service enumeration across protocols |
-| Easy tier boxes | Easy | Multi-step exploitation chains |
-
-**Output:** 16 total machines completed (11 Very Easy + 5 Easy), 8,000+ lines of documentation
+*Boxes reinforce module concepts but are not the exam focus.*
 
 ---
 
-## Week 3-4 — Feb 5-18 | 62 hrs (in progress)
+## Weekly Plan
 
-**Focus:** CPTS Academy modules (daytime) + box practice (evening)
+### Week 3-4 — Feb 5-18 | 62 hrs (in progress)
 
-### Machines
+**Module Focus:** Footprinting (complete all sections + labs)
 
-| Machine | Difficulty | Key Skills |
-|---------|-----------|------------|
-| ARCHETYPE | Very Easy | SMB enum → MSSQL → xp_cmdshell → WinPEAS → PSExec |
-| LAME | Easy | SMB enumeration → Samba 3.0.20 usermap_script → CVE-2007-2447 → root |
+| Module | Status |
+|--------|--------|
+| **Footprinting** | 🔄 5 sections complete |
 
-### Academy Modules
+**Sections Completed:**
 
-| Module | Status | Key Topics |
-|--------|--------|------------|
-| **Network Enumeration with Nmap** | ✅ Complete | 7 sections, 3 labs (E/M/H), 3,500+ lines of reference guides |
-| **Footprinting** | 🔄 In Progress | Enumeration principles, methodology, FTP, SMB |
+| # | Section | Concepts |
+|---|---------|----------|
+| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
+| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
+| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
+| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
+| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
 
-**Nmap Module Sections Completed:**
+---
+
+### Week 5-6 — Feb 19-Mar 4 | Upcoming
+
+**Module Focus:** Complete Footprinting → Information Gathering - Web → File Transfers
+
+---
+
+### Week 7-8 — Mar 5-18 | Upcoming
+
+**Module Focus:** Shells & Payloads → Using the Metasploit Framework → Password Attacks
+
+---
+
+### Week 9-10 — Mar 19-Apr 1 | Upcoming
+
+**Module Focus:** Attacking Common Services → Pivoting/Tunneling → Linux Privilege Escalation
+
+---
+
+### Week 11-12 — Apr 2-15 | Upcoming
+
+**Module Focus:** Windows Privilege Escalation → Active Directory Enumeration & Attacks
+
+---
+
+### Week 13-14 — Apr 16-29 | Upcoming
+
+**Module Focus:** Web Attacks (SQLi, XSS, File Inclusion, Command Injection, File Upload)
+
+---
+
+### Week 15-16 — Apr 30-May 13 | Upcoming
+
+**Module Focus:** Attacking Common Applications → Attacking Enterprise Networks → Documentation
+
+---
+
+### Week 17 — May 14-20 | Exam Week
+
+**Focus:** Review weak modules, rest, CPTS exam
+
+---
+
+## Completed Modules Detail
+
+### Network Enumeration with Nmap ✅
 
 | # | Section | Concepts |
 |---|---------|----------|
@@ -109,80 +164,26 @@ Progress: █████████░░░░░░░░░░░░░░�
 | 6 | Scanning Performance | Timing templates (T0-T5), timeout tuning, packet rate optimization |
 | 7 | Firewall/IDS Evasion | SYN vs ACK scans, decoy scanning, source IP spoofing, DNS port 53 abuse |
 
-**Footprinting Module Sections Completed:**
-
-| # | Section | Concepts |
-|---|---------|----------|
-| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
-| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
-| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
-| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
-| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
-
 **Skill Assessment Labs:**
 
 | Lab | Difficulty | Technique |
 |-----|-----------|-----------|
 | Easy | Easy | Standard service enumeration |
 | UDP DNS Enumeration | Medium | `-sU -sV` triggered DNSVersionBindReq on port 53 |
-| Filtered Port Bypass | Hard | `-g 53` DNS source port abuse + ncat `--source-port 53` to bypass firewall on port 50000 |
-
----
-
-## Week 5-6 — Feb 19-Mar 4 | Upcoming
-
-**Plan:** Easy/Medium transition, Privilege Escalation modules (Linux/Windows)
-
----
-
-## Week 7-8 — Mar 5-18 | Upcoming
-
-**Plan:** Active Directory focus, Kerberos exploitation, lateral movement
-
----
-
-## Week 9-10 — Mar 19-Apr 1 | Upcoming
-
-**Plan:** Hard machines, AD exploitation continued
-
----
-
-## Week 11-12 — Apr 2-15 | Upcoming
-
-**Plan:** Advanced techniques, complex exploitation chains
-
----
-
-## Week 13-14 — Apr 16-29 | Upcoming
-
-**Plan:** Mock exam simulations, time management practice
-
----
-
-## Week 15-16 — Apr 30-May 13 | Upcoming
-
-**Plan:** Final review, weak area focus, exam prep
-
----
-
-## Week 17 — May 14-20 | Exam Week
-
-**Plan:** Light review, rest, CPTS exam
+| Filtered Port Bypass | Hard | `-g 53` DNS source port abuse + ncat `--source-port 53` |
 
 ---
 
 ## Skills Developed
 
-| Category | Skills | Status |
-|----------|--------|--------|
-| Reconnaissance | Nmap mastery, service enumeration, banner grabbing | Done |
-| Firewall Evasion | Source port spoofing, DNS trust abuse, filtered port bypass | Done |
-| Web Exploitation | SQLi, directory brute-forcing, plugin enumeration | Done |
-| Privilege Escalation | GTFOBins, sudo abuse, SSH key extraction, WinPEAS | Done |
-| Protocols | FTP, SMB, RDP, MySQL, MongoDB, Redis, Rsync, Telnet | Done |
-| Tools | Nmap, Gobuster, Metasploit, WhatWeb, SearchSploit, tcpdump, Ncat | Done |
+| Category | Skills | Source Module |
+|----------|--------|---------------|
+| Reconnaissance | Nmap mastery, service enumeration, banner grabbing | Nmap ✅ |
+| Firewall Evasion | Source port spoofing, DNS trust abuse, filtered port bypass | Nmap ✅ |
+| Service Enumeration | FTP, SMB, protocols, Samba tools | Footprinting 🔄 |
+| Web Exploitation | SQLi, directory brute-forcing, plugin enumeration | Upcoming |
+| Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 | Active Directory | Kerberos, Bloodhound, lateral movement | Upcoming |
-| Reporting | Professional writeups, flag documentation | Done |
 
 ---
 
