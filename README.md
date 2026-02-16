@@ -20,26 +20,27 @@ Cybersecurity_Professional_Development/
 |
 |-- 02-HTB_WRITEUPS/HTB/
 |   |-- 01-FOUNDATIONAL/           Very Easy boxes (19 completed)
-|   |-- 02-EASY/                   Easy boxes (2 completed)
+|   |-- 02-EASY/                   Easy boxes (3 completed)
 |   |-- 06-REFERENCE_GUIDES/
 |   |   |-- Foundation/            Core methodology guides
 |   |   |-- Network_Enumeration_With_Nmap/   7 Nmap module guides
+|   |   |-- Footprinting/          5 Footprinting module guides
 |   |   |-- MASTER_ENUMERATION_CHEATSHEET.md
-|   |-- CPTS_PROGRESS.md           Hours and progress tracker
+|   |-- README.md                  CPTS hours and progress tracker
 |
 |-- 00-archived/                   Old materials
 ```
 
 ---
 
-## Current Status (February 12, 2026)
+## Current Status (February 16, 2026)
 
 | Metric | Status |
 |--------|--------|
-| Total Hours | 122 / 400 |
-| Machines Completed | 21 (19 Very Easy, 2 Easy) |
-| Academy Modules | 1 complete (Network Enumeration with Nmap -- all labs) |
-| Writeups Published | 21 |
+| Total Hours | 150 / 400 (37%) |
+| Machines Completed | 22 (19 Very Easy, 3 Easy) |
+| Academy Modules | 1 complete (Nmap), 1 in progress (Footprinting) |
+| Writeups Published | 22 |
 | Target Exam | April 1-10, 2026 |
 
 ---
@@ -70,12 +71,13 @@ Cybersecurity_Professional_Development/
 | TACTICS | SMB + PSExec |
 | ARCHETYPE | SMB + MSSQL + xp_cmdshell + WinPEAS + PSExec |
 
-### Easy (2)
+### Easy (3)
 
 | Box | Key Skills |
 |-----|------------|
 | NIBBLES | Web exploitation, Linux privilege escalation |
 | GETTING_STARTED | Theme injection, RCE |
+| LAME | SMB Samba 3.0.20 usermap_script (CVE-2007-2447), direct root |
 
 ---
 
@@ -105,6 +107,18 @@ Cybersecurity_Professional_Development/
 
 ---
 
+## Footprinting Module (In Progress)
+
+| Section | Guide | Topics |
+|---------|-------|--------|
+| 1 | Enumeration_Principles.md | What we see vs don't see, active vs passive recon |
+| 2 | Enumeration_Methodology.md | Six-layer framework (Internet → OS Setup) |
+| 3 | Domain_Information.md | SSL certs, crt.sh, DNS records, Shodan |
+| 4 | FTP.md | Ports 20/21, active vs passive, anonymous access, vsFTPd |
+| 5 | SMB.md | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
+
+---
+
 ## Reference Guides
 
 ### Foundation
@@ -130,11 +144,12 @@ Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (
 
 ## Links
 
-- [CPTS Progress Tracker](02-HTB_WRITEUPS/HTB/CPTS_PROGRESS.md)
+- [CPTS Progress Tracker](02-HTB_WRITEUPS/HTB/README.md)
 - [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md)
 - [Nmap Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/)
+- [Footprinting Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Footprinting/)
 - [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
 
 ---
 
-Last Updated: February 12, 2026
+Last Updated: February 16, 2026
