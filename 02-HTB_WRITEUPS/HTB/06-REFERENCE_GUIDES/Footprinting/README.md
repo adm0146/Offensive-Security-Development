@@ -15,3 +15,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [FTP.md](FTP.md) — File Transfer Protocol: ports 20/21, active vs passive mode, anonymous access, and security risks.
 
 - [SMB.md](SMB.md) — Server Message Block: client-server protocol for file/directory access, shares, ACLs, and cross-platform communication via Samba.
+
+- [NFS.md](NFS.md) — Network File System: Linux/Unix file sharing, NFSv2-v4 versions, UID/GID authentication, and security considerations.
