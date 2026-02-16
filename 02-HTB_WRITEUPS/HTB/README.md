@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** April 1-10, 2026  
-**Current Date:** February 13, 2026
+**Current Date:** February 15, 2026
 
 ---
 
@@ -12,14 +12,14 @@
 |--------|-------|--------|
 | Week 1 (Jan 22-28) | 50 | 40 |
 | Week 2 (Jan 29-Feb 4) | 25 | 40 |
-| Week 3-4 (Feb 5-18) | 52 / 80 | 80 |
+| Week 3-4 (Feb 5-18) | 62 / 80 | 80 |
 | Week 5-6 (Feb 19-Mar 4) | — | 80 |
 | Week 7-8 (Mar 5-18) | — | 80 |
 | Week 9-10 (Mar 19-Apr 1) | — | 80 |
-| **Total** | **127 / 400** | **400** |
+| **Total** | **137 / 400** | **400** |
 
 ```
-Progress: ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░ 31%
+Progress: ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░ 34%
 ```
 
 ---
@@ -28,12 +28,12 @@ Progress: ██████████████░░░░░░░░░�
 
 | Metric | Completed | Target |
 |--------|-----------|--------|
-| Machines Completed | 21 | 30+ |
+| Machines Completed | 22 | 30+ |
 | Very Easy | 19 | 11 — EXCEEDED |
-| Easy | 2 | 6-8 |
+| Easy | 3 | 6-8 |
 | Medium | 0 | 4-5 |
 | Hard/AD | 0 | 5-6 |
-| Academy Modules | 1 (Nmap) | Core Path |
+| Academy Modules | 2 (Nmap, Footprinting in progress) | Core Path |
 | Writeups Published | 21 | 30+ |
 
 ---
@@ -75,7 +75,7 @@ Progress: ██████████████░░░░░░░░░�
 
 ---
 
-## Week 3-4 — Feb 5-18 | 52 hrs (in progress)
+## Week 3-4 — Feb 5-18 | 62 hrs (in progress)
 
 **Focus:** CPTS Academy modules (daytime) + box practice (evening)
 
@@ -84,12 +84,14 @@ Progress: ██████████████░░░░░░░░░�
 | Machine | Difficulty | Key Skills |
 |---------|-----------|------------|
 | ARCHETYPE | Very Easy | SMB enum → MSSQL → xp_cmdshell → WinPEAS → PSExec |
+| LAME | Easy | SMB enumeration → Samba 3.0.20 usermap_script → CVE-2007-2447 → root |
 
 ### Academy Modules
 
 | Module | Status | Key Topics |
 |--------|--------|------------|
-| **Network Enumeration with Nmap** | Complete (all labs) | 7 sections, 3 labs (E/M/H), 3,500+ lines of reference guides |
+| **Network Enumeration with Nmap** | ✅ Complete | 7 sections, 3 labs (E/M/H), 3,500+ lines of reference guides |
+| **Footprinting** | 🔄 In Progress | Enumeration principles, methodology, FTP, SMB |
 
 **Nmap Module Sections Completed:**
 
@@ -102,6 +104,16 @@ Progress: ██████████████░░░░░░░░░�
 | 5 | NSE Scripts | 14 categories, WordPress enumeration, vulnerability scanning |
 | 6 | Scanning Performance | Timing templates (T0-T5), timeout tuning, packet rate optimization |
 | 7 | Firewall/IDS Evasion | SYN vs ACK scans, decoy scanning, source IP spoofing, DNS port 53 abuse |
+
+**Footprinting Module Sections Completed:**
+
+| # | Section | Concepts |
+|---|---------|----------|
+| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
+| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
+| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
+| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
+| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
 
 **Skill Assessment Labs:**
 
