@@ -546,3 +546,147 @@ cd .. && sudo umount /tmp/nfs
 6. **no_root_squash** — Dangerous! Allows root access on mount
 7. **SUID escalation** — Upload SUID shell via NFS for privilege escalation
 8. **SSH keys** — Common sensitive files found on NFS shares
+
+---
+
+## Lab Walkthrough Example
+
+> From HTB Academy Footprinting module NFS practice lab.
+
+### Step 1: Initial NFS Enumeration
+
+```bash
+sudo nmap --script nfs* 10.129.1.157 -sV -p111,2049 -oA nfs_scan_one
+```
+
+**What it does:** Scans ports 111 (RPC) and 2049 (NFS), runs all NFS NSE scripts to enumerate shares, and saves output in all formats.
+
+**Output shows:**
+- Available NFS shares: `/var/nfs` and `/mnt/nfsshare`
+- Both accessible to `10.0.0.0/8` subnet
+- RPC services: rpcbind, nfs, mountd, nlockmgr, nfs_acl
+
+⚠️ **Note:** If `nfs*` wildcard causes script errors, use specific scripts:
+```bash
+sudo nmap --script nfs-ls 10.129.1.157 -sV -p111,2049 -oA nfs_scan_two_ls
+```
+
+### Step 2: List Available Shares
+
+```bash
+showmount -e 10.129.1.157
+```
+
+**What it does:** Queries the NFS server's export list — shows which directories are shared and who can access them.
+
+**Output:**
+```
+Export list for 10.129.1.157:
+/var/nfs      10.0.0.0/8
+/mnt/nfsshare 10.0.0.0/8
+```
+
+### Step 3: Create Mount Point
+
+```bash
+mkdir target_NFS
+```
+
+**What it does:** Creates a local directory to serve as the mount point for the remote NFS share.
+
+### Step 4: Mount the NFS Share
+
+```bash
+sudo mount -t nfs 10.129.1.157:/ ./target_NFS/ -o nolock
+```
+
+**What it does:** Mounts the entire root (`/`) of the NFS server to your local `target_NFS` directory.
+
+| Option | Description |
+|--------|-------------|
+| `-t nfs` | Specifies filesystem type as NFS |
+| `10.129.1.157:/` | Server IP and export path (`:/ ` = root, exports all shares) |
+| `./target_NFS/` | Local mount point |
+| `-o nolock` | Disables file locking (useful for older NFS or when lockd is unavailable) |
+
+**Other useful mount options:**
+
+| Option | Description |
+|--------|-------------|
+| `-o ro` | Mount read-only |
+| `-o rw` | Mount read-write (default) |
+| `-o vers=3` | Force NFSv3 |
+| `-o vers=4` | Force NFSv4 |
+| `-o soft` | Soft mount — returns error if server unresponsive |
+| `-o hard` | Hard mount — retries indefinitely (default) |
+| `-o timeo=n` | Timeout in tenths of a second |
+| `-o retrans=n` | Number of retransmissions before soft mount fails |
+
+### Step 5: Enumerate Mounted Share
+
+```bash
+ls ~/target_NFS/
+```
+
+**Output:**
+```
+mnt  var
+```
+
+**What it does:** Lists the top-level directories from the mounted NFS exports.
+
+### Step 6: Navigate and Find Flags
+
+```bash
+# First share
+cd ~/target_NFS/mnt/nfsshare
+ls
+cat flag.txt
+```
+
+**Output:** `HTB{8o7435zhtuih7fztdrzuhdhkfjcn7ghi4357ndcthzuc7rtfghu34}`
+
+```bash
+# Second share
+cd ~/target_NFS/var/nfs
+ls
+cat flag.txt
+```
+
+**Output:** `HTB{hjglmvtkjhlkfuhgi734zthrie7rjmdze}`
+
+### Step 7: Unmount When Done
+
+```bash
+cd ~
+sudo umount ./target_NFS
+```
+
+**What it does:** Cleanly disconnects the NFS mount. Must exit the directory first or unmount will fail with "device is busy."
+
+---
+
+## Useful NFS Commands Summary
+
+| Command | Description |
+|---------|-------------|
+| `showmount -e TARGET` | List all NFS exports on target |
+| `showmount -a TARGET` | List all mount points and clients |
+| `rpcinfo -p TARGET` | List all RPC services on target |
+| `nfsstat` | Display NFS statistics (local) |
+| `mount \| grep nfs` | Show currently mounted NFS shares |
+| `df -h` | Show mounted filesystems including NFS |
+| `sudo umount -f /path` | Force unmount (if stuck) |
+| `sudo umount -l /path` | Lazy unmount (detach now, cleanup later) |
+
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| `mount.nfs: mount point does not exist` | Create the directory first with `mkdir` |
+| `mount.nfs: access denied` | Check if your IP is in allowed subnet |
+| `device is busy` during unmount | Exit the mounted directory first |
+| NSE script errors with `nfs*` | Use specific scripts: `nfs-ls`, `nfs-showmount`, `nfs-statfs` |
+| `rpcinfo: RPC: Port mapper failure` | Port 111 may be firewalled |
