@@ -17,3 +17,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [SMB.md](SMB.md) — Server Message Block: client-server protocol for file/directory access, shares, ACLs, and cross-platform communication via Samba.
 
 - [NFS.md](NFS.md) — Network File System: Linux/Unix file sharing, NFSv2-v4 versions, UID/GID authentication, and security considerations.
+
+- [DNS.md](DNS.md) — Domain Name System: server types, record types, zone files, AXFR zone transfers, and subdomain enumeration techniques.
