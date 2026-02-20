@@ -646,3 +646,98 @@ dig -x 10.129.14.5 @dns_server         # PTR record lookup
 - **dnsrecon** - DNS reconnaissance tool
 - **fierce** - DNS reconnaissance and subdomain scanner
 - **Sublist3r** - Subdomain enumeration using OSINT
+
+---
+
+## HTB Academy Lab Walkthrough
+
+### Key Insight: Subdomain Brute Forcing Workflow
+
+Most DNS enumeration is straightforward, but the **subdomain brute forcing workflow** requires understanding the multi-step process:
+
+#### Step 1: Zone Transfer (AXFR) to Discover Subdomains
+
+First, attempt a zone transfer to reveal all DNS records:
+
+```bash
+dig axfr inlanefreight.htb @10.129.14.128
+```
+
+**Example Response:**
+```
+; <<>> DiG 9.16.1-Ubuntu <<>> axfr inlanefreight.htb @10.129.14.128
+;; global options: +cmd
+inlanefreight.htb.      604800  IN      SOA     inlanefreight.htb. root.inlanefreight.htb. 2 604800 86400 2419200 604800
+inlanefreight.htb.      604800  IN      TXT     "MS=ms97310371"
+inlanefreight.htb.      604800  IN      TXT     "atlassian-domain-verification=t1rKCy68JFszSdCKVpw64A1QksWdXuYFUeSXKU"
+inlanefreight.htb.      604800  IN      TXT     "v=spf1 include:mailgun.org include:_spf.google.com include:spf.protection.outlook.com include:_spf.atlassian.net ip4:10.129.124.8 ip4:10.129.127.2 ip4:10.129.42.106 ~all"
+inlanefreight.htb.      604800  IN      NS      ns.inlanefreight.htb.
+app.inlanefreight.htb.  604800  IN      A       10.129.18.15
+internal.inlanefreight.htb. 604800 IN   A       10.129.1.6
+mail1.inlanefreight.htb. 604800 IN      A       10.129.18.201
+ns.inlanefreight.htb.   604800  IN      A       10.129.34.136
+inlanefreight.htb.      604800  IN      SOA     inlanefreight.htb. root.inlanefreight.htb. 2 604800 86400 2419200 604800
+;; Query time: 4 msec
+;; SERVER: 10.129.14.128#53(10.129.14.128)
+;; XFR size: 9 records (messages 1, bytes 520)
+```
+
+#### Step 2: Identify Subdomains to Enumerate Further
+
+From the zone transfer, note discovered subdomains:
+- `app.inlanefreight.htb`
+- `internal.inlanefreight.htb`
+- `mail1.inlanefreight.htb`
+- `ns.inlanefreight.htb`
+
+> ⚠️ **Critical Understanding**: These subdomains may have **their own subdomains** (e.g., `dev.inlanefreight.htb` might have `api.dev.inlanefreight.htb`)
+
+#### Step 3: Brute Force Subdomains of Discovered Domains
+
+**Key Point**: When brute forcing, the **target domain goes at the END of the command**:
+
+```bash
+# Brute force subdomains OF dev.inlanefreight.htb
+dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt dev.inlanefreight.htb
+```
+
+**Command Breakdown:**
+| Option | Purpose |
+|--------|---------|
+| `--dnsserver 10.129.14.128` | Target DNS server |
+| `--enum` | Perform enumeration |
+| `-p 0` | Disable Google scraping (0 pages) |
+| `-s 0` | Disable Bing scraping (0 pages) |
+| `-o subdomains.txt` | Output file |
+| `-f <wordlist>` | Wordlist for brute forcing |
+| `dev.inlanefreight.htb` | **Domain to brute force (LAST!)** |
+
+#### Workflow Summary
+
+```
+Zone Transfer (AXFR)
+        │
+        ▼
+┌───────────────────────────────────┐
+│ Discovered Subdomains:            │
+│ • app.inlanefreight.htb           │
+│ • internal.inlanefreight.htb      │
+│ • dev.inlanefreight.htb           │
+└───────────────────────────────────┘
+        │
+        ▼
+Brute Force EACH Subdomain for MORE Subdomains
+        │
+        ▼
+dnsenum ... dev.inlanefreight.htb
+        │
+        ▼
+┌───────────────────────────────────┐
+│ Might Find:                       │
+│ • api.dev.inlanefreight.htb       │
+│ • admin.dev.inlanefreight.htb     │
+│ • staging.dev.inlanefreight.htb   │
+└───────────────────────────────────┘
+```
+
+> 💡 **Remember**: Zone transfer gives you the first layer of subdomains. Brute forcing each discovered subdomain can reveal **hidden nested subdomains** that weren't in the zone file!
