@@ -249,3 +249,70 @@ braa public@10.129.14.128:.1.3.6.*
 | View SNMP config | `cat /etc/snmp/snmpd.conf \| grep -v "#" \| sed -r '/^\s*$/d'` |
 
 ---
+
+## Practical Enumeration Lab
+
+### Lab Setup
+
+| Component | Details |
+|-----------|---------|
+| **Attacker** | Kali Linux (Parallels) |
+| **Target** | Ubuntu Server 24.04 (Parallels, host-only network) |
+| **Target IP** | 10.211.55.4 |
+
+### Configuring a Vulnerable Target
+
+```bash
+# Install SNMP daemon
+sudo apt install snmpd -y
+
+# Key config changes in /etc/snmp/snmpd.conf
+agentaddress udp:161              # listen on all interfaces
+rocommunity public 0.0.0.0/0      # allow public community from anywhere
+
+sudo systemctl restart snmpd
+```
+
+### Enumeration Commands
+
+```bash
+# Basic SNMPwalk
+snmpwalk -c public -v1 10.211.55.4
+
+# SNMP-check for detailed enumeration
+snmp-check 10.211.55.4 -c public
+
+# Filter for interesting services/credentials
+snmp-check 10.211.55.4 -c public | grep -iE "apache|nginx|ssh|ftp|root|sudo|python|bash|password"
+
+# Find user information
+snmp-check 10.211.55.4 -c public | grep -A2 "user"
+```
+
+### Key Findings
+
+| Category | Discovery |
+|----------|-----------|
+| **OS** | Ubuntu 24.04, kernel 6.17, aarch64 |
+| **Active User** | UID 1000 session active |
+| **Credential Store** | gnome-keyring-daemon running (unlocked) |
+| **SSH Agent** | gcr-ssh-agent active at `/run/user/1000/gcr` (SSH keys potentially loaded) |
+| **FTP** | ftp_20230507, tnftp_20230507 installed |
+| **Sudo** | Version 1.9.15p5 |
+| **Shell** | Interactive bash session open (PID 3191) |
+
+### Why This Is Dangerous
+
+> ⚠️ **SNMP v1/v2c has NO encryption and NO real authentication.**
+
+The community string `public` is the **default on nearly every device**. A single UDP port enumeration revealed:
+
+- ✅ Full OS info
+- ✅ Network topology
+- ✅ Running processes
+- ✅ Installed software versions
+- ✅ Active credential stores
+
+**All without authentication.**
+
+---
