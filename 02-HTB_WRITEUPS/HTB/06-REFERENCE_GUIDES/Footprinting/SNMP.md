@@ -256,9 +256,11 @@ braa public@10.129.14.128:.1.3.6.*
 
 | Component | Details |
 |-----------|---------|
-| **Attacker** | Kali Linux (Parallels) |
+| **Attacker** | Kali Linux (Parallels, host-only network) |
 | **Target** | Ubuntu Server 24.04 (Parallels, host-only network) |
-| **Target IP** | 10.211.55.4 |
+| **Target IP** | 10.37.129.4 |
+
+> 🔒 **Network Isolation:** Both Kali and target VM configured as host-only to isolate the lab from external networks.
 
 ### Configuring a Vulnerable Target
 
@@ -277,16 +279,16 @@ sudo systemctl restart snmpd
 
 ```bash
 # Basic SNMPwalk
-snmpwalk -c public -v1 10.211.55.4
+snmpwalk -c public -v1 10.37.129.4
 
 # SNMP-check for detailed enumeration
-snmp-check 10.211.55.4 -c public
+snmp-check 10.37.129.4 -c public
 
 # Filter for interesting services/credentials
-snmp-check 10.211.55.4 -c public | grep -iE "apache|nginx|ssh|ftp|root|sudo|python|bash|password"
+snmp-check 10.37.129.4 -c public | grep -iE "apache|nginx|ssh|ftp|root|sudo|python|bash|password"
 
 # Find user information
-snmp-check 10.211.55.4 -c public | grep -A2 "user"
+snmp-check 10.37.129.4 -c public | grep -A2 "user"
 ```
 
 ### Key Findings
