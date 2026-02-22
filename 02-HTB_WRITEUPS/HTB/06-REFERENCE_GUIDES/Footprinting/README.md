@@ -23,3 +23,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [SMTP.md](SMTP.md) — Simple Mail Transfer Protocol: ports 25/587/465, ESMTP, mail flow (MUA→MSA→MTA→MDA), VRFY user enumeration, and open relay attacks.
 
 - [IMAP_POP3.md](IMAP_POP3.md) — IMAP/POP3: email retrieval protocols, ports 110/143/993/995, command reference, cURL and OpenSSL interaction, dangerous settings.
+
+- [SNMP.md](SNMP.md) — Simple Network Management Protocol: UDP 161/162, MIB/OID structure, SNMPv1/v2c/v3 comparison, community strings, snmpwalk, onesixtyone, and braa enumeration.
