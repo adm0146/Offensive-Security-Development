@@ -299,3 +299,92 @@ select host, unique_users from host_summary;
 | Show MySQL version | `select version();` |
 
 ---
+
+## Practical Enumeration Lab
+
+### Lab Setup
+
+| Component | Details |
+|-----------|---------|
+| **Attacker** | Kali Linux (10.37.129.3, host-only network) |
+| **Target** | Ubuntu Server 24.04 (10.37.129.4, host-only network) |
+
+> 🔒 **Network Isolation:** Both VMs configured as host-only to isolate the lab from external networks.
+
+### Configuring a Vulnerable Target
+
+```bash
+# Install MySQL
+sudo apt install mysql-server -y
+
+# Jump into MySQL as root
+sudo mysql
+
+# Create misconfigured root account accessible from anywhere with no password
+CREATE USER 'root'@'%' IDENTIFIED BY '';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+FLUSH PRIVILEGES;
+exit;
+
+# Edit config to listen on all interfaces
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+# Change: bind-address = 127.0.0.1
+# To:     bind-address = 0.0.0.0
+
+sudo systemctl restart mysql
+```
+
+### Enumeration from Kali
+
+```bash
+# Nmap fingerprint and script scan
+sudo nmap 10.37.129.4 -Pn -sV -sC -p3306 --script mysql*
+
+# If blocked due to too many connection errors
+sudo mysqladmin flush-hosts  # run on target
+
+# Connect - MySQL 8 requires --skip-ssl due to TLS enforcement
+mysql -u root -h 10.37.129.4 --skip-ssl
+```
+
+### Key MySQL Commands Used
+
+```sql
+show databases;
+use mysql;
+show tables;
+select host, user, authentication_string from user;
+select * from information_schema.tables limit 10;
+```
+
+### Key Findings
+
+| Finding | Details |
+|---------|---------|
+| **MySQL Version** | 8.0.45 fingerprinted by Nmap |
+| **mysql-enum** | Found 10 valid usernames with empty passwords: root, netadmin, guest, user, web, sysadmin, administrator, webadmin, admin, test |
+| **mysql-brute** | Returned "No valid accounts found" — **false positive** |
+| **root@%** | Empty password confirmed — accessible from any host with no authentication |
+| **debian-sys-maint** | Exposed caching_sha2_password hash — crackable offline with hashcat |
+| **Access Level** | Full access to all databases, tables, and user credentials with zero authentication |
+
+### Gotchas Learned
+
+| Issue | Solution |
+|-------|----------|
+| **Host blocked by mysql-brute** | Nmap hammers the server — run `sudo mysqladmin flush-hosts` on target to unblock |
+| **MySQL 8 TLS enforcement** | Use `--skip-ssl` to bypass in lab context |
+| **IP persistence after network change** | Always reboot Parallels VMs after changing network adapters |
+
+### Why This Is Dangerous
+
+> ⚠️ **An exposed MySQL port with default or empty credentials gives an attacker full read/write access to every database on the server.**
+
+Combined with SNMP enumeration, an attacker can:
+- ✅ Map the network
+- ✅ Identify the database service and version
+- ✅ Connect without authentication
+- ✅ Dump all user credentials
+- ✅ Reuse passwords against SSH, VPN, or other services
+
+---
