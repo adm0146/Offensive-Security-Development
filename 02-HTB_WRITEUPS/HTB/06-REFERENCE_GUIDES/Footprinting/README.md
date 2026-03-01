@@ -27,3 +27,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [SNMP.md](SNMP.md) — Simple Network Management Protocol: UDP 161/162, MIB/OID structure, SNMPv1/v2c/v3 comparison, community strings, snmpwalk, onesixtyone, and braa enumeration.
 
 - [MySQL.md](MySQL.md) — MySQL/MariaDB: TCP 3306, LAMP/LEMP stack, dangerous settings, Nmap mysql scripts, SQL commands, and database enumeration.
+
+- [MSSQL.md](MSSQL.md) — Microsoft SQL Server: TCP 1433, SSMS, system databases, Impacket mssqlclient.py, xp_cmdshell RCE, and dangerous settings.
