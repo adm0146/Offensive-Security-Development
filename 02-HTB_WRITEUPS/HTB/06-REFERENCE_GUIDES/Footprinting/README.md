@@ -31,3 +31,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [MSSQL.md](MSSQL.md) — Microsoft SQL Server: TCP 1433, SSMS, system databases, Impacket mssqlclient.py, xp_cmdshell RCE, and dangerous settings.
 
 - [Oracle_TNS.md](Oracle_TNS.md) — Oracle TNS Listener: TCP 1521, SID bruteforce, ODAT setup (Kali ARM64), SQLplus enumeration, sysdba privilege escalation, password hash extraction, and file upload.
+
+- [IPMI.md](IPMI.md) — Intelligent Platform Management Interface: UDP 623, BMC access, default credentials, RAKP protocol hash extraction, Hashcat mode 7300 cracking, and password reuse risks.
