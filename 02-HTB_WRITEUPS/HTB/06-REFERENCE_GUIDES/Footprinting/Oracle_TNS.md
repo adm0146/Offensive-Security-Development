@@ -179,21 +179,32 @@ Oracle databases can be protected using **PL/SQL Exclusion List (PlsqlExclusionL
 ```bash
 # Step 1: Install system dependencies
 sudo apt-get update
-sudo apt-get install -y build-essential python3-dev libaio1t64 libgmp-dev python3-scapy
+sudo apt-get install -y build-essential python3-dev libaio1t64 libgmp-dev python3-scapy alien
 
-# Step 2: Download cx_Oracle source
+# Step 2: Install Oracle Instant Client (REQUIRED - cx_Oracle needs libclntsh.so)
+cd ~
+wget https://yum.oracle.com/repo/OracleLinux/OL9/oracle/instantclient23/aarch64/getPackage/oracle-instantclient-basiclite-23.26.1.0.0-1.el9.aarch64.rpm
+sudo alien -i oracle-instantclient-basiclite-23.26.1.0.0-1.el9.aarch64.rpm
+
+# Set library path
+echo 'export LD_LIBRARY_PATH=/usr/lib/oracle/23/client64/lib:$LD_LIBRARY_PATH' >> ~/.zshrc
+source ~/.zshrc
+sudo sh -c "echo /usr/lib/oracle/23/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
+sudo ldconfig
+
+# Step 3: Download cx_Oracle source
 cd ~
 wget https://files.pythonhosted.org/packages/source/c/cx_Oracle/cx_Oracle-8.3.0.tar.gz
 tar xzf cx_Oracle-8.3.0.tar.gz
 
-# Step 3: Clone ODAT and initialize submodules
+# Step 4: Clone ODAT and initialize submodules
 cd ~
 git clone https://github.com/quentinhardy/odat.git
 cd odat
 git submodule init
 git submodule update
 
-# Step 4: Create Python venv and install all dependencies
+# Step 5: Create Python venv and install all dependencies
 cd ~/odat
 python3 -m venv venv
 source venv/bin/activate
@@ -216,7 +227,7 @@ cd venv/lib/python3.13/site-packages
 ln -s Cryptodome Crypto
 cd ~/odat
 
-# Step 5: Fix the shebang for venv compatibility
+# Step 6: Fix the shebang for venv compatibility
 sed -i '1s|#!/usr/bin/python|#!/usr/bin/env python3|' odat.py
 ```
 
@@ -247,6 +258,7 @@ python3 odat.py -h
 
 | Error | Fix |
 |-------|-----|
+| `DPI-1047: Cannot locate a 64-bit Oracle Client library` | Install Oracle Instant Client (Step 2) and set `LD_LIBRARY_PATH` |
 | `No module named 'pkg_resources'` | `pip install "setuptools<81"` |
 | `No module named 'Crypto'` | `ln -s Cryptodome Crypto` in site-packages |
 | `No module named 'asyncore'` | `pip install pyasyncore` (removed in Python 3.12+) |
