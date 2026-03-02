@@ -161,41 +161,74 @@ Oracle databases can be protected using **PL/SQL Exclusion List (PlsqlExclusionL
 
 **Oracle Database Attacking Tool (ODAT)** - Open-source penetration testing tool for enumerating and exploiting Oracle database vulnerabilities.
 
-### Installation on Kali
+### ODAT Capabilities
+
+| Category | Features |
+|----------|----------|
+| **Enumeration** | TNS listener interaction, SID/Service Name guessing |
+| **Authentication** | Password guessing/brute forcing, hashed password stealing |
+| **File Operations** | Upload, download, delete files on DB server |
+| **Command Execution** | Via Java, DBMS_SCHEDULER, external tables |
+| **Network** | Port scanning via UTL_HTTP, UTL_TCP, HTTPURITYPE |
+| **Data Access** | Read files via CTXSYS, search databases/tables/columns |
+| **Post-Exploitation** | Privilege escalation, SMB auth capture, CVE exploitation |
+| **Cleanup** | Cleaning traces and logs, unwrapping PL/SQL source code |
+
+### Installation on Kali (2025.2 ARM64/aarch64 - Parallels VM)
 
 ```bash
-# Update and install dependencies
+# Step 1: Install system dependencies
 sudo apt-get update
-sudo apt-get install -y build-essential python3-dev libaio1
+sudo apt-get install -y build-essential python3-dev libaio1t64 libgmp-dev python3-scapy
 
-# Install cx_Oracle
+# Step 2: Download cx_Oracle source
 cd ~
 wget https://files.pythonhosted.org/packages/source/c/cx_Oracle/cx_Oracle-8.3.0.tar.gz
 tar xzf cx_Oracle-8.3.0.tar.gz
-cd cx_Oracle-8.3.0
-python3 setup.py build
-sudo python3 setup.py install
 
-# Clone and setup ODAT
+# Step 3: Clone ODAT and initialize submodules
 cd ~
 git clone https://github.com/quentinhardy/odat.git
-cd odat/
-pip install python-libnmap
+cd odat
 git submodule init
 git submodule update
 
-# Install additional dependencies
-sudo apt-get install python3-scapy -y
-sudo pip3 install colorlog termcolor passlib python-libnmap
-sudo apt-get install build-essential libgmp-dev -y
-pip3 install pycryptodome
+# Step 4: Create Python venv and install all dependencies
+cd ~/odat
+python3 -m venv venv
+source venv/bin/activate
+
+# IMPORTANT: Pin setuptools below 81 (v82+ removed pkg_resources which cx_Oracle needs)
+pip install "setuptools<81" wheel
+
+# Install cx_Oracle from source
+sudo chown -R $USER:$USER ~/cx_Oracle-8.3.0
+cd ~/cx_Oracle-8.3.0
+rm -rf build
+pip install --no-build-isolation .
+
+# Install remaining Python dependencies
+cd ~/odat
+pip install python-libnmap colorlog termcolor passlib pycryptodome pyasyncore
+
+# Create Crypto symlink (ODAT uses old pycrypto import paths)
+cd venv/lib/python3.13/site-packages
+ln -s Cryptodome Crypto
+cd ~/odat
+
+# Step 5: Fix the shebang for venv compatibility
+sed -i '1s|#!/usr/bin/python|#!/usr/bin/env python3|' odat.py
 ```
 
-### Test ODAT Installation
+### Running ODAT
 
 ```bash
-./odat.py -h
+cd ~/odat
+source venv/bin/activate
+python3 odat.py -h
 ```
+
+> **Note:** Always use `python3 odat.py` (not `./odat.py`) because the default shebang points to `#!/usr/bin/python` which bypasses the venv. Fix the shebang with the sed command above to use `./odat.py` directly.
 
 ```
             _  __   _  ___ 
@@ -208,6 +241,46 @@ pip3 install pycryptodome
 ( o )       o )         o |         | | 
  \_/racle |__/atabase |_n_|ttacking |_|ool 
 -------------------------------------------
+```
+
+### ODAT Troubleshooting
+
+| Error | Fix |
+|-------|-----|
+| `No module named 'pkg_resources'` | `pip install "setuptools<81"` |
+| `No module named 'Crypto'` | `ln -s Cryptodome Crypto` in site-packages |
+| `No module named 'asyncore'` | `pip install pyasyncore` (removed in Python 3.12+) |
+| `No module named 'cx_Oracle'` | Install cx_Oracle inside the venv, not system-wide |
+| Permission denied on build | `chown` the source dir + `rm -rf build/` |
+| `No module named 'libnmap'` | `pip install python-libnmap` |
+| scapy warning | `sudo apt install python3-scapy` system-wide |
+
+### ODAT Usage Examples
+
+```bash
+# Scan all modules against a target
+python3 odat.py all -s <target_ip> -p 1521
+
+# Guess SIDs on a target
+python3 odat.py sidguesser -s <target_ip> -p 1521
+
+# Guess passwords with known SID
+python3 odat.py passwordguesser -s <target_ip> -p 1521 -d <SID>
+
+# Execute system commands via Java
+python3 odat.py java -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --exec <command>
+
+# Upload a file
+python3 odat.py utlfile -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --putFile <remote_dir> <remote_file> <local_file>
+
+# Download a file
+python3 odat.py utlfile -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --getFile <remote_dir> <remote_file> <local_file>
+
+# Steal password hashes
+python3 odat.py passwordstealer -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass>
+
+# Search for keywords in DB
+python3 odat.py search -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --keywords "password,credit_card,ssn"
 ```
 
 ---
