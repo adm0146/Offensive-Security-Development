@@ -29,3 +29,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [MySQL.md](MySQL.md) — MySQL/MariaDB: TCP 3306, LAMP/LEMP stack, dangerous settings, Nmap mysql scripts, SQL commands, and database enumeration.
 
 - [MSSQL.md](MSSQL.md) — Microsoft SQL Server: TCP 1433, SSMS, system databases, Impacket mssqlclient.py, xp_cmdshell RCE, and dangerous settings.
+
+- [Oracle_TNS.md](Oracle_TNS.md) — Oracle TNS Listener: TCP 1521, SID bruteforce, ODAT setup (Kali ARM64), SQLplus enumeration, sysdba privilege escalation, password hash extraction, and file upload.

