@@ -285,12 +285,21 @@ python3 odat.py search -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --key
 
 ### ODAT Quick Navigation Guide
 
+#### Step 0: Launch ODAT
+
+Always run ODAT from its install directory. The `sidguesser` and `passwordguesser` modules load wordlists relative to the script location, so running from `~/odat` avoids file-not-found issues.
+
+```bash
+cd ~/odat && source venv/bin/activate
+python3 odat.py -h
+```
+
 #### Step-by-Step Attack Flow
 
 The typical workflow when using ODAT follows this order:
 
 ```
-1. Discover TNS Listener  -->  2. Find SIDs  -->  3. Get Credentials  -->  4. Exploit
+0. cd ~/odat && activate venv  -->  1. Discover TNS Listener  -->  2. Find SIDs  -->  3. Get Credentials  -->  4. Exploit
 ```
 
 #### Phase 1: Discovery - Is Oracle Running?
