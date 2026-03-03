@@ -35,3 +35,5 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 - [IPMI.md](IPMI.md) — Intelligent Platform Management Interface: UDP 623, BMC access, default credentials, RAKP protocol hash extraction, Hashcat mode 7300 cracking, and password reuse risks.
 
 - [Linux_Remote_Management.md](Linux_Remote_Management.md) — SSH, Rsync, and R-Services: TCP 22/873/512-514, ssh-audit, public key auth, dangerous settings, rsync share enumeration, and legacy r-commands.
+
+- [Windows_Remote_Management.md](Windows_Remote_Management.md) — RDP, WinRM, and WMI: TCP 3389/5985/5986/135, NLA detection, rdp-sec-check, evil-winrm, Impacket wmiexec.py, and xfreerdp.
