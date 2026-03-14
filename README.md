@@ -4,10 +4,11 @@ Documenting my path through security certifications and hands-on penetration tes
 
 | Certification | Status | Target |
 |---------------|--------|--------|
-| Security+ | Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | In Progress | April 2026 |
-| OSCP | Planned | August 2026 |
-| CRTO | Planned | October 2026 |
+| Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
+| CPTS | 📖 In Progress | May 2026 |
+| CRTO | Planned | After CPTS |
+| CRTE | Planned | After CRTO |
+| CARTP | Planned | After CRTE |
 
 ---
 
@@ -25,6 +26,7 @@ Cybersecurity_Professional_Development/
 |   |   |-- Foundation/            Core methodology guides
 |   |   |-- Network_Enumeration_With_Nmap/   7 Nmap module guides
 |   |   |-- Footprinting/          5 Footprinting module guides
+|   |   |-- Information_Gathering_Web_Edition/  8 Web recon guides
 |   |   |-- MASTER_ENUMERATION_CHEATSHEET.md
 |   |-- README.md                  CPTS hours and progress tracker
 |
@@ -33,14 +35,14 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Current Status (February 16, 2026)
+## Current Status (March 14, 2026)
 
 | Metric | Status |
 |--------|--------|
-| Total Hours | 150 / 680 (22%) |
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules | 1 complete (Nmap), 1 in progress (Footprinting) |
+| Academy Modules | 2 complete (Nmap, Footprinting), 1 in progress (Information Gathering - Web Edition) |
 | Writeups Published | 22 |
+| Reference Guides | 20+ |
 | Target Exam | May 20, 2026 |
 
 ---
@@ -107,7 +109,7 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Footprinting Module (In Progress)
+## Footprinting Module -- Complete
 
 | Section | Guide | Topics |
 |---------|-------|--------|
@@ -116,6 +118,21 @@ Cybersecurity_Professional_Development/
 | 3 | Domain_Information.md | SSL certs, crt.sh, DNS records, Shodan |
 | 4 | FTP.md | Ports 20/21, active vs passive, anonymous access, vsFTPd |
 | 5 | SMB.md | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
+
+---
+
+## Information Gathering - Web Edition (In Progress)
+
+| Section | Guide | Topics |
+|---------|-------|--------|
+| 1 | 01-Introduction.md | Web recon overview, OSINT fundamentals |
+| 2 | 02-WHOIS.md | WHOIS protocol, registrar data, privacy services |
+| 3 | 03-Utilising_WHOIS.md | Practical WHOIS queries, data analysis |
+| 4 | 04-DNS.md | DNS fundamentals, record types, zone files |
+| 5 | 05-Digging_DNS.md | DNS recon tools, dig command reference, output analysis |
+| 6 | 06-Subdomains.md | Subdomain enumeration, active vs passive techniques |
+| 7 | 07-Subdomain_Bruteforcing.md | Brute-force techniques, dnsenum, wordlists |
+| 8 | 08-DNS_Zone_Transfers.md | AXFR exploitation, zone transfer vulnerability, dig axfr |
 
 ---
 
@@ -148,8 +165,9 @@ Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (
 - [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md)
 - [Nmap Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/)
 - [Footprinting Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Footprinting/)
+- [Information Gathering Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Information_Gathering_Web_Edition/)
 - [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
 
 ---
 
-Last Updated: February 16, 2026
+Last Updated: March 14, 2026
