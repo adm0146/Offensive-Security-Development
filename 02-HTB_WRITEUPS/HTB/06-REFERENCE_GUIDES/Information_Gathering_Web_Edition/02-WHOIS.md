@@ -2,36 +2,27 @@
 
 ## Overview
 
-WHOIS is a widely used **query and response protocol** designed to access databases that store information about registered internet resources. Primarily associated with domain names, WHOIS can also provide details about **IP address blocks** and **autonomous systems**. Think of it as a giant phonebook for the internet, letting you look up who owns or is responsible for various online assets.
+WHOIS queries registration databases for domain ownership, contacts, name servers, and dates. It's **passive recon** — very low detection risk. Run it first on every engagement.
 
 ---
 
-## WHOIS Record Fields
-
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Domain Name** | The domain itself | `example.com` |
-| **Registrar** | Company where the domain was registered | GoDaddy, Namecheap, Amazon Registrar |
-| **Registrant Contact** | Person or organization that registered the domain | Company name, individual |
-| **Administrative Contact** | Person responsible for managing the domain | Admin email, phone |
-| **Technical Contact** | Person handling technical issues | Tech team email |
-| **Creation Date** | When the domain was registered | `2019-08-05T22:43:09Z` |
-| **Expiration Date** | When registration expires | Renewal deadline |
-| **Name Servers** | Servers that translate domain name into an IP address | `ns1.example.com` |
-
----
-
-## Command Syntax
+## Installation & Usage
 
 ```bash
-# Basic WHOIS lookup
-whois <domain>
-
-# Example
-whois inlanefreight.com
+sudo apt update && sudo apt install whois -y
 ```
 
-### Example Output
+### Core Command
+
+```bash
+whois <domain>
+```
+
+### Example
+
+```bash
+whois inlanefreight.com
+```
 
 ```
 Domain Name: inlanefreight.com
@@ -45,33 +36,48 @@ Creation Date: 2019-08-05T22:43:09Z
 
 ---
 
-## History of WHOIS
+## What to Look For in the Output
 
-The history of WHOIS is linked to **Elizabeth Feinler**, a computer scientist who played a pivotal role in shaping the early internet.
-
-In the **1970s**, Feinler and her team at the Stanford Research Institute's Network Information Center (NIC) recognised the need for a system to track and manage the growing number of network resources on the **ARPANET** (the precursor to the modern internet). Their solution was the creation of the **WHOIS directory** — a rudimentary yet groundbreaking database that stored information about network users, hostnames, and domain names.
+| Field | What It Tells You | Recon Value |
+|---|---|---|
+| **Registrar** | Where the domain was registered (GoDaddy, Amazon, etc.) | Identifies hosting ecosystem |
+| **Creation Date** | When the domain was first registered | Recently created = possible phishing domain |
+| **Expiration Date** | When registration expires | Expired domains can be hijacked |
+| **Registrant/Admin Contact** | Person or org that owns the domain | Names, emails, phone numbers for social engineering |
+| **Name Servers** | DNS servers handling the domain | Reveals hosting provider, shared infrastructure |
+| **Domain Status** | Protection flags (`clientTransferProhibited`, etc.) | Shows security posture of the domain |
 
 ---
 
-## Why WHOIS Matters for Web Recon
+## Red Flags to Watch For
 
-WHOIS data serves as a **treasure trove of information** for penetration testers during the reconnaissance phase. It offers valuable insights into the target organisation's digital footprint and potential vulnerabilities:
+| Indicator | What It Suggests |
+|---|---|
+| Domain registered **days ago** | Phishing / malicious infrastructure |
+| Registrant behind **privacy service** | Could be legitimate OR hiding malicious intent |
+| Name servers on **bulletproof hosting** | Commonly used for C2 / phishing |
+| Multiple status flags (`Prohibited`) | Well-secured domain — harder target |
 
-| Use Case | Description |
-|----------|-------------|
-| **Identifying Key Personnel** | WHOIS records often reveal names, email addresses, and phone numbers of individuals responsible for managing the domain. This can be leveraged for **social engineering** or **phishing campaigns**. |
-| **Discovering Network Infrastructure** | Technical details like name servers and IP addresses provide clues about the target's network infrastructure. Helps identify potential **entry points** or **misconfigurations**. |
-| **Historical Data Analysis** | Accessing historical WHOIS records through services like **WhoisFreaks** can reveal changes in ownership, contact information, or technical details over time. Useful for tracking the evolution of the target's digital presence. |
+---
+
+## Acting on WHOIS Findings
+
+| Finding | Next Step |
+|---|---|
+| Email pattern found (e.g., `admin@company.com`) | Use for social engineering research, spray login portals |
+| Name servers identified | Run `dig` against them for DNS records |
+| Registrar identified | Check for other domains registered through the same registrar |
+| Old creation date | Look at historical WHOIS via **WhoisFreaks** for ownership changes |
 
 ---
 
 ## Key Takeaways
 
-1. WHOIS is a **passive reconnaissance** technique — very low detection risk
-2. Always check WHOIS early in an engagement to identify **ownership, contacts, and infrastructure**
-3. Look for **email patterns** (e.g., `admin@company.com`) that reveal the organisation's email format
-4. **Historical WHOIS** data (via WhoisFreaks) can reveal past owners, old infrastructure, and changes over time
-5. Name servers in WHOIS output can hint at **hosting providers** and **DNS infrastructure** to investigate further
+- WHOIS is **passive recon** — run it early, no detection risk
+- Look for **email patterns**, **name servers**, and **creation dates** first
+- **Recently registered domains** with privacy services = suspicious
+- Name servers in WHOIS output → feed directly into `dig` queries for DNS enumeration
+- Use **WhoisFreaks** for historical WHOIS data to track ownership changes over time
 
 ---
 

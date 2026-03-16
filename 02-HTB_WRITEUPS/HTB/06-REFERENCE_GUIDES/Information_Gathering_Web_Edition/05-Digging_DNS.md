@@ -2,65 +2,46 @@
 
 ## Overview
 
-With a solid understanding of DNS fundamentals and record types, it's time to get practical. This section covers the **tools and techniques** for leveraging DNS in web reconnaissance — from manual lookups with `dig` to automated enumeration with specialized tools.
+`dig` (Domain Information Groper) is the primary tool for querying DNS records. Flexible, detailed output, supports all record types. This is your go-to for DNS recon.
 
 ---
 
-## DNS Reconnaissance Tools
+## dig Command Reference
 
-| Tool | Key Features | Use Cases |
-|------|-------------|-----------|
-| **`dig`** | Versatile DNS lookup tool supporting various query types (A, MX, NS, TXT, etc.) with detailed output | Manual DNS queries, zone transfers (if allowed), troubleshooting DNS issues, in-depth analysis of DNS records |
-| **`nslookup`** | Simpler DNS lookup tool, primarily for A, AAAA, and MX records | Basic DNS queries, quick checks of domain resolution and mail server records |
-| **`host`** | Streamlined DNS lookup tool with concise output | Quick checks of A, AAAA, and MX records |
-| **`dnsenum`** | Automated DNS enumeration tool with dictionary attacks, brute-forcing, zone transfers | Discovering subdomains and gathering DNS information efficiently |
-| **`fierce`** | DNS reconnaissance and subdomain enumeration with recursive search and wildcard detection | User-friendly interface for DNS recon, identifying subdomains and potential targets |
-| **`dnsrecon`** | Combines multiple DNS recon techniques, supports various output formats | Comprehensive DNS enumeration, identifying subdomains, gathering DNS records for further analysis |
-| **`theHarvester`** | OSINT tool gathering info from various sources, including DNS records and email addresses | Collecting email addresses, employee information, and other data associated with a domain |
-| **Online DNS Lookup Services** | User-friendly web interfaces for performing DNS lookups | Quick and easy DNS lookups when command-line tools aren't available, checking domain availability |
+| Command | What It Does |
+|---|---|
+| `dig domain.com` | Default A record lookup |
+| `dig domain.com A` | IPv4 address |
+| `dig domain.com AAAA` | IPv6 address |
+| `dig domain.com MX` | Mail servers |
+| `dig domain.com NS` | Authoritative name servers |
+| `dig domain.com TXT` | TXT records (SPF, DKIM, verification) |
+| `dig domain.com CNAME` | Canonical name (aliases) |
+| `dig domain.com SOA` | Start of Authority record |
+| `dig domain.com ANY` | All available records (often blocked — RFC 8482) |
+| `dig @1.1.1.1 domain.com` | Query a specific DNS server (Cloudflare) |
+| `dig @<TARGET_NS> domain.com` | Query the target own name server |
+| `dig +trace domain.com` | Full resolution path from root → answer |
+| `dig -x 192.168.1.1` | Reverse lookup — IP → hostname |
+| `dig +short domain.com` | Clean answer only, no extra output |
+| `dig +noall +answer domain.com` | Show only the answer section |
 
----
-
-## The Domain Information Groper (`dig`)
-
-The `dig` command (Domain Information Groper) is a versatile and powerful utility for querying DNS servers and retrieving various types of DNS records. Its flexibility and detailed, customizable output make it a go-to choice for DNS reconnaissance.
-
-### Common `dig` Commands
-
-| Command | Description |
-|---------|-------------|
-| `dig domain.com` | Performs a default A record lookup for the domain |
-| `dig domain.com A` | Retrieves the IPv4 address (A record) associated with the domain |
-| `dig domain.com AAAA` | Retrieves the IPv6 address (AAAA record) associated with the domain |
-| `dig domain.com MX` | Finds the mail servers (MX records) responsible for the domain |
-| `dig domain.com NS` | Identifies the authoritative name servers for the domain |
-| `dig domain.com TXT` | Retrieves any TXT records associated with the domain |
-| `dig domain.com CNAME` | Retrieves the canonical name (CNAME) record for the domain |
-| `dig domain.com SOA` | Retrieves the start of authority (SOA) record for the domain |
-| `dig @1.1.1.1 domain.com` | Specifies a specific name server to query (in this case Cloudflare's `1.1.1.1`) |
-| `dig +trace domain.com` | Shows the full path of DNS resolution |
-| `dig -x 192.168.1.1` | Performs a reverse lookup on the IP address to find the associated hostname |
-| `dig +short domain.com` | Provides a short, concise answer to the query |
-| `dig +noall +answer domain.com` | Displays only the answer section of the query output |
-| `dig domain.com ANY` | Retrieves all available DNS records for the domain |
-
-> ⚠️ **Caution:** Some servers can detect and block excessive DNS queries. Respect rate limits and always obtain permission before performing extensive DNS reconnaissance on a target.
-
-> 📝 **Note:** Many DNS servers ignore `ANY` queries to reduce load and prevent abuse, as per RFC 8482.
+> ⚠️ Some servers block excessive DNS queries. Respect rate limits. Always have authorization.
 
 ---
 
-## Anatomy of a `dig` Query
+## Anatomy of a dig Response
 
 ```bash
-adm0146@htb[/htb]$ dig google.com
+dig google.com
+```
 
+```
 ; <<>> DiG 9.18.24-0ubuntu0.22.04.1-Ubuntu <<>> google.com
 ;; global options: +cmd
 ;; Got answer:
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 16449
 ;; flags: qr rd ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
-;; WARNING: recursion requested but not available
 
 ;; QUESTION SECTION:
 ;google.com.                    IN      A
@@ -74,44 +55,59 @@ google.com.             0       IN      A       142.251.47.142
 ;; MSG SIZE  rcvd: 54
 ```
 
-### Breaking Down the Output
+### What Each Section Tells You
 
-| Section | Content | Explanation |
-|---------|---------|-------------|
-| **Header** | `opcode: QUERY, status: NOERROR, id: 16449` | Query type, success status, and unique query identifier |
-| **Flags** | `qr rd ad` | `qr` = Query Response, `rd` = Recursion Desired, `ad` = Authentic Data (resolver considers data authentic) |
-| **Counts** | `QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0` | Number of entries in each section of the DNS response |
-| **Warning** | `recursion requested but not available` | Server does not support recursive queries |
-| **Question Section** | `google.com. IN A` | The question: "What is the IPv4 address (A record) for google.com?" |
-| **Answer Section** | `google.com. 0 IN A 142.251.47.142` | The IP for google.com is `142.251.47.142`. The `0` is the TTL (time-to-live) for caching |
-| **Query Time** | `0 msec` | Time taken to process the query and receive the response |
-| **Server** | `172.23.176.1#53 (UDP)` | The DNS server that provided the answer and the protocol used |
-| **Timestamp** | `Thu Jun 13 10:45:58 SAST 2024` | When the query was made |
-| **Message Size** | `54 bytes` | Size of the DNS message received |
+| Section | What to Look At |
+|---|---|
+| **Header** | `status: NOERROR` = query succeeded. `NXDOMAIN` = domain does not exist |
+| **Flags** | `qr` = response, `rd` = recursion desired, `ad` = data authenticated |
+| **Question** | Confirms what you asked for (`google.com IN A`) |
+| **Answer** | The actual result — `142.251.47.142` is google.com IP |
+| **Server** | Which DNS server answered — `172.23.176.1#53` |
+| **Query Time** | Response speed — useful for detecting latency issues |
 
-> 💡 **Tip:** An `OPT pseudosection` may sometimes appear in `dig` output. This is due to **Extension Mechanisms for DNS (EDNS)**, which allows additional features like larger message sizes and DNSSEC support.
+---
 
-### Quick Answer with `+short`
+## Quick Lookups with +short
 
-If you just want the answer without all the extra detail:
+Skip all the noise — just get the answer:
 
 ```bash
-adm0146@htb[/htb]$ dig +short hackthebox.com
+dig +short hackthebox.com
+```
 
+```
 104.18.20.126
 104.18.21.126
 ```
+
+Use `+short` when you just need the IP or value. Use the full output when you need to analyse flags, TTL, or the responding server.
+
+---
+
+## Other DNS Tools
+
+| Tool | Best For | Example |
+|---|---|---|
+| **`nslookup`** | Quick A/MX checks | `nslookup domain.com` |
+| **`host`** | One-line answer | `host domain.com` |
+| **`dnsenum`** | Automated enumeration + brute-force | `dnsenum domain.com` |
+| **`fierce`** | Recursive subdomain discovery | `fierce --domain domain.com` |
+| **`dnsrecon`** | Comprehensive DNS recon | `dnsrecon -d domain.com` |
+| **`theHarvester`** | DNS + OSINT (emails, employees) | `theHarvester -d domain.com -b google` |
+
+> `dig` for manual queries. `dnsenum`/`dnsrecon` for automated enumeration. Use both.
 
 ---
 
 ## Key Takeaways
 
-1. **`dig` is your primary DNS recon tool** — flexible, detailed, and supports all record types
-2. **Know the output sections** — Header, Question, Answer, and Footer each provide valuable context
-3. **Use `+short` for quick lookups** and `+noall +answer` for clean output
-4. **Automated tools** like `dnsenum`, `fierce`, and `dnsrecon` scale up DNS enumeration beyond manual queries
-5. **`theHarvester`** combines DNS with OSINT for broader reconnaissance (emails, employee info)
-6. **Always respect rate limits** — excessive DNS queries can get you blocked and may violate terms of service
+- **`dig` is your primary DNS tool** — learn the command syntax, it is used constantly
+- **`+short`** for quick answers, full output for analysis
+- **`@<server>`** to query specific name servers (especially the target own NS)
+- **`ANY`** queries are often blocked — query specific record types instead
+- **`-x`** for reverse lookups (IP → hostname)
+- Automated tools (`dnsenum`, `dnsrecon`, `theHarvester`) scale beyond what manual `dig` can do
 
 ---
 

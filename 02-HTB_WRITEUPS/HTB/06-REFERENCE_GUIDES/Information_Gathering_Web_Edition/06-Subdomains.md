@@ -2,89 +2,66 @@
 
 ## Overview
 
-Beyond the main domain (e.g., `example.com`) lies a potential network of **subdomains** — extensions of the primary domain created to organise and separate different sections or functionalities. For example: `blog.example.com`, `shop.example.com`, or `mail.example.com`. Discovering these subdomains is a critical part of web reconnaissance.
+Subdomains extend the main domain (`blog.example.com`, `dev.example.com`, `admin.example.com`). They expand the attack surface — dev environments, admin panels, and legacy apps are often running on subdomains with weaker security than the main site.
 
 ---
 
-## Why Subdomains Matter for Recon
+## What You Find on Subdomains
 
-Subdomains often host valuable information and resources that aren't directly linked from the main website:
-
-| What You Might Find | Why It Matters |
-|---------------------|----------------|
-| **Development & Staging Environments** | Companies test new features on subdomains before deploying to production. Relaxed security measures can expose vulnerabilities or sensitive information |
-| **Hidden Login Portals** | Administrative panels or login pages not meant to be publicly accessible — attractive targets for unauthorised access |
-| **Legacy Applications** | Older, forgotten web applications with outdated software and known vulnerabilities |
-| **Sensitive Information** | Confidential documents, internal data, or configuration files inadvertently exposed on subdomains |
+| Discovery | Why It Matters |
+|---|---|
+| **Dev/Staging environments** | Relaxed security, test data, debug info exposed |
+| **Admin panels** | Login portals not meant to be public |
+| **Legacy apps** | Outdated software with known CVEs |
+| **Sensitive files** | Config files, internal docs, backups |
 
 ---
 
-## Subdomain Enumeration
+## Two Approaches to Finding Subdomains
 
-Subdomain enumeration is the process of systematically identifying and listing subdomains. From a DNS perspective:
+### 1. Active Enumeration — Direct Interaction
 
-- **A records** (or AAAA for IPv6) map the subdomain name to its IP address
-- **CNAME records** create aliases for subdomains, pointing them to other domains or subdomains
+You are querying the target DNS or brute-forcing names against it. **Detectable.**
 
-There are **two main approaches**:
+| Technique | Tool | Command |
+|---|---|---|
+| **DNS Zone Transfer** | `dig` | `dig axfr @<nameserver> domain.com` |
+| **Brute-Force** | `dnsenum` | `dnsenum --enum domain.com -f <wordlist>` |
+| **Brute-Force** | `gobuster` | `gobuster dns -d domain.com -w <wordlist>` |
+| **Brute-Force** | `ffuf` | `ffuf -w <wordlist> -u http://domain.com -H "Host: FUZZ.domain.com"` |
 
----
+### 2. Passive Enumeration — No Direct Contact
 
-### 1. Active Subdomain Enumeration
+External sources only. **Stealthy.**
 
-Directly interacting with the target domain's DNS servers to uncover subdomains.
-
-| Technique | Description | Notes |
-|-----------|-------------|-------|
-| **DNS Zone Transfer** | Request a full copy of the zone file from a misconfigured DNS server | Rarely successful due to tightened security, but always worth trying |
-| **Brute-Force Enumeration** | Systematically test a list of potential subdomain names against the target domain | Most common active technique |
-
-**Brute-Force Tools:**
-
-| Tool | Description |
-|------|-------------|
-| `dnsenum` | Automated DNS enumeration with dictionary attacks and zone transfer attempts |
-| `ffuf` | Fast web fuzzer that can brute-force subdomains using wordlists |
-| `gobuster` | Directory/subdomain brute-forcing tool with DNS mode |
-
-> 💡 **Tip:** Use wordlists of common subdomain names (e.g., from SecLists) or generate custom lists based on patterns specific to the target.
+| Source | How to Use It | What You Get |
+|---|---|---|
+| **Certificate Transparency Logs** | Browse `https://crt.sh/?q=%.domain.com` | Subdomains listed in SSL certificate SANs |
+| **Search Engines** | Google: `site:domain.com -www` | Indexed subdomains |
+| **Online DNS Databases** | VirusTotal, DNSDumpster, SecurityTrails | Aggregated subdomain data |
 
 ---
 
-### 2. Passive Subdomain Enumeration
+## Active vs Passive — When to Use Which
 
-Relies on external sources to discover subdomains **without directly querying the target's DNS servers**.
+| Factor | Active | Passive |
+|---|---|---|
+| **Stealth** | Detectable | No interaction with target |
+| **Coverage** | Can find non-public subdomains | Only what external sources have indexed |
+| **Authorization** | Required | Not needed |
+| **Best For** | Authorized engagements | Initial recon, OSINT |
 
-| Source | Description |
-|--------|-------------|
-| **Certificate Transparency (CT) Logs** | Public repositories of SSL/TLS certificates. Certificates often include associated subdomains in their **Subject Alternative Name (SAN)** field |
-| **Search Engines** | Use specialised operators like `site:example.com` in Google or DuckDuckGo to filter results to only subdomains |
-| **Online DNS Databases** | Various tools and databases aggregate DNS data from multiple sources, allowing you to search for subdomains without direct interaction |
-
----
-
-## Active vs. Passive Comparison
-
-| Aspect | Active Enumeration | Passive Enumeration |
-|--------|-------------------|-------------------- |
-| **Method** | Directly queries target DNS servers | Uses external data sources |
-| **Control** | More control, potentially more comprehensive | Limited to what external sources have indexed |
-| **Stealth** | More detectable by the target | Stealthier — no direct interaction with target |
-| **Coverage** | Can discover subdomains not publicly indexed | May miss subdomains not in CT logs or search engines |
-| **Best For** | Thorough discovery during authorised engagements | Initial recon and OSINT gathering |
-
-> 🔑 **Best Practice:** Combine both active and passive approaches for the most thorough and effective subdomain enumeration strategy.
+> **Use both.** Passive first to build your list, then active to find what passive missed.
 
 ---
 
 ## Key Takeaways
 
-1. **Subdomains expand the attack surface** — dev environments, admin panels, and legacy apps are common findings
-2. **Active enumeration** (brute-force with `dnsenum`, `ffuf`, `gobuster`) gives you the most control but is detectable
-3. **Passive enumeration** (CT logs, search engines, online databases) is stealthier but may miss subdomains
-4. **Certificate Transparency logs** are a goldmine — SSL/TLS certificates often list subdomains in the SAN field
-5. **Zone transfers** are rarely successful but always worth attempting — a misconfigured server can leak everything
-6. **Combine both approaches** for comprehensive subdomain discovery
+- Subdomains expand attack surface — **dev, staging, admin, and legacy apps** are prime targets
+- **Passive first** (crt.sh, Google dorks, DNSDumpster) → **active second** (brute-force with dnsenum/gobuster)
+- **CT logs** are a goldmine — SSL certificates list subdomains in the SAN field
+- **Zone transfers** are always worth trying — low effort, massive payoff if misconfigured
+- Every discovered subdomain is a new target to enumerate further
 
 ---
 
