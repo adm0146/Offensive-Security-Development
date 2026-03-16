@@ -172,6 +172,67 @@ nikto -h inlanefreight.com -Tuning b
 
 ---
 
+## CMS Identification Cheat Sheet
+
+| CMS | Header / Source Indicators |
+|---|---|
+| **WordPress** | `wp-content`, `wp-json`, `wp-login.php`, `X-Redirect-By: WordPress` |
+| **Joomla** | `/administrator/`, `com_content`, random hex session cookie, aggressive cache-busting headers |
+| **Drupal** | `/node/`, `Drupal.settings`, `sites/default` |
+| **Magento** | `/skin/frontend/`, `Mage.Cookies` |
+
+---
+
+## Walkthrough — Fingerprinting HTB Exercise
+
+### Setup
+
+Question gave VHosts: `app.inlanefreight.local` and `dev.inlanefreight.local`
+
+```bash
+echo "<TARGET_IP>  app.inlanefreight.local dev.inlanefreight.local" | sudo tee -a /etc/hosts
+```
+
+### Identifying the CMS on app.inlanefreight.local
+
+```bash
+curl -I http://app.inlanefreight.local
+```
+
+Check headers for `X-Redirect-By`, `X-Powered-By`, and cookie format. Also check page source:
+
+```bash
+curl -s http://app.inlanefreight.local | grep -i "wordpress\|joomla\|drupal\|wp-content\|wp-json"
+```
+
+**Answer:** Joomla — identified by the random hex session cookie and aggressive anti-caching headers.
+
+### Identifying the OS on dev.inlanefreight.local
+
+```bash
+curl -I http://dev.inlanefreight.local
+```
+
+```
+HTTP/1.1 200 OK
+Server: Apache/2.4.41 (Ubuntu)
+Set-Cookie: 02a93f6429c54209e06c64b77be2180d=nd451vqcaoqgb0l6e69d0ddbh0; path=/; HttpOnly
+Expires: Wed, 17 Aug 2005 00:00:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+```
+
+**Answer:** Ubuntu — from `Apache/2.4.41 (Ubuntu)` in the `Server` header. The OS is in the parentheses after the version.
+
+### Header Analysis
+
+| Header | What It Told Us |
+|---|---|
+| `Server: Apache/2.4.41 (Ubuntu)` | Web server + version + OS |
+| `Set-Cookie: 02a93f...` with `HttpOnly` | Server-side sessions, cookie not accessible via JS |
+| `Expires: 2005` + `Cache-Control: no-store` | Anti-caching — dynamic content (CMS indicator) |
+
+---
+
 ## Module Questions & Answers
 
 *Add exercise answers here as you complete them*
