@@ -197,6 +197,59 @@ ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt \
 | `-u` | Target URL (use IP directly) |
 | `-H` | Set custom header — `FUZZ` is the placeholder |
 | `-fs` | Filter by response size (remove wildcard noise) |
+| `-mc all` | Match ALL status codes (catches 400, 403 that default filters miss) |
+
+---
+
+## When Standard Wordlists Miss — Build a Custom Wordlist
+
+If a single wordlist doesn't find what you need, **combine all DNS wordlists** and filter by a prefix pattern.
+
+### Step 1: Find the default response size
+
+```bash
+curl -s http://<TARGET_IP>:<PORT> | wc -c
+```
+
+This tells you the default page size (e.g., `116` bytes). Filter this out with `-fs`.
+
+### Step 2: Run the standard scan first
+
+```bash
+ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-110000.txt \
+     -u http://target.htb:<PORT> \
+     -H "Host: FUZZ.target.htb" \
+     -fs 116
+```
+
+### Step 3: If you need more — build a targeted wordlist from ALL DNS lists
+
+```bash
+grep -h ^<PREFIX> ~/SecLists/Discovery/DNS/* > /tmp/custom_wordlist.txt
+```
+
+| Part | What It Does |
+|---|---|
+| `grep -h` | Search without printing filenames |
+| `^<PREFIX>` | Only lines starting with your prefix (e.g., `^web`, `^dev`, `^admin`) |
+| `~/SecLists/Discovery/DNS/*` | Search across **every** wordlist in the DNS directory |
+| `> /tmp/custom_wordlist.txt` | Save to a temp file |
+
+### Step 4: Deduplicate and fuzz
+
+```bash
+sort -u /tmp/custom_wordlist.txt | ffuf -w - -u http://target.htb:<PORT> \
+     -H "Host: FUZZ.target.htb" \
+     -fs 116
+```
+
+| Part | What It Does |
+|---|---|
+| `sort -u` | Remove duplicate entries |
+| `ffuf -w -` | Read wordlist from stdin (piped input) |
+| `-fs 116` | Filter out default page responses |
+
+> **Why this works:** The top 110K wordlist only had 216 `web*` entries. But combining ALL DNS wordlists in SecLists gives you thousands more — entries from `bitquark`, `dns-Jhaddix`, `deepmagic`, `shubs-subdomains`, etc. that aren't in the standard list.
 
 ---
 
@@ -208,4 +261,5 @@ ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt \
 - `--append-domain` is required in modern gobuster
 - Filter by `Status: 200` and watch response sizes for valid hits
 - Add discovered VHosts to `/etc/hosts` to access them
+- **If standard wordlists miss, build a custom one** — `grep -h ^<prefix> ~/SecLists/Discovery/DNS/*` pulls from every DNS wordlist
 - VHost fuzzing generates lots of traffic — use on authorized targets only
