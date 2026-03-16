@@ -8,6 +8,36 @@
 
 ---
 
+## ⚠️ Before You Start — /etc/hosts Setup
+
+`.htb` domains don't exist in public DNS. Your machine won't resolve them unless you manually add the target to `/etc/hosts`. **Do this every time you spawn a target — before running any tools.**
+
+```bash
+echo "<TARGET_IP>  <domain>.htb" | sudo tee -a /etc/hosts
+```
+
+### Example
+
+```bash
+echo "154.57.164.78  inlanefreight.htb" | sudo tee -a /etc/hosts
+```
+
+### Verify
+
+```bash
+grep inlanefreight /etc/hosts
+```
+
+Without this step, gobuster, ffuf, curl, and your browser will all timeout or fail when trying to reach the domain. **Make it muscle memory:**
+
+```
+1. Spawn target → get IP
+2. Add to /etc/hosts
+3. Then start working
+```
+
+---
+
 ## VHosts vs Subdomains
 
 | Concept | Description | DNS Record? |
