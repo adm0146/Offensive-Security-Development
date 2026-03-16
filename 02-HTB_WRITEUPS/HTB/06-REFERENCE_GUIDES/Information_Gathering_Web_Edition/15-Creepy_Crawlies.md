@@ -118,6 +118,62 @@ jq 'to_entries[] | {key: .key, count: (.value | length)}' results.json
 
 ---
 
+## Walkthrough — ReconSpider Exercise
+
+### Problem: PEP 668 Blocking pip Install
+
+Kali's newer Python (3.13+) enforces PEP 668 — won't allow system-wide `pip install`:
+
+```bash
+pip3 install scrapy
+# ERROR: externally-managed-environment
+```
+
+**Fix** — on a pentesting VM, override is fine:
+
+```bash
+pip3 install scrapy --break-system-packages
+```
+
+### Running ReconSpider
+
+```bash
+wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip
+unzip ReconSpider.zip
+/usr/bin/python3 ReconSpider.py http://inlanefreight.com
+```
+
+### Parsing the Output
+
+```bash
+sudo apt install jq -y
+cat results.json | jq .
+```
+
+### Key Findings
+
+**16 emails** discovered — including CEO email (`jeremy-ceo@inlanefreight.com`), support addresses, and individual employees.
+
+**HTML comments leaked critical info:**
+
+```
+<!-- TO-DO: change the location of future reports to inlanefreight-comp133.s3.amazonaws.htb -->
+<!-- change Jeremy's email to jeremy-ceo@inlanefreight.com -->
+```
+
+- S3 bucket name exposed: `inlanefreight-comp133.s3.amazonaws.htb`
+- Dev notes left in production — internal email changes visible
+
+**Answer:** `inlanefreight-comp133.s3.amazonaws.htb`
+
+### Lesson Learned
+
+- HTML comments are dev leftovers — always check `jq -r '.comments[]' results.json`
+- S3 bucket names in comments = check for public access
+- Dev TODO notes reveal internal processes and future infrastructure plans
+
+---
+
 ## Module Questions & Answers
 
 *Add exercise answers here as you complete them*
