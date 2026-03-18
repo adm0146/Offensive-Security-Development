@@ -63,8 +63,7 @@ canberra-office.zonetransfer.me. 7200 IN  A       202.14.81.230
 | **A records** for subdomains | IPs of every subdomain — new targets to scan |
 | **CNAME records** | Aliases revealing linked infrastructure |
 | **MX records** | Mail server infrastructure |
-| **TXT records** | Verification tokens, SPF policies, service info |
-| **SRV records** | Specific services and ports (SIP, LDAP) |
+| **TXT records** | Verification tokens, SPF policies, service info  Specific services and ports (SIP, LDAP) |
 | **Internal IPs** (127.0.0.1, 10.x, 192.168.x) | Leaked internal infrastructure |
 | **HINFO records** | OS and hardware info (rare but valuable) |
 
