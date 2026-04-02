@@ -20,7 +20,7 @@ Quick navigation to all Footprinting reference guides from the HTB Academy modul
 
 - [DNS.md](DNS.md) — Domain Name System: server types, record types, zone files, AXFR zone transfers, and subdomain enumeration techniques.
 
-- [SMTP.md](SMTP.md) — Simple Mail Transfer Protocol: ports 25/587/465, ESMTP, mail flow (MUA→MSA→MTA→MDA), VRFY user enumeration, and open relay attacks.
+ca- [SMTP.md](SMTP.md) — Simple Mail Transfer Protocol: ports 25/587/465, ESMTP, mail flow (MUA→MSA→MTA→MDA), VRFY user enumeration, and open relay attacks.
 
 - [IMAP_POP3.md](IMAP_POP3.md) — IMAP/POP3: email retrieval protocols, ports 110/143/993/995, command reference, cURL and OpenSSL interaction, dangerous settings.
 
