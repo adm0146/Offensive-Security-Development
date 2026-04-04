@@ -24,7 +24,6 @@
 | **Current Hours** | 210 |
 | **Target Hours** | 680 |
 | **Remaining** | 470 |
-| **Exam Date** | May 20, 2026 |
 
 ```
 Progress: ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 31%
@@ -168,8 +167,11 @@ Linux/Windows transfers, HTTP, SMB, FTP, base64, PowerShell methods
 
 ---
 
-## Post-CPTS Goals
+## Certification Path
 
-- OSCP course access setup (June 1)
-- PWK labs enrollment (June 15)
-- OSCP intensive begins (July 1)
+| # | Certification | Focus | Status |
+|---|---------------|-------|--------|
+| 1 | **CPTS** | Penetration Testing (HTB Academy) | 🔄 In Progress |
+| 2 | **CRTO** | Red Team Ops (Zero-Point Security) | ⬚ Next |
+| 3 | **CRTE** | Red Team Expert (Altered Security) | ⬚ Planned |
+| 4 | **CARTP** | Azure Red Team Professional (Altered Security) | ⬚ Planned |
