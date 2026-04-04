@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** May 20, 2026  
-**Current Date:** February 16, 2026
+**Current Date:** April 3, 2026
 
 ---
 
@@ -19,22 +19,15 @@
 
 ## Total Hours
 
-| Period | Hours | Target |
-|--------|-------|--------|
-| Week 1 (Jan 22-28) | 50 | 40 |
-| Week 2 (Jan 29-Feb 4) | 38 | 40 |
-| Week 3-4 (Feb 5-18) | 62 / 80 | 80 |
-| Week 5-6 (Feb 19-Mar 4) | — | 80 |
-| Week 7-8 (Mar 5-18) | — | 80 |
-| Week 9-10 (Mar 19-Apr 1) | — | 80 |
-| Week 11-12 (Apr 2-15) | — | 80 |
-| Week 13-14 (Apr 16-29) | — | 80 |
-| Week 15-16 (Apr 30-May 13) | — | 80 |
-| Week 17 (May 14-20) | — | 40 |
-| **Total** | **150 / 680** | **680** |
+| Metric | Value |
+|--------|-------|
+| **Current Hours** | 210 |
+| **Target Hours** | 680 |
+| **Remaining** | 470 |
+| **Exam Date** | May 20, 2026 |
 
 ```
-Progress: █████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 22%
+Progress: ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 31%
 ```
 
 ---
@@ -44,11 +37,11 @@ Progress: █████████░░░░░░░░░░░░░░�
 | Module | Status | Sections | Labs |
 |--------|--------|----------|------|
 | Network Enumeration with Nmap | ✅ Complete | 7/7 | 3/3 (E/M/H) |
-| Footprinting | 🔄 In Progress | 5/? | — |
-| Information Gathering - Web | ⬚ Not Started | — | — |
-| Vulnerability Assessment | ⬚ Not Started | — | — |
-| File Transfers | ⬚ Not Started | — | — |
-| Shells & Payloads | ⬚ Not Started | — | — |
+| Footprinting | ✅ Complete | All | — |
+| Information Gathering - Web | ✅ Complete | All | — |
+| Vulnerability Assessment | ✅ Complete | All | — |
+| File Transfers | ✅ Complete | All | — |
+| Shells & Payloads | 🔄 In Progress | 13/17 | — |
 | Using the Metasploit Framework | ⬚ Not Started | — | — |
 | Password Attacks | ⬚ Not Started | — | — |
 | Attacking Common Services | ⬚ Not Started | — | — |
@@ -72,6 +65,30 @@ Progress: █████████░░░░░░░░░░░░░░�
 
 ---
 
+## Current Module: Shells & Payloads (13/17 Sections)
+
+| # | Section | Status | Key Concepts |
+|---|---------|--------|--------------|
+| 1 | Introduction | ✅ | Module overview |
+| 2 | Engagement Preparation | ✅ | Shell selection, environment prep |
+| 3 | Anatomy of a Shell | ✅ | How shells work |
+| 4 | Bind Shells | ✅ | Target listens, attacker connects |
+| 5 | Reverse Shells | ✅ | Attacker listens, target connects back |
+| 6 | Introduction to Payloads | ✅ | Payload types and delivery |
+| 7 | Automating Payloads with Metasploit | ✅ | MSF payload automation |
+| 8 | Crafting Payloads with MSFvenom | ✅ | Custom payload generation |
+| 9 | Infiltrating Windows | ✅ | Windows-specific attacks, EternalBlue |
+| 10 | Spawning Interactive Shells | ✅ | TTY upgrade, escape methods (Perl, AWK, VIM) |
+| 11 | Introduction to Web Shells | ✅ | Browser-based shell access |
+| 12 | Laudanum Web Shells | ✅ | ASPX/PHP shells, allowedIps config |
+| 13 | Antak Webshell | ✅ | Nishang PowerShell web shell |
+| 14 | PHP Web Shells | ⬚ | — |
+| 15 | Detection & Prevention | ⬚ | — |
+| 16 | Skills Assessment | ⬚ | — |
+| 17 | Summary | ⬚ | — |
+
+---
+
 ## Supplementary Box Practice
 
 | Metric | Completed |
@@ -83,70 +100,6 @@ Progress: █████████░░░░░░░░░░░░░░�
 | **Total** | **22** |
 
 *Boxes reinforce module concepts but are not the exam focus.*
-
----
-
-## Weekly Plan
-
-### Week 3-4 — Feb 5-18 | 62 hrs (in progress)
-
-**Module Focus:** Footprinting (complete all sections + labs)
-
-| Module | Status |
-|--------|--------|
-| **Footprinting** | 🔄 5 sections complete |
-
-**Sections Completed:**
-
-| # | Section | Concepts |
-|---|---------|----------|
-| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
-| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
-| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
-| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
-| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
-
----
-
-### Week 5-6 — Feb 19-Mar 4 | Upcoming
-
-**Module Focus:** Complete Footprinting → Information Gathering - Web → File Transfers
-
----
-
-### Week 7-8 — Mar 5-18 | Upcoming
-
-**Module Focus:** Shells & Payloads → Using the Metasploit Framework → Password Attacks
-
----
-
-### Week 9-10 — Mar 19-Apr 1 | Upcoming
-
-**Module Focus:** Attacking Common Services → Pivoting/Tunneling → Linux Privilege Escalation
-
----
-
-### Week 11-12 — Apr 2-15 | Upcoming
-
-**Module Focus:** Windows Privilege Escalation → Active Directory Enumeration & Attacks
-
----
-
-### Week 13-14 — Apr 16-29 | Upcoming
-
-**Module Focus:** Web Attacks (SQLi, XSS, File Inclusion, Command Injection, File Upload)
-
----
-
-### Week 15-16 — Apr 30-May 13 | Upcoming
-
-**Module Focus:** Attacking Common Applications → Attacking Enterprise Networks → Documentation
-
----
-
-### Week 17 — May 14-20 | Exam Week
-
-**Focus:** Review weak modules, rest, CPTS exam
 
 ---
 
@@ -172,6 +125,29 @@ Progress: █████████░░░░░░░░░░░░░░�
 | UDP DNS Enumeration | Medium | `-sU -sV` triggered DNSVersionBindReq on port 53 |
 | Filtered Port Bypass | Hard | `-g 53` DNS source port abuse + ncat `--source-port 53` |
 
+### Footprinting ✅
+
+| # | Section | Concepts |
+|---|---------|----------|
+| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
+| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
+| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
+| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
+| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng |
+| 6+ | NFS, DNS, SMTP, IMAP/POP3, SNMP, MySQL, MSSQL, Oracle, IPMI | Service-specific enumeration |
+
+### Information Gathering - Web ✅
+
+WHOIS, DNS enumeration, subdomain discovery, virtual hosts, web fingerprinting
+
+### Vulnerability Assessment ✅
+
+Nessus configuration, vulnerability scanning, assessment methodologies
+
+### File Transfers ✅
+
+Linux/Windows transfers, HTTP, SMB, FTP, base64, PowerShell methods
+
 ---
 
 ## Skills Developed
@@ -180,7 +156,12 @@ Progress: █████████░░░░░░░░░░░░░░�
 |----------|--------|---------------|
 | Reconnaissance | Nmap mastery, service enumeration, banner grabbing | Nmap ✅ |
 | Firewall Evasion | Source port spoofing, DNS trust abuse, filtered port bypass | Nmap ✅ |
-| Service Enumeration | FTP, SMB, protocols, Samba tools | Footprinting 🔄 |
+| Service Enumeration | FTP, SMB, NFS, DNS, SMTP, databases, SNMP, IPMI | Footprinting ✅ |
+| Web Recon | WHOIS, subdomain discovery, vhost enumeration, fingerprinting | Info Gathering ✅ |
+| Vulnerability Assessment | Nessus, scanning methodologies, risk assessment | Vuln Assessment ✅ |
+| File Transfers | HTTP, SMB, FTP, base64, PowerShell, Linux/Windows methods | File Transfers ✅ |
+| Shells & Payloads | Bind/reverse shells, MSFvenom, web shells, TTY upgrade | Shells & Payloads 🔄 |
+| Windows Exploitation | EternalBlue (MS17-010), ASPX shells, PowerShell | Shells & Payloads 🔄 |
 | Web Exploitation | SQLi, directory brute-forcing, plugin enumeration | Upcoming |
 | Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 | Active Directory | Kerberos, Bloodhound, lateral movement | Upcoming |
