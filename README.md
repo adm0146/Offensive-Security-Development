@@ -5,7 +5,7 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress | May 2026 |
+| CPTS | 📖 In Progress | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
@@ -43,7 +43,7 @@ Cybersecurity_Professional_Development/
 | Academy Modules | 4 complete (Nmap, Footprinting, Information Gathering - Web Edition, Vulnerability Assessment) |
 | Writeups Published | 22 |
 | Reference Guides | 50+ |
-| Target Exam | May 20, 2026 |
+| Target Exam | June 21, 2026 |
 
 ---
 
@@ -311,7 +311,7 @@ Last Updated: March 17, 2026
 - **4/X Academy Modules Complete** (Network Enumeration with Nmap, Footprinting, Information Gathering - Web Edition, Vulnerability Assessment)
 - **50+ Reference Guides** created for rapid knowledge reference
 - **22 HTB Boxes Completed** (19 Very Easy, 3 Easy)
-- **Target Exam Date:** May 20, 2026 (2 months remaining)
+- **Target Exam Date:** June 21, 2026 (2 months remaining)
 
 **🛠️ New Technical Skills Acquired:**
 - **Vulnerability Assessment Mastery**: Nessus Professional, OpenVAS scanning, authenticated vs unauthenticated scans
