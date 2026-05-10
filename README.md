@@ -5,45 +5,89 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress | June 2026 |
+| CPTS | 📖 In Progress (46.1%) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
+## Current Status (May 9, 2026)
+
+```
+CPTS Learning Pathway: ██████████████████░░░░░░░░░░░░░░░░░░░░░░ 46.1%
+```
+
+| Metric | Status |
+|--------|--------|
+| Machines Completed | 22 (19 Very Easy, 3 Easy) |
+| Academy Modules Complete | 10 / 26 |
+| Academy Module In Progress | Active Directory Enumeration & Attacks (16/36 sections) |
+| Reference Guides | 200+ |
+| Target Exam | June 21, 2026 |
+
+---
+
+## Academy Module Progress
+
+| Module | Status |
+|--------|--------|
+| Network Enumeration with Nmap | ✅ Complete |
+| Footprinting | ✅ Complete |
+| Information Gathering - Web Edition | ✅ Complete |
+| Vulnerability Assessment | ✅ Complete |
+| File Transfers | ✅ Complete |
+| Shells & Payloads | ✅ Complete |
+| Using the Metasploit Framework | ✅ Complete |
+| Password Attacks | ✅ Complete |
+| Attacking Common Services | ✅ Complete |
+| Pivoting, Tunneling & Port Forwarding | ✅ Complete |
+| Active Directory Enumeration & Attacks | 🔄 In Progress (16/36) |
+| Using Web Proxies | ⬚ Not Started |
+| Attacking Web Applications with FFuF | ⬚ Not Started |
+| Login Brute Forcing | ⬚ Not Started |
+| SQL Injection Fundamentals | ⬚ Not Started |
+| SQLMap Essentials | ⬚ Not Started |
+| Cross-Site Scripting (XSS) | ⬚ Not Started |
+| File Inclusion | ⬚ Not Started |
+| File Upload Attacks | ⬚ Not Started |
+| Command Injections | ⬚ Not Started |
+| Web Attacks | ⬚ Not Started |
+| Attacking Common Applications | ⬚ Not Started |
+| Linux Privilege Escalation | ⬚ Not Started |
+| Windows Privilege Escalation | ⬚ Not Started |
+| Documentation & Reporting | ⬚ Not Started |
+| Attacking Enterprise Networks | ⬚ Not Started |
+
+---
+
 ## Repository Structure
 
 ```
-Cybersecurity_Professional_Development/
+Offensive-Security-Development/
 |
-|-- 01-SECURITY_PLUS/              Security+ study notes (completed)
+|-- 01-SECURITY_PLUS/              Security+ study notes (completed Jan 2026)
 |
 |-- 02-HTB_WRITEUPS/HTB/
 |   |-- 01-FOUNDATIONAL/           Very Easy boxes (19 completed)
 |   |-- 02-EASY/                   Easy boxes (3 completed)
 |   |-- 06-REFERENCE_GUIDES/
-|   |   |-- Foundation/            Core methodology guides
-|   |   |-- Network_Enumeration_With_Nmap/   7 Nmap module guides
-|   |   |-- Footprinting/          5 Footprinting module guides
-|   |   |-- Information_Gathering_Web_Edition/  8 Web recon guides
-|   |   |-- MASTER_ENUMERATION_CHEATSHEET.md
-|   |-- README.md                  CPTS hours and progress tracker
+|   |   |-- Foundation/
+|   |   |-- Network_Enumeration_With_Nmap/
+|   |   |-- Footprinting/
+|   |   |-- Information_Gathering_Web_Edition/
+|   |   |-- File_Transfers/
+|   |   |-- Shells_and_Payloads/
+|   |   |-- Using_Metasploit_Framework/
+|   |   |-- Password_Attacks/
+|   |   |-- Attacking_Common_Services/
+|   |   |-- Pivoting_Tunneling_and_Port_Forwarding/
+|   |   |-- Active_Directory_Enumeration_and_Attacks/
+|   |   |-- Vulnerability_Assessment/
+|   |-- README.md                  CPTS progress tracker
 |
-|-- 00-archived/                   Old materials
+|-- 00-archived/                   Old planning materials
 ```
-
----
-
-## Current Status (March 17, 2026)
-
-| Metric | Status |
-|--------|--------|
-| Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules | 4 complete (Nmap, Footprinting, Information Gathering - Web Edition, Vulnerability Assessment) |
-| Writeups Published | 22 |
-| Reference Guides | 50+ |
-| Target Exam | June 21, 2026 |
 
 ---
 
@@ -83,244 +127,207 @@ Cybersecurity_Professional_Development/
 
 ---
 
-## Academy Modules
-
-### Network Enumeration with Nmap -- Complete (All Labs Passed)
-
-7 sections + 3 skill assessment labs (Easy, Medium, Hard) covering the full Nmap module from the CPTS Academy path.
-
-| Section | Guide | Topics |
-|---------|-------|--------|
-| 1 | Host_Discovery.md | Network range scans, IP lists, ICMP/ARP |
-| 2 | Host_and_Port_Scanning.md | TCP states, SYN/Connect/UDP scans, filtered ports |
-| 3 | Saving_and_Converting_Results.md | Output formats (-oN, -oG, -oX), xsltproc |
-| 4 | Service_Enumeration.md | Version detection (-sV), banner grabbing, tcpdump |
-| 5 | NSE_Scripts.md | 14 categories, WordPress enum, vuln scanning |
-| 6 | Scanning_Performance.md | Timing templates (T0-T5), timeout tuning, packet rates |
-| 7 | Firewall_IDS_Evasion.md | ACK scans, decoys, source spoofing, DNS port 53 abuse |
-
-**Skill Assessment Labs:**
-
-| Lab | Difficulty | Key Technique |
-|-----|-----------|---------------|
-| Easy | Easy | Standard enumeration |
-| UDP DNS Enumeration | Medium | `-sU -sV` to trigger DNSVersionBindReq on port 53 |
-| Filtered Port Bypass | Hard | `-g 53` source port abuse + ncat manual connection to filtered db2 port |
-
----
-
-## Footprinting Module -- Complete
-
-| Section | Guide | Topics |
-|---------|-------|--------|
-| 1 | Enumeration_Principles.md | What we see vs don't see, active vs passive recon |
-| 2 | Enumeration_Methodology.md | Six-layer framework (Internet → OS Setup) |
-| 3 | Domain_Information.md | SSL certs, crt.sh, DNS records, Shodan |
-| 4 | FTP.md | Ports 20/21, active vs passive, anonymous access, vsFTPd |
-| 5 | SMB.md | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
-
----
-
-## Vulnerability Assessment Module -- Complete (All Labs Passed)
-
-16 sections covering comprehensive vulnerability assessment methodology from the CPTS Academy path.
-
-| Section | Guide | Topics |
-|---------|-------|--------|
-| 1 | 01-Security_Assessments.md | Assessment types, methodologies, frameworks |
-| 2 | 02-Vulnerability_Assessment_Methodology.md | Systematic assessment approach, planning |
-| 3 | 03-Assessment_Standards.md | Industry standards, compliance frameworks |
-| 4 | 04-CVSS.md | Common Vulnerability Scoring System, risk calculation |
-| 5 | 05-CVE_and_OVAL.md | Common Vulnerabilities and Exposures, OVAL definitions |
-| 6 | 06-Vulnerability_Scanning_Overview.md | Scanning platforms comparison, tool selection |
-| 7 | 07-Getting_Started_with_Nessus.md | Nessus installation, configuration, first scan |
-| 8 | 08-Nessus_Scan_Configuration.md | Scan templates, policy configuration, advanced settings |
-| 9 | 09-Nessus_Advanced_Settings_and_Features.md | Authenticated scanning, custom plugins |
-| 10 | 10-Working_with_Nessus_Scan_Output.md | Result analysis, filtering, prioritization |
-| 11 | 11-Nessus_Scanning_Issues_and_Network_Impact.md | Performance monitoring, network impact measurement |
-| 12 | 12-Nessus_Skills_Assessment.md | Practical assessment, hands-on evaluation |
-| 13 | 13-Getting_Started_with_OpenVAS.md | OpenVAS setup, interface, initial configuration |
-| 14 | 14-OpenVAS_Scan_Configuration_and_Execution.md | Scan policies, NVT database, execution |
-| 15 | 15-Exporting_OpenVAS_Scan_Results.md | Report generation, export formats, analysis |
-| 16 | 16-Vulnerability_Assessment_Reporting.md | Professional reporting, risk communication |
-
----
-
-## Information Gathering - Web Edition Module -- Complete (All Labs Passed)
-
-19 sections covering comprehensive web reconnaissance from the CPTS Academy path.
-
-| Section | Guide | Topics |
-|---------|-------|--------|
-| 1 | 01-Introduction.md | Web recon overview, OSINT fundamentals |
-| 2 | 02-WHOIS.md | WHOIS protocol, registrar data, privacy services |
-| 3 | 03-Utilising_WHOIS.md | Practical WHOIS queries, data analysis |
-| 4 | 04-DNS.md | DNS fundamentals, record types, zone files |
-| 5 | 05-Digging_DNS.md | DNS recon tools, dig command reference, output analysis |
-| 6 | 06-Subdomains.md | Subdomain enumeration, active vs passive techniques |
-| 7 | 07-Subdomain_Bruteforcing.md | Brute-force techniques, dnsenum, wordlists |
-| 8 | 08-DNS_Zone_Transfers.md | AXFR exploitation, zone transfer vulnerability, dig axfr |
-| 9 | 09-Virtual_Hosts.md | Vhost discovery, HTTP headers, fuzzing techniques |
-| 10 | 10-Certificate_Transparency.md | CT logs, certificate analysis, domain discovery |
-| 11 | 11-Fingerprinting.md | Technology stack identification, whatweb, wappalyzer |
-| 12 | 12-Crawling.md | Automated website mapping, link extraction, spider tools |
-| 13 | 13-robots_txt.md | Robots.txt analysis, disallowed paths, hidden directories |
-| 14 | 14-Well_Known_URIs.md | /.well-known/ paths, security.txt, standard endpoints |
-| 15 | 15-Creepy_Crawlies.md | Advanced crawling techniques, JavaScript parsing |
-| 16 | 16-Search_Engine_Discovery.md | Google dorking, search operators, OSINT via search |
-| 17 | 17-Web_Archives.md | Wayback Machine, historical data, archived content |
-| 18 | 18-Automating_Recon.md | Automation frameworks, tool chaining, scripted recon |
-| 19 | 19-Skills_Assessment.md | Comprehensive practical assessment |
-
----
-
-## Information Gathering - Web Edition (Complete)
-
-| Section | Guide | Topics |
-|---------|-------|--------|
-| 1 | 01-Introduction.md | Web recon overview, OSINT fundamentals |
-| 2 | 02-WHOIS.md | WHOIS protocol, registrar data, privacy services |
-| 3 | 03-Utilising_WHOIS.md | Practical WHOIS queries, data analysis |
-| 4 | 04-DNS.md | DNS fundamentals, record types, zone files |
-| 5 | 05-Digging_DNS.md | DNS recon tools, dig command reference, output analysis |
-| 6 | 06-Subdomains.md | Subdomain enumeration, active vs passive techniques |
-| 7 | 07-Subdomain_Bruteforcing.md | Brute-force techniques, dnsenum, wordlists |
-| 8 | 08-DNS_Zone_Transfers.md | AXFR exploitation, zone transfer vulnerability, dig axfr |
-
----
-
 ## Reference Guides
 
 ### Foundation
-
 | Guide | Description |
 |-------|-------------|
+| MASTER_ENUMERATION_CHEATSHEET.md | Full enumeration flowchart |
 | Enumeration_Process.md | Systematic 5-phase enumeration |
 | Service_Scanning_Enumeration.md | Nmap, FTP, SMB, SNMP service enumeration |
 | Web_Enumeration.md | HTTP/HTTPS, directory brute force, fingerprinting |
-| File_Transfer.md | Comprehensive file transfer methods (wget/curl, SCP, Base64, integrity validation) |
+| File_Transfer.md | Comprehensive file transfer methods |
 | Privilege_Escalation.md | Linux and Windows privilege escalation |
 | Public_Exploits.md | Finding and using public CVE exploits |
-| Types_of_Shells.md | Comprehensive shell type guide |
-| MASTER_ENUMERATION_CHEATSHEET.md | Full enumeration flowchart |
+| Types_of_Shells.md | Shell types reference |
 
-### Network Enumeration With Nmap
-
+### Network Enumeration with Nmap
 | Guide | Description |
 |-------|-------------|
-| Host_Discovery.md | Network range scans, IP lists, ICMP/ARP |
-| Host_and_Port_Scanning.md | TCP states, SYN/Connect/UDP scans, filtered ports |
-| Saving_and_Converting_Results.md | Output formats (-oN, -oG, -oX), xsltproc |
-| Service_Enumeration.md | Version detection (-sV), banner grabbing, tcpdump |
+| Host_Discovery.md | Network range scans, ICMP/ARP |
+| Host_and_Port_Scanning.md | TCP states, SYN/Connect/UDP scans |
+| Saving_and_Converting_Results.md | Output formats, xsltproc |
+| Service_Enumeration.md | Version detection, banner grabbing |
 | NSE_Scripts.md | 14 categories, WordPress enum, vuln scanning |
-| Scanning_Performance.md | Timing templates (T0-T5), timeout tuning, packet rates |
-| Firewall_IDS_Evasion.md | ACK scans, decoys, source spoofing, DNS port 53 abuse |
+| Scanning_Performance.md | Timing templates, packet rates |
+| Firewall_IDS_Evasion.md | ACK scans, decoys, DNS port 53 abuse |
 
 ### Footprinting
-
 | Guide | Description |
 |-------|-------------|
-| Enumeration_Principles.md | What we see vs don't see, active vs passive recon |
-| Enumeration_Methodology.md | Six-layer framework (Internet → OS Setup) |
-| Domain_Information.md | SSL certs, crt.sh, DNS records, Shodan |
-| FTP.md | Ports 20/21, active vs passive, anonymous access, vsFTPd |
-| SMB.md | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng, CrackMapExec |
+| Enumeration_Principles.md | Active vs passive recon |
+| Enumeration_Methodology.md | Six-layer framework |
+| Domain_Information.md | SSL certs, crt.sh, Shodan |
+| FTP.md | Anonymous access, vsFTPd config |
+| SMB.md | smbclient, rpcclient, enum4linux-ng |
+| NFS.md | NFS share enumeration |
+| DNS.md | Zone transfers, record types |
+| SMTP.md | User enumeration, relay testing |
+| IMAP_POP3.md | Mail service enumeration |
+| SNMP.md | Community strings, MIB walking |
+| MySQL.md | MySQL enumeration and attacks |
+| MSSQL.md | MSSQL enumeration and attacks |
+| Oracle_TNS.md | Oracle TNS enumeration |
+| IPMI.md | IPMI enumeration, hash extraction |
+| Linux_Remote_Management.md | SSH, Rsync, NFS |
+| Windows_Remote_Management.md | WinRM, RDP, WMI |
 
 ### Information Gathering - Web Edition
-
 | Guide | Description |
 |-------|-------------|
-| 01-Introduction.md | Web recon overview, OSINT fundamentals |
-| 02-WHOIS.md | WHOIS protocol, registrar data, privacy services |
-| 03-Utilising_WHOIS.md | Practical WHOIS queries, data analysis |
-| 04-DNS.md | DNS fundamentals, record types, zone files |
-| 05-Digging_DNS.md | DNS recon tools, dig command reference, output analysis |
-| 06-Subdomains.md | Subdomain enumeration, active vs passive techniques |
-| 07-Subdomain_Bruteforcing.md | Brute-force techniques, dnsenum, wordlists |
-| 08-DNS_Zone_Transfers.md | AXFR exploitation, zone transfer vulnerability, dig axfr |
-| 09-Virtual_Hosts.md | Vhost discovery, HTTP headers, fuzzing techniques |
-| 10-Certificate_Transparency.md | CT logs, certificate analysis, domain discovery |
-| 11-Fingerprinting.md | Technology stack identification, whatweb, wappalyzer |
-| 12-Crawling.md | Automated website mapping, link extraction, spider tools |
-| 13-robots_txt.md | Robots.txt analysis, disallowed paths, hidden directories |
-| 14-Well_Known_URIs.md | /.well-known/ paths, security.txt, standard endpoints |
-| 15-Creepy_Crawlies.md | Advanced crawling techniques, JavaScript parsing |
-| 16-Search_Engine_Discovery.md | Google dorking, search operators, OSINT via search |
-| 17-Web_Archives.md | Wayback Machine, historical data, archived content |
-| 18-Automating_Recon.md | Automation frameworks, tool chaining, scripted recon |
-| 19-Skills_Assessment.md | Comprehensive practical assessment |
+| 01-Introduction.md | Web recon overview |
+| 02-WHOIS.md | Registrar data, privacy services |
+| 03-Utilising_WHOIS.md | Practical WHOIS analysis |
+| 04-DNS.md | DNS fundamentals, record types |
+| 05-Digging_DNS.md | dig command reference |
+| 06-Subdomains.md | Active vs passive enumeration |
+| 07-Subdomain_Bruteforcing.md | dnsenum, wordlists |
+| 08-DNS_Zone_Transfers.md | AXFR exploitation |
+| 09-Virtual_Hosts.md | Vhost discovery, ffuf |
+| 10-Certificate_Transparency.md | CT log analysis |
+| 11-Fingerprinting.md | whatweb, wappalyzer |
+| 12-Crawling.md | Spider tools, link extraction |
+| 13-robots_txt.md | Hidden directories |
+| 14-Well_Known_URIs.md | /.well-known/ paths |
+| 15-Creepy_Crawlies.md | Advanced crawling |
+| 16-Search_Engine_Discovery.md | Google dorking |
+| 17-Web_Archives.md | Wayback Machine |
+| 18-Automating_Recon.md | Tool chaining, scripted recon |
+| 19-Skills_Assessment.md | Practical assessment |
+
+### File Transfers
+| Guide | Description |
+|-------|-------------|
+| 02-Windows_File_Transfer_Methods_Downloads.md | PowerShell, certutil, BITS |
+| 03-Linux_File_Transfer_Methods.md | wget, curl, SCP, base64 |
+| 04-Transferring_Files_with_Code.md | Python, PHP, Ruby servers |
+| 05-Miscellaneous_File_Transfer_Methods.md | Netcat, SMB, FTP |
+| 06-Protected_File_Transfers.md | Encrypted transfers |
+| 07-Catching_Files_over_HTTP_S.md | Nginx, Apache upload handlers |
+| 08-Living_off_the_Land.md | LOLBins for transfer |
+| 09-Detection.md | AV/EDR evasion considerations |
+| 10-Evading_Detection.md | Encoding, obfuscation |
+
+### Shells & Payloads
+| Guide | Description |
+|-------|-------------|
+| 04-Bind_Shells.md | Target listens, attacker connects |
+| 05-Reverse_Shells.md | Attacker listens, target connects back |
+| 06-Introduction_to_Payloads.md | Payload types and delivery |
+| 07-Automating_Payloads_with_Metasploit.md | MSF payload automation |
+| 08-Crafting_Payloads_with_MSFvenom.md | Custom payload generation |
+| 09-Infiltrating_Windows.md | EternalBlue, ASPX shells |
+| 10-Spawning_Interactive_Shells.md | TTY upgrade, Perl/AWK/VIM escape |
+| 11-Introduction_to_Web_Shells.md | Browser-based shell access |
+| 12-Laudanum_Web_Shells.md | ASPX/PHP shells |
+| 13-Antak_Webshell.md | Nishang PowerShell web shell |
+| 14-PHP_Web_Shells.md | PHP shell variants |
+| SKILLS_ASSESSMENT_WRITEUP.md | Skills assessment writeup |
+
+### Using the Metasploit Framework
+| Guide | Description |
+|-------|-------------|
+| 03-Introduction_to_MSFconsole.md | Console navigation, commands |
+| 04-Modules.md | Module types, search, use |
+| 05-Targets.md | Target selection |
+| 06-Payloads.md | Staged vs stageless, encoders |
+| 09-Plugins.md | Plugin ecosystem |
+| 10-Sessions.md | Session management, backgrounding |
+| 11-Meterpreter.md | Meterpreter commands, post-exploitation |
+| 13-Introduction_to_MSFVenom.md | Payload crafting |
+| 14-Firewall_and_IDS_IPS_Evasion.md | Encoding, obfuscation |
+
+### Password Attacks
+| Guide | Description |
+|-------|-------------|
+| 02-Introduction_to_Password_Cracking.md | Hash types, cracking methodology |
+| 03-Introduction_to_John_The_Ripper.md | John rules, wordlists, formats |
+| 04-Introduction_to_Hashcat.md | Hashcat modes, rules, masks |
+| 05-Writing_Custom_Wordlists_and_Rules.md | CeWL, CUPP, custom rules |
+| 10-Windows_Authentication_Process.md | NTLM, Kerberos, SAM, LSASS |
+| 11-Attacking_SAM_SYSTEM_and_SECURITY.md | Registry hive extraction |
+| 12-Attacking_LSASS.md | Mimikatz, task manager dump |
+| 14-Attacking_Active_Directory_and_NTDS.dit.md | Volume shadow copy, secretsdump |
+| 15-Credential_Hunting_in_Windows.md | LaZagne, registry, config files |
+| 17-Credential_Hunting_in_Linux.md | SSH keys, bash history, config files |
+| 20-Pass_the_Hash.md | PtH with Impacket, CrackMapExec |
+| 21-Pass_the_Ticket_Windows.md | Kerberos ticket abuse |
+| 22-Pass_the_Ticket_Linux.md | ccache files, keytab abuse |
+| 23-Pass_the_Certificate.md | ADCS certificate abuse |
+
+### Attacking Common Services
+| Guide | Description |
+|-------|-------------|
+| 07-Attacking_SMB.md | Brute force, RCE, relay |
+| 09-Attacking_SQL_Databases.md | SQLi, xp_cmdshell, UDF |
+| 11-Attacking_RDP.md | Brute force, session hijacking |
+| 13-Attacking_DNS.md | Zone transfer, cache poisoning |
+| 15-Attacking_Email_Services.md | SMTP enum, open relay, phishing |
+| 17-Skills_Assessment_Easy.md | Easy assessment writeup |
+| 18-Skills_Assessment_Medium.md | Medium assessment writeup |
+| 19-Skills_Assessment_Hard.md | Hard assessment writeup |
+
+### Pivoting, Tunneling & Port Forwarding
+| Guide | Description |
+|-------|-------------|
+| 03-Dynamic_Port_Forwarding_with_SSH_and_SOCKS_Tunneling.md | SSH -D, proxychains |
+| 04-Remote_Reverse_Port_Forwarding_with_SSH.md | SSH -R |
+| 05-Meterpreter_Tunneling_and_Port_Forwarding.md | MSF pivoting |
+| 06-Socat_Redirection_with_a_Reverse_Shell.md | Socat relay |
+| 08-SSH_for_Windows_plink.exe.md | Plink pivoting |
+| 09-SSH_Pivoting_with_Sshuttle.md | Transparent VPN-over-SSH |
+| 10-Web_Server_Pivoting_with_Rpivot.md | HTTP tunnel |
+| 13-SOCKS5_Tunneling_with_Chisel.md | Chisel HTTP tunnel |
+| 14-ICMP_Tunneling_with_SOCKS.md | ptunnel-ng |
+| 15-RDP_and_SOCKS_Tunneling_with_SocksOverRDP.md | SocksOverRDP |
+| 16-Skills_Assessment.md | Skills assessment writeup |
+
+### Active Directory Enumeration & Attacks (In Progress — 16/36)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full AD attack cheatsheet |
+| 04-External_Recon_and_Enumeration_Principles.md | OSINT, ASN, breach data |
+| 05-Initial_Enumeration_of_the_Domain.md | fping, kerbrute, tcpdump |
+| 06-LLMNR_NBT-NS_Poisoning_Linux.md | Responder, NTLMv2 cracking |
+| 07-LLMNR_NBT-NS_Poisoning_Windows.md | Inveigh |
+| 08-Password_Spraying_Overview.md | Methodology, lockout awareness |
+| 09-Enumerating_Password_Policy.md | rpcclient, enum4linux, LDAP |
+| 10-Password_Spraying_Building_User_List.md | kerbrute, CME, LDAP, RPC |
+| 11-Internal_Password_Spraying_Linux.md | kerbrute, CrackMapExec |
+| 12-Internal_Password_Spraying_Windows.md | DomainPasswordSpray |
+| 13-Enumerating_Security_Controls.md | Defender, AppLocker, LAPS |
+| 14-Credentialed_Enumeration_Linux.md | CME, BloodHound, windapsearch |
+| 15-Credentialed_Enumeration_Windows.md | PowerView, SharpHound, Snaffler |
+| 16-Living_Off_the_Land.md | dsquery, net commands, PS history |
 
 ### Vulnerability Assessment
-
 | Guide | Description |
 |-------|-------------|
-| 01-Security_Assessments.md | Assessment types, methodologies, frameworks |
-| 02-Vulnerability_Assessment_Methodology.md | Systematic assessment approach, planning |
-| 03-Assessment_Standards.md | Industry standards, compliance frameworks |
-| 04-CVSS.md | Common Vulnerability Scoring System, risk calculation |
-| 05-CVE_and_OVAL.md | Common Vulnerabilities and Exposures, OVAL definitions |
-| 06-Vulnerability_Scanning_Overview.md | Scanning platforms comparison, tool selection |
-| 07-Getting_Started_with_Nessus.md | Nessus installation, configuration, first scan |
-| 08-Nessus_Scan_Configuration.md | Scan templates, policy configuration, advanced settings |
-| 09-Nessus_Advanced_Settings_and_Features.md | Authenticated scanning, custom plugins |
-| 10-Working_with_Nessus_Scan_Output.md | Result analysis, filtering, prioritization |
-| 11-Nessus_Scanning_Issues_and_Network_Impact.md | Performance monitoring, network impact measurement |
-| 12-Nessus_Skills_Assessment.md | Practical assessment, hands-on evaluation |
-| 13-Getting_Started_with_OpenVAS.md | OpenVAS setup, interface, initial configuration |
-| 14-OpenVAS_Scan_Configuration_and_Execution.md | Scan policies, NVT database, execution |
-| 15-Exporting_OpenVAS_Scan_Results.md | Report generation, export formats, analysis |
-| 16-Vulnerability_Assessment_Reporting.md | Professional reporting, risk communication |
-
-**New Additions (March 2026):**
-- **Complete Vulnerability Assessment Module**: 16 comprehensive sections covering Nessus Professional, OpenVAS, CVSS scoring, CVE research, and professional reporting
-- **Extensive File Transfer Guide**: 400+ lines covering wget/curl, SCP, Base64 encoding, integrity validation with MD5 hashes, troubleshooting, and practical CTF examples
-- **Web Reconnaissance Mastery**: Complete Information Gathering - Web Edition with 19 sections covering WHOIS, DNS, subdomains, virtual hosts, certificate transparency, crawling, automation
+| 04-CVSS.md | CVSS scoring, risk calculation |
+| 05-CVE_and_OVAL.md | CVE research, OVAL definitions |
+| 07-Getting_Started_with_Nessus.md | Nessus setup, first scan |
+| 08-Nessus_Scan_Configuration.md | Scan templates, advanced settings |
+| 10-Working_with_Nessus_Scan_Output.md | Result analysis, prioritization |
+| 13-Getting_Started_with_OpenVAS.md | OpenVAS setup, configuration |
+| 14-OpenVAS_Scan_Configuration_and_Execution.md | Scan policies, NVT database |
+| 16-Vulnerability_Assessment_Reporting.md | Professional reporting |
 
 ---
 
 ## Tools
 
-Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, Hydra, Responder, Impacket (mssqlclient.py, psexec.py), LinPEAS, WinPEAS, Netcat, Ncat, Metasploit, WhatWeb, SearchSploit, tcpdump
+Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, enum4linux-ng, Hydra, Responder, Inveigh, Impacket suite (psexec/wmiexec/secretsdump/GetNPUsers/GetUserSPNs), CrackMapExec/Netexec, BloodHound, SharpHound, PowerView, Mimikatz, Evil-WinRM, Chisel, Sshuttle, Socat, Proxychains, LinPEAS, WinPEAS, Netcat, Metasploit, MSFvenom, SQLmap, John the Ripper, Hashcat, Kerbrute, Certipy-AD, Snaffler, Windapsearch
 
 ---
 
 ## Links
 
 - [CPTS Progress Tracker](02-HTB_WRITEUPS/HTB/README.md)
-- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/MASTER_ENUMERATION_CHEATSHEET.md)
-- [Nmap Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Network_Enumeration_With_Nmap/)
-- [Footprinting Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Footprinting/)
-- [Information Gathering Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Information_Gathering_Web_Edition/)
-- [Vulnerability Assessment Guides](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Vulnerability_Assessment/)
-- [Privilege Escalation Guide](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/Privilege_Escalation.md)
+- [Master Enumeration Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Foundation/00-MASTER_ENUMERATION_CHEATSHEET.md)
+- [AD Exam Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/00-EXAM_CHEATSHEET.md)
+- [Password Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Password_Attacks/00-EXAM_CHEATSHEET.md)
+- [Pivoting Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Pivoting_Tunneling_and_Port_Forwarding/00-EXAM_CHEATSHEET.md)
 
 ---
 
-Last Updated: March 17, 2026
-
-## Recent Progress Summary (March 2026)
-
-**🎯 Major Achievements:**
-- ✅ **Completed Vulnerability Assessment Module** (16 sections + skills assessment covering Nessus, OpenVAS, CVSS, reporting)
-- ✅ **Completed Information Gathering - Web Edition** (19 sections + skills assessment)
-- ✅ **Completed Footprinting Module** (5 sections covering enumeration principles, methodology, domains, FTP, SMB)
-- 📚 **Enhanced File Transfer Mastery** - Built comprehensive 400+ line guide covering all transfer methods
-- 🔍 **Web Reconnaissance Expertise** - Mastered WHOIS, DNS enumeration, subdomain discovery, virtual host identification, certificate transparency, web crawling, and automation
-
-**📊 Current CPTS Progress:**
-- **4/X Academy Modules Complete** (Network Enumeration with Nmap, Footprinting, Information Gathering - Web Edition, Vulnerability Assessment)
-- **50+ Reference Guides** created for rapid knowledge reference
-- **22 HTB Boxes Completed** (19 Very Easy, 3 Easy)
-- **Target Exam Date:** June 21, 2026 (2 months remaining)
-
-**🛠️ New Technical Skills Acquired:**
-- **Vulnerability Assessment Mastery**: Nessus Professional, OpenVAS scanning, authenticated vs unauthenticated scans
-- **Risk Analysis**: CVSS scoring, CVE research, OVAL definitions, vulnerability prioritization
-- **Professional Reporting**: Vulnerability assessment reports, risk communication, remediation guidance
-- DNS zone transfer exploitation (AXFR)
-- Certificate transparency log analysis
-- Advanced subdomain enumeration techniques
-- Virtual host discovery and fuzzing
-- Automated web reconnaissance workflows
-- File integrity validation (MD5 hashing)
-- Multi-method file transfer strategies
+Last Updated: May 9, 2026
