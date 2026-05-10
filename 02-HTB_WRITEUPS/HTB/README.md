@@ -1,7 +1,7 @@
 # CPTS Progress Tracking
 
 **Start Date:** January 22, 2026  
-**Target Exam:** May 20, 2026  
+**Target Exam:** June 21, 2026  
 **Current Date:** May 9, 2026
 
 ---
