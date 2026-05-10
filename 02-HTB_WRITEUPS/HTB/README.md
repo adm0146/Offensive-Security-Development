@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** May 20, 2026  
-**Current Date:** April 3, 2026
+**Current Date:** May 9, 2026
 
 ---
 
@@ -17,16 +17,8 @@
 
 ---
 
-## Total Hours
-
-| Metric | Value |
-|--------|-------|
-| **Current Hours** | 210 |
-| **Target Hours** | 680 |
-| **Remaining** | 470 |
-
 ```
-Progress: ████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 31%
+CPTS Learning Pathway: ██████████████████░░░░░░░░░░░░░░░░░░░░░░ 46.1%
 ```
 
 ---
@@ -40,12 +32,12 @@ Progress: ████████████░░░░░░░░░░░�
 | Information Gathering - Web | ✅ Complete | All | — |
 | Vulnerability Assessment | ✅ Complete | All | — |
 | File Transfers | ✅ Complete | All | — |
-| Shells & Payloads | 🔄 In Progress | 13/17 | — |
-| Using the Metasploit Framework | ⬚ Not Started | — | — |
-| Password Attacks | ⬚ Not Started | — | — |
-| Attacking Common Services | ⬚ Not Started | — | — |
-| Pivoting, Tunneling, Port Forwarding | ⬚ Not Started | — | — |
-| Active Directory Enumeration & Attacks | ⬚ Not Started | — | — |
+| Shells & Payloads | ✅ Complete | 17/17 | ✅ |
+| Using the Metasploit Framework | ✅ Complete | All | — |
+| Password Attacks | ✅ Complete | All | — |
+| Attacking Common Services | ✅ Complete | All | ✅ E/M/H |
+| Pivoting, Tunneling, Port Forwarding | ✅ Complete | All | ✅ |
+| Active Directory Enumeration & Attacks | 🔄 In Progress | 16/36 | — |
 | Using Web Proxies | ⬚ Not Started | — | — |
 | Attacking Web Applications with FFuF | ⬚ Not Started | — | — |
 | Login Brute Forcing | ⬚ Not Started | — | — |
@@ -64,7 +56,9 @@ Progress: ████████████░░░░░░░░░░░�
 
 ---
 
-## Current Module: Shells & Payloads (13/17 Sections)
+## Current Module: Active Directory Enumeration & Attacks (16/36 sections — started May 8, 2026)
+
+### Shells & Payloads ✅ (completed)
 
 | # | Section | Status | Key Concepts |
 |---|---------|--------|--------------|
@@ -81,10 +75,10 @@ Progress: ████████████░░░░░░░░░░░�
 | 11 | Introduction to Web Shells | ✅ | Browser-based shell access |
 | 12 | Laudanum Web Shells | ✅ | ASPX/PHP shells, allowedIps config |
 | 13 | Antak Webshell | ✅ | Nishang PowerShell web shell |
-| 14 | PHP Web Shells | ⬚ | — |
-| 15 | Detection & Prevention | ⬚ | — |
-| 16 | Skills Assessment | ⬚ | — |
-| 17 | Summary | ⬚ | — |
+| 14 | PHP Web Shells | ✅ | — |
+| 15 | Detection & Prevention | ✅ | — |
+| 16 | Skills Assessment | ✅ | — |
+| 17 | Summary | ✅ | — |
 
 ---
 
@@ -159,11 +153,15 @@ Linux/Windows transfers, HTTP, SMB, FTP, base64, PowerShell methods
 | Web Recon | WHOIS, subdomain discovery, vhost enumeration, fingerprinting | Info Gathering ✅ |
 | Vulnerability Assessment | Nessus, scanning methodologies, risk assessment | Vuln Assessment ✅ |
 | File Transfers | HTTP, SMB, FTP, base64, PowerShell, Linux/Windows methods | File Transfers ✅ |
-| Shells & Payloads | Bind/reverse shells, MSFvenom, web shells, TTY upgrade | Shells & Payloads 🔄 |
-| Windows Exploitation | EternalBlue (MS17-010), ASPX shells, PowerShell | Shells & Payloads 🔄 |
-| Web Exploitation | SQLi, directory brute-forcing, plugin enumeration | Upcoming |
+| Shells & Payloads | Bind/reverse shells, MSFvenom, web shells, TTY upgrade | Shells & Payloads ✅ |
+| Windows Exploitation | EternalBlue (MS17-010), ASPX shells, PowerShell | Shells & Payloads ✅ |
+| Metasploit | MSFconsole, modules, payloads, Meterpreter, MSFvenom, IDS/IPS evasion | Metasploit ✅ |
+| Password Attacks | John, Hashcat, SAM/LSASS/NTDS.dit, PtH, PtT, PtC, credential hunting | Password Attacks ✅ |
+| Common Services | FTP, SMB, SQL, RDP, DNS, email attacks | Attacking Common Services ✅ |
+| Pivoting | SSH SOCKS, Chisel, Dnscat2, Rpivot, socat, SocksOverRDP, sshuttle | Pivoting ✅ |
+| Active Directory | LLMNR/NBT-NS poisoning, password spraying, credentialed enumeration, BloodHound | AD Enum & Attacks 🔄 |
+| Web Exploitation | SQLi, XSS, file inclusion, command injection | Upcoming |
 | Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
-| Active Directory | Kerberos, Bloodhound, lateral movement | Upcoming |
 
 ---
 
