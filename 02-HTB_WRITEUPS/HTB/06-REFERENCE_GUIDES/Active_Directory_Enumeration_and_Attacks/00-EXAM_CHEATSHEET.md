@@ -354,6 +354,25 @@ Get-DomainUser * -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\tgs.c
 
 ---
 
+## ACL Abuse — Key Permissions
+
+| Permission | Target | Abuse |
+|------------|--------|-------|
+| `ForceChangePassword` | User | `Set-DomainUserPassword` — reset without knowing current |
+| `GenericAll` | User/Group/Computer | Full control — password reset, add member, read LAPS |
+| `GenericWrite` | User | Assign SPN → Kerberoast |
+| `WriteDACL` | Any | `Add-DomainObjectACL` — grant yourself any right |
+| `WriteOwner` | Any | `Set-DomainObjectOwner` → take ownership → WriteDACL |
+| `AddSelf` / `Add Members` | Group | `Add-DomainGroupMember` — add self to group |
+
+```powershell
+# Enumerate ACEs
+Find-InterestingDomainAcl
+Get-DomainObjectAcl -Identity USER -ResolveGUIDs
+```
+
+---
+
 ## Core Attack Paths
 
 ### Unauthenticated → Foothold
