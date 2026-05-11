@@ -77,7 +77,7 @@ Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $ad
 | GUID for User-Force-Change-Password | `00299570-246d-11d0-a768-00aa006e0529` |
 | Flag for human-readable ObjectAceType | `-ResolveGUIDs` |
 | damundsen's rights over Help Desk Level 1 | `GenericWrite` |
-| forend's rights over dpayne | (enumerated in lab — see below) |
+| forend's rights over dpayne | `GenericAll` |
 
 **Enumerating forend → dpayne:**
 ```powershell
