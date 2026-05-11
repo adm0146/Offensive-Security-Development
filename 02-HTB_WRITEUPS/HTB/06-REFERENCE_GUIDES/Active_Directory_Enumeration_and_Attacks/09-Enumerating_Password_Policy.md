@@ -1,129 +1,118 @@
-# Section 9 — Enumerating & Retrieving Password Policies
-
-## Why This Matters
-
-You MUST know the lockout policy before spraying. Locking out production accounts = major incident. Get the policy first, every time.
+# Section 09 — Enumerating the Password Policy
 
 ---
 
-## Method 1 — Credentialed (Linux) — netexec / CrackMapExec
+## QUICK REFERENCE — Get the Policy
 
 ```bash
-# netexec (nxc) — use this on Kali, crackmapexec not installed
-nxc smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
+# Credentialed (fastest)
+nxc smb 172.16.5.5 -u USER -p PASS --pass-pol
 
-# crackmapexec (if available)
-crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
-```
-
----
-
-## Method 2 — SMB NULL Session (Unauthenticated, Linux)
-
-SMB NULL sessions are a legacy misconfiguration — often found on DCs upgraded from older Windows Server versions.
-
-### rpcclient
-```bash
-# Connect anonymously
-rpcclient -U "" -N 172.16.5.5
-
-# Inside rpcclient:
-querydominfo      # domain info + user/group counts
-getdompwinfo      # password policy
-enumdomusers      # user list (if allowed)
-```
-
-### enum4linux
-```bash
-# Get password policy only
+# SMB NULL session (no creds)
+rpcclient -U "" -N 172.16.5.5    # then: getdompwinfo
 enum4linux -P 172.16.5.5
-```
+enum4linux-ng -P 172.16.5.5 -oA output
 
-### enum4linux-ng (preferred — cleaner output, JSON/YAML export)
-```bash
-enum4linux-ng -P 172.16.5.5 -oA ilfreight
-cat ilfreight.json
+# LDAP anonymous bind (no creds)
+ldapsearch -H ldap://172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
+
+# From Windows
+net accounts
 ```
 
 ---
 
-## Method 3 — LDAP Anonymous Bind (Unauthenticated, Linux)
+## Lab Results (INLANEFREIGHT.LOCAL)
 
-Legacy config — anonymous LDAP queries allowed. Less common than NULL sessions.
+| Setting | Value | Implication |
+|---------|-------|-------------|
+| Min password length | 8 | Welcome1, Password1 meet requirements |
+| Lockout threshold | 5 | Safe to try 3 passwords before waiting |
+| Lockout duration | 30 min | Auto-unlocks — wait 31 min between rounds |
+| Max password age | Not set | Passwords never expire — breach data may work |
+| Complexity | Enabled | Needs 3/4 of: upper, lower, number, special |
+| Manual unlock | No | Auto-unlock — but still avoid lockouts |
+
+**Decision:** threshold=5 → try 3 passwords max → wait 31 min → repeat
+
+---
+
+## Method 1 — Credentialed (Linux)
 
 ```bash
-ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
+nxc smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
+```
 
-# Note: newer ldapsearch uses -H instead of -h
+---
+
+## Method 2 — SMB NULL Session (No Creds)
+
+```bash
+# rpcclient
+rpcclient -U "" -N 172.16.5.5
+# inside: getdompwinfo
+
+# enum4linux
+enum4linux -P 172.16.5.5
+
+# enum4linux-ng (preferred — cleaner, JSON export)
+enum4linux-ng -P 172.16.5.5 -oA output
+cat output.json
+```
+
+---
+
+## Method 3 — LDAP Anonymous Bind (No Creds)
+
+```bash
 ldapsearch -H ldap://172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
 ```
 
-Key fields to look for: `minPwdLength`, `lockoutThreshold`, `lockoutDuration`, `pwdProperties`
+Key fields: `minPwdLength`, `lockoutThreshold`, `lockoutDuration`, `pwdProperties`
 
 ---
 
-## Method 4 — From Windows (Authenticated)
+## Method 4 — From Windows
 
-### net.exe (built-in, no tools needed)
 ```cmd
 net accounts
 ```
 
-### PowerView
 ```powershell
 Import-Module .\PowerView.ps1
 Get-DomainPolicy
 ```
 
-### Null session from Windows
-```cmd
-net use \\DC01\ipc$ "" /u:""
-```
-
-**Windows error codes to know during spraying:**
+**Windows error codes during spraying:**
 | Error | Meaning |
 |-------|---------|
-| System error 1331 | Account disabled |
-| System error 1326 | Wrong password |
-| System error 1909 | Account locked out |
+| 1331 | Account disabled |
+| 1326 | Wrong password |
+| 1909 | Account locked out |
 
 ---
 
-## Reading the Policy — What to Look For
+## Default Domain Policy (new domain, never changed)
 
-INLANEFREIGHT.LOCAL example:
-| Setting | Value | Implication |
-|---------|-------|-------------|
-| Min password length | 8 | Weak passwords likely in use — Welcome1, Password1 viable |
-| Lockout threshold | 5 | Safe to try up to 3 passwords before waiting |
-| Lockout duration | 30 min | Auto-unlocks — wait 31 min between rounds |
-| Max password age | Not set | Passwords never expire — old breach data may work |
-| Password complexity | Enabled | Must have 3/4 of: upper, lower, number, special |
-| Manual unlock required | No | Auto-unlock — but still avoid lockouts |
-
-**Default domain policy (new domain, never changed):**
-| Policy | Default |
-|--------|---------|
-| Password history | 24 |
-| Max password age | 42 days |
-| Min password age | 1 day |
-| Min password length | 7 |
-| Complexity | Enabled |
-| Lockout threshold | 0 (no lockout!) |
-| Lockout duration | Not set |
+| Setting | Default | Impact |
+|---------|---------|--------|
+| Lockout threshold | **0 (no lockout!)** | Spraying is safe |
+| Max password age | 42 days | |
+| Min length | 7 | |
+| Complexity | Enabled | |
 
 ---
 
 ## Spraying Decision Framework
 
 ```
-Lockout threshold = 5  → safe to try 2-3 passwords per round
-Lockout duration  = 30 → wait 31+ minutes between rounds
-Auto-unlock = yes      → mistakes recoverable (but still avoid)
-Auto-unlock = no       → extreme caution, admin must manually unlock
+Threshold = 5  → max 3 attempts per round
+Duration  = 30 → wait 31 min between rounds
+Auto-unlock = yes  → mistakes are recoverable (but still avoid)
+Auto-unlock = no   → extreme caution — admin must manually unlock
 
-No policy available?
-→ Max 1-2 spray attempts total
+Unknown policy?
+→ Max 1-2 attempts total
 → Wait 1+ hour between attempts
 → Or ask the client directly
 ```
@@ -132,9 +121,8 @@ No policy available?
 
 ## Exam Notes
 
-- Run policy enumeration before ANY spraying — no exceptions
-- SMB NULL session and LDAP anon bind = unauthenticated, no creds needed
-- `nxc smb --pass-pol` is fastest when you have creds
-- `enum4linux-ng -oA` exports JSON — useful for feeding into scripts
-- Default domain policy has lockout threshold of 0 — spraying is safe but still be careful
-- Complexity enabled + 8 char min → Welcome1, Password1, Winter2024 all meet requirements
+- Run policy enumeration **before any spraying** — no exceptions
+- SMB NULL session and LDAP anon bind = no creds needed
+- `nxc smb --pass-pol` is fastest when credentialed
+- Default policy has lockout = 0 — spraying safe but still be careful
+- Complexity + 8 char min → Welcome1, Password1, Winter2025 all qualify

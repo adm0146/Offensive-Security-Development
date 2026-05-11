@@ -1,8 +1,26 @@
 # Section 13 — Enumerating Security Controls
 
-## Why This Matters
+> Run this immediately after gaining a foothold — determines what tools you can use.
 
-Security controls affect what tools you can use and how. Enumerate them early after gaining a foothold so you can plan your approach — avoid blocked tools, use LOLBins, or find bypasses.
+---
+
+## QUICK REFERENCE — Run After Foothold
+
+```powershell
+# 1. Defender
+Get-MpComputerStatus | select RealTimeProtectionEnabled, AMServiceEnabled
+
+# 2. AppLocker
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+
+# 3. PowerShell language mode
+$ExecutionContext.SessionState.LanguageMode
+
+# 4. LAPS
+Find-LAPSDelegatedGroups
+Find-AdmPwdExtendedRights
+Get-LAPSComputers
+```
 
 ---
 
@@ -10,12 +28,10 @@ Security controls affect what tools you can use and how. Enumerate them early af
 
 ```powershell
 Get-MpComputerStatus
-
-# Key field to check:
-# RealTimeProtectionEnabled : True  → Defender is active, will block PowerView etc.
+# RealTimeProtectionEnabled : True  → Defender active, will block PowerView etc.
 ```
 
-If enabled — tools like PowerView will be caught. Look for bypass techniques or run from memory.
+**If enabled:** Run tools from memory, use obfuscation, or switch to C# binaries (SharpView, SharpHound).
 
 ---
 
@@ -23,78 +39,67 @@ If enabled — tools like PowerView will be caught. Look for bypass techniques o
 
 ```powershell
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+# Action: Deny on PowerShell = blocked at default path
 ```
 
-**What to look for:**
-- `Action: Deny` on PowerShell → blocked at default path
-- Common bypass: AppLocker blocks `%SYSTEM32%\WindowsPowerShell\v1.0\powershell.exe` but forgets:
-  - `%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe`
-  - `PowerShell_ISE.exe`
-- Admins group (`S-1-5-32-544`) typically has `Allow All` → if you're local admin you're fine
+**Common bypass paths AppLocker misses:**
+```
+%SystemRoot%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe
+PowerShell_ISE.exe
+```
+
+Admins group (`S-1-5-32-544`) typically has Allow All → if local admin, you're fine.
 
 ---
 
-## PowerShell Constrained Language Mode
+## PowerShell Language Mode
 
 ```powershell
 $ExecutionContext.SessionState.LanguageMode
-
-# FullLanguage     → no restrictions
-# ConstrainedLanguage → blocks COM objects, limits .NET types, breaks many PS tools
+# FullLanguage      → no restrictions
+# ConstrainedLanguage → blocks COM objects, limits .NET — breaks PowerView etc.
 ```
 
-If `ConstrainedLanguage` — PowerView and many other tools won't work as expected. Need to find a bypass or use C# tools instead.
+**If ConstrainedLanguage:** Switch to C# tools (SharpView, SharpHound, etc.)
 
 ---
 
-## LAPS (Local Administrator Password Solution)
+## LAPS
 
-LAPS randomizes and rotates local admin passwords — prevents lateral movement via local admin hash reuse.
-
-### Enumerate with LAPSToolkit
+LAPS randomizes local admin passwords — prevents lateral movement via password reuse.
 
 ```powershell
-# Who can read LAPS passwords (delegated groups per OU)
+# Who can read LAPS passwords per OU
 Find-LAPSDelegatedGroups
 
-# Users/groups with All Extended Rights (can read LAPS passwords)
+# Users with All Extended Rights (can read LAPS passwords)
 Find-AdmPwdExtendedRights
 
-# List computers with LAPS — shows cleartext password if you have access
+# List computers + LAPS passwords (if you have access)
 Get-LAPSComputers
 ```
 
-**Key insight:** "All Extended Rights" on a computer object = can read LAPS password. Accounts that joined a computer to the domain get this right automatically — worth checking for non-obvious read access.
+**Key:** "All Extended Rights" on a computer object = can read LAPS password. Accounts that joined the computer to the domain get this automatically — check for non-obvious read access.
 
-If `Get-LAPSComputers` returns passwords in cleartext → you have local admin access to those machines.
+If `Get-LAPSComputers` shows cleartext passwords → you have local admin on those machines.
 
 ---
 
-## Quick Security Posture Checklist (run after foothold)
+## What to Do Based on Results
 
-```powershell
-# 1. Defender status
-Get-MpComputerStatus | select RealTimeProtectionEnabled, AMServiceEnabled
-
-# 2. AppLocker rules
-Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
-
-# 3. PowerShell language mode
-$ExecutionContext.SessionState.LanguageMode
-
-# 4. LAPS presence and read access
-Find-LAPSDelegatedGroups
-Find-AdmPwdExtendedRights
-Get-LAPSComputers
-```
+| Finding | Action |
+|---------|--------|
+| Defender enabled | Use in-memory execution, C# tools, obfuscation |
+| AppLocker blocks PS | Try `SysWOW64\powershell.exe` or PowerShell_ISE |
+| ConstrainedLanguage | Switch to SharpView, SharpHound, etc. |
+| LAPS present | Check extended rights — may expose local admin passwords |
+| No LAPS | Local admin password reuse spray is viable |
 
 ---
 
 ## Exam Notes
 
-- Always enumerate security controls right after gaining a foothold — informs all subsequent tool choices
-- Defender on → use in-memory execution, obfuscation, or C# alternatives to PowerShell tools
-- AppLocker blocking PS → try alternate PS paths or ISE
-- Constrained Language Mode → switch to C# tools (SharpView, SharpHound, etc.)
-- LAPS = look for accounts with extended rights → may expose local admin passwords in cleartext
-- No interactive component in this section — reference only
+- Run security controls check right after foothold — informs all tool choices
+- No LAPS + local admin creds = spray subnet with `--local-auth`
+- LAPS present → Find-AdmPwdExtendedRights → may find a user who can read passwords
+- Constrained Language Mode → C# tools only

