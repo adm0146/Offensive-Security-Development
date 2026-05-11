@@ -9,7 +9,7 @@
 | Permission | Abuse Method | PowerView Command |
 |------------|-------------|-------------------|
 | `ForceChangePassword` | Reset user's password without knowing current | `Set-DomainUserPassword` |
-| `GenericAll` (user) | Force password change OR Kerberoast (assign SPN) | `Set-DomainUserPassword` |
+| `GenericAll` (user) | Force password change OR **targeted Kerberoast** (assign SPN) — primary ACE for this | `Set-DomainUserPassword` |
 | `GenericAll` (group) | Add yourself to group | `Add-DomainGroupMember` |
 | `GenericAll` (computer) | Read LAPS password (if LAPS enabled) | `Get-DomainObject` |
 | `GenericWrite` (user) | Assign SPN → Kerberoast | `Set-DomainObject` |
@@ -104,7 +104,7 @@ Get-DomainObjectAcl -Identity USER -ResolveGUIDs   # ACEs on a specific object
 
 - ACL abuse = invisible to scanners, overlooked for years — high value finding
 - BloodHound edges are your roadmap — learn what each one means
-- **GenericAll** = full control — most powerful, most dangerous
+- **GenericAll** = full control — most powerful, most dangerous — the ACE for targeted Kerberoasting (not GenericWrite)
 - **WriteDACL** = can grant yourself any right → chained escalation
 - **WriteOwner** → take ownership → then WriteDACL → then anything
 - Always get client approval before ForceChangePassword — it's destructive
