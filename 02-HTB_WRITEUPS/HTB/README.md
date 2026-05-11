@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** June 21, 2026  
-**Current Date:** May 9, 2026
+**Last Updated:** May 11, 2026
 
 ---
 
@@ -18,158 +18,136 @@
 ---
 
 ```
-CPTS Learning Pathway: ██████████████████░░░░░░░░░░░░░░░░░░░░░░ 46.1%
+CPTS Learning Pathway: ████████████████████░░░░░░░░░░░░░░░░░░░░ ~50%
 ```
 
 ---
 
 ## Academy Module Progress (Primary Focus)
 
-| Module | Status | Sections | Labs |
-|--------|--------|----------|------|
-| Network Enumeration with Nmap | ✅ Complete | 7/7 | 3/3 (E/M/H) |
-| Footprinting | ✅ Complete | All | — |
-| Information Gathering - Web | ✅ Complete | All | — |
-| Vulnerability Assessment | ✅ Complete | All | — |
-| File Transfers | ✅ Complete | All | — |
-| Shells & Payloads | ✅ Complete | 17/17 | ✅ |
-| Using the Metasploit Framework | ✅ Complete | All | — |
-| Password Attacks | ✅ Complete | All | — |
-| Attacking Common Services | ✅ Complete | All | ✅ E/M/H |
-| Pivoting, Tunneling, Port Forwarding | ✅ Complete | All | ✅ |
-| Active Directory Enumeration & Attacks | 🔄 In Progress | 16/36 | — |
-| Using Web Proxies | ⬚ Not Started | — | — |
-| Attacking Web Applications with FFuF | ⬚ Not Started | — | — |
-| Login Brute Forcing | ⬚ Not Started | — | — |
-| SQL Injection Fundamentals | ⬚ Not Started | — | — |
-| SQLMap Essentials | ⬚ Not Started | — | — |
-| Cross-Site Scripting (XSS) | ⬚ Not Started | — | — |
-| File Inclusion | ⬚ Not Started | — | — |
-| File Upload Attacks | ⬚ Not Started | — | — |
-| Command Injections | ⬚ Not Started | — | — |
-| Web Attacks | ⬚ Not Started | — | — |
-| Attacking Common Applications | ⬚ Not Started | — | — |
-| Linux Privilege Escalation | ⬚ Not Started | — | — |
-| Windows Privilege Escalation | ⬚ Not Started | — | — |
-| Documentation & Reporting | ⬚ Not Started | — | — |
-| Attacking Enterprise Networks | ⬚ Not Started | — | — |
+| Module | Status | Sections | Notes |
+|--------|--------|----------|-------|
+| Network Enumeration with Nmap | ✅ Complete | 7/7 | Labs: E/M/H |
+| Footprinting | ✅ Complete | All | |
+| Information Gathering - Web | ✅ Complete | All | |
+| Vulnerability Assessment | ✅ Complete | All | |
+| File Transfers | ✅ Complete | All | |
+| Shells & Payloads | ✅ Complete | 17/17 | Skills Assessment ✅ |
+| Using the Metasploit Framework | ✅ Complete | All | |
+| Password Attacks | ✅ Complete | All | |
+| Attacking Common Services | ✅ Complete | All | Labs: E/M/H ✅ |
+| Pivoting, Tunneling, Port Forwarding | ✅ Complete | All | Skills Assessment ✅ |
+| **Active Directory Enumeration & Attacks** | ✅ **Complete** | **36/36** | **Skills Assessments I & II ✅** |
+| Using Web Proxies | ⬚ Not Started | — | |
+| Attacking Web Applications with FFuF | ⬚ Not Started | — | |
+| Login Brute Forcing | ⬚ Not Started | — | |
+| SQL Injection Fundamentals | ⬚ Not Started | — | |
+| SQLMap Essentials | ⬚ Not Started | — | |
+| Cross-Site Scripting (XSS) | ⬚ Not Started | — | |
+| File Inclusion | ⬚ Not Started | — | |
+| File Upload Attacks | ⬚ Not Started | — | |
+| Command Injections | ⬚ Not Started | — | |
+| Web Attacks | ⬚ Not Started | — | |
+| Attacking Common Applications | ⬚ Not Started | — | |
+| Linux Privilege Escalation | ⬚ Not Started | — | |
+| Windows Privilege Escalation | ⬚ Not Started | — | |
+| Documentation & Reporting | ⬚ Not Started | — | |
+| Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
 
 ---
 
-## Current Module: Active Directory Enumeration & Attacks (16/36 sections — started May 8, 2026)
+## Active Directory Enumeration & Attacks — Complete ✅
 
-### Shells & Payloads ✅ (completed)
+All 36 sections finished May 11, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 
-| # | Section | Status | Key Concepts |
-|---|---------|--------|--------------|
-| 1 | Introduction | ✅ | Module overview |
-| 2 | Engagement Preparation | ✅ | Shell selection, environment prep |
-| 3 | Anatomy of a Shell | ✅ | How shells work |
-| 4 | Bind Shells | ✅ | Target listens, attacker connects |
-| 5 | Reverse Shells | ✅ | Attacker listens, target connects back |
-| 6 | Introduction to Payloads | ✅ | Payload types and delivery |
-| 7 | Automating Payloads with Metasploit | ✅ | MSF payload automation |
-| 8 | Crafting Payloads with MSFvenom | ✅ | Custom payload generation |
-| 9 | Infiltrating Windows | ✅ | Windows-specific attacks, EternalBlue |
-| 10 | Spawning Interactive Shells | ✅ | TTY upgrade, escape methods (Perl, AWK, VIM) |
-| 11 | Introduction to Web Shells | ✅ | Browser-based shell access |
-| 12 | Laudanum Web Shells | ✅ | ASPX/PHP shells, allowedIps config |
-| 13 | Antak Webshell | ✅ | Nishang PowerShell web shell |
-| 14 | PHP Web Shells | ✅ | — |
-| 15 | Detection & Prevention | ✅ | — |
-| 16 | Skills Assessment | ✅ | — |
-| 17 | Summary | ✅ | — |
+### Attack Techniques Covered
+
+| Technique | Tool(s) | Section |
+|-----------|---------|---------|
+| LLMNR/NBT-NS Poisoning | Responder, Inveigh | 06, 07 |
+| Password Spraying | kerbrute, CrackMapExec | 11, 12 |
+| Kerberoasting | GetUserSPNs.py, Rubeus | 17, 18 |
+| AS-REP Roasting | GetNPUsers.py, Rubeus | 26 |
+| ACL Abuse (GenericAll/WriteDACL) | PowerView, ldap3 | 19, 20, 21 |
+| DCSync | secretsdump.py, Mimikatz | 22 |
+| Pass-the-Hash | evil-winrm, psexec.py, wmiexec.py | 23 |
+| SeImpersonatePrivilege | PrintSpoofer, JuicyPotato | 35 |
+| NoPac | noPac.py | 25 |
+| PrintNightmare | CVE-2021-1675 | 25 |
+| PetitPotam + ADCS relay | ntlmrelayx.py | 25 |
+| ExtraSids (Child→Parent) | ticketer.py, Mimikatz kerberos::golden | 28, 29 |
+| Cross-Forest Kerberoasting | GetUserSPNs.py -target-domain | 30, 31 |
+| BloodHound collection | bloodhound-python, SharpHound | 14, 15 |
+| Targeted Kerberoasting | PowerView Set-DomainObject | 21 |
+| Shadow Credentials | Certipy, pywhisker | 25 |
+| MSSQL abuse | mssqlclient.py, xp_cmdshell | 23, 35 |
+
+### Skills Assessment Results
+
+**Part I** — External foothold → full domain compromise:
+- Web shell (Antak ASPX) → SYSTEM on WEB-WIN01
+- Kerberoasting `svc_sql` → cracked `lucky7`
+- LSA Secrets (DefaultPassword) → `tpetty:Sup3rS3cur3D0m@inU2eR`
+- DCSync as tpetty (DS-Replication rights) → Administrator hash
+- Chisel SOCKS proxy → wmiexec.py PTH → DC01 flag
+
+**Part II** — Internal Parrot Linux host → full domain compromise:
+- Responder → `AB920:weasal`
+- Password spray (kerbrute) → `BR086:Welcome1`
+- Department Shares → web.config → `netdb:D@ta_bAse_adm1n!`
+- MSSQL xp_cmdshell + PrintSpoofer (SeImpersonate) → SYSTEM on SQL01
+- Mimikatz on SQL01 → `mssqlsvc` NTLM hash → Pwn3d on MS01
+- BloodHound → CT059 has GenericAll on Domain Admins
+- **Inveigh on MS01** → CT059:charlie1 (key insight: Inveigh on internal Windows host catches what Responder misses)
+- GenericAll + LDAP → add CT059 to Domain Admins → DCSync → krbtgt hash
 
 ---
 
 ## Supplementary Box Practice
 
-| Metric | Completed |
-|--------|-----------|
+| Difficulty | Completed |
+|------------|-----------|
 | Very Easy | 19 |
 | Easy | 3 |
 | Medium | 0 |
-| Hard/AD | 0 |
 | **Total** | **22** |
 
-*Boxes reinforce module concepts but are not the exam focus.*
+### Box Skills Index
+
+| Skill | Box |
+|-------|-----|
+| Telnet default creds | MEOW |
+| FTP anonymous | FAWN |
+| SMB null session | DANCING |
+| Redis enum | REDEEMER |
+| RDP | EXPLOSION |
+| Directory brute force | PREIGNITION |
+| MongoDB | MONGOD |
+| Rsync | SYNCED |
+| SQLi auth bypass | APPOINTMENT |
+| MySQL enum | SEQUEL |
+| FTP + web login | CROCODILE |
+| NTLM capture (Responder) | RESPONDER |
+| AWS S3 | THREE |
+| Web enum | IGNITION |
+| SSTI | BIKE |
+| SSH tunneling | FUNNEL |
+| Jenkins RCE | PENNYWORTH |
+| SMB + PSExec | TACTICS |
+| MSSQL + xp_cmdshell + PSExec | ARCHETYPE |
+| Web exploit + Linux privesc | NIBBLES |
+| Theme injection + RCE | GETTING_STARTED |
+| SMB CVE-2007-2447 | LAME |
 
 ---
 
-## Completed Modules Detail
+## Certification Roadmap
 
-### Network Enumeration with Nmap ✅
-
-| # | Section | Concepts |
-|---|---------|----------|
-| 1 | Host Discovery | Network range scans, IP lists, ICMP/ARP analysis |
-| 2 | Host & Port Scanning | TCP states, SYN/Connect/UDP scans, filtered port analysis |
-| 3 | Saving & Converting Results | Output formats (-oN, -oG, -oX, -oA), xsltproc HTML conversion |
-| 4 | Service Enumeration | Version detection (-sV), banner grabbing, tcpdump packet analysis |
-| 5 | NSE Scripts | 14 categories, WordPress enumeration, vulnerability scanning |
-| 6 | Scanning Performance | Timing templates (T0-T5), timeout tuning, packet rate optimization |
-| 7 | Firewall/IDS Evasion | SYN vs ACK scans, decoy scanning, source IP spoofing, DNS port 53 abuse |
-
-**Skill Assessment Labs:**
-
-| Lab | Difficulty | Technique |
-|-----|-----------|-----------|
-| Easy | Easy | Standard service enumeration |
-| UDP DNS Enumeration | Medium | `-sU -sV` triggered DNSVersionBindReq on port 53 |
-| Filtered Port Bypass | Hard | `-g 53` DNS source port abuse + ncat `--source-port 53` |
-
-### Footprinting ✅
-
-| # | Section | Concepts |
-|---|---------|----------|
-| 1 | Enumeration Principles | What we see vs don't see, active vs passive recon |
-| 2 | Enumeration Methodology | Six-layer framework (Internet → OS Setup) |
-| 3 | Domain Information | SSL certs, crt.sh, DNS records, Shodan |
-| 4 | FTP | Ports 20/21, active vs passive, anonymous access, vsFTPd config |
-| 5 | SMB | SMB/CIFS, Samba, smbclient, rpcclient, enum4linux-ng |
-| 6+ | NFS, DNS, SMTP, IMAP/POP3, SNMP, MySQL, MSSQL, Oracle, IPMI | Service-specific enumeration |
-
-### Information Gathering - Web ✅
-
-WHOIS, DNS enumeration, subdomain discovery, virtual hosts, web fingerprinting
-
-### Vulnerability Assessment ✅
-
-Nessus configuration, vulnerability scanning, assessment methodologies
-
-### File Transfers ✅
-
-Linux/Windows transfers, HTTP, SMB, FTP, base64, PowerShell methods
-
----
-
-## Skills Developed
-
-| Category | Skills | Source Module |
-|----------|--------|---------------|
-| Reconnaissance | Nmap mastery, service enumeration, banner grabbing | Nmap ✅ |
-| Firewall Evasion | Source port spoofing, DNS trust abuse, filtered port bypass | Nmap ✅ |
-| Service Enumeration | FTP, SMB, NFS, DNS, SMTP, databases, SNMP, IPMI | Footprinting ✅ |
-| Web Recon | WHOIS, subdomain discovery, vhost enumeration, fingerprinting | Info Gathering ✅ |
-| Vulnerability Assessment | Nessus, scanning methodologies, risk assessment | Vuln Assessment ✅ |
-| File Transfers | HTTP, SMB, FTP, base64, PowerShell, Linux/Windows methods | File Transfers ✅ |
-| Shells & Payloads | Bind/reverse shells, MSFvenom, web shells, TTY upgrade | Shells & Payloads ✅ |
-| Windows Exploitation | EternalBlue (MS17-010), ASPX shells, PowerShell | Shells & Payloads ✅ |
-| Metasploit | MSFconsole, modules, payloads, Meterpreter, MSFvenom, IDS/IPS evasion | Metasploit ✅ |
-| Password Attacks | John, Hashcat, SAM/LSASS/NTDS.dit, PtH, PtT, PtC, credential hunting | Password Attacks ✅ |
-| Common Services | FTP, SMB, SQL, RDP, DNS, email attacks | Attacking Common Services ✅ |
-| Pivoting | SSH SOCKS, Chisel, Dnscat2, Rpivot, socat, SocksOverRDP, sshuttle | Pivoting ✅ |
-| Active Directory | LLMNR/NBT-NS poisoning, password spraying, credentialed enumeration, BloodHound | AD Enum & Attacks 🔄 |
-| Web Exploitation | SQLi, XSS, file inclusion, command injection | Upcoming |
-| Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
-
----
-
-## Certification Path
-
-| # | Certification | Focus | Status |
-|---|---------------|-------|--------|
-| 1 | **CPTS** | Penetration Testing (HTB Academy) | 🔄 In Progress |
-| 2 | **CRTO** | Red Team Ops (Zero-Point Security) | ⬚ Next |
-| 3 | **CRTE** | Red Team Expert (Altered Security) | ⬚ Planned |
-| 4 | **CARTP** | Azure Red Team Professional (Altered Security) | ⬚ Planned |
+| # | Cert | Focus | Status |
+|---|------|-------|--------|
+| 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
+| 2 | **CPTS** | Penetration Testing | 🔄 ~50% — exam June 21, 2026 |
+| 3 | CRTO | Red Team Ops | ⬚ After CPTS |
+| 4 | CRTE | Red Team Expert | ⬚ After CRTO |
+| 5 | CARTP | Azure Red Team | ⬚ After CRTE |

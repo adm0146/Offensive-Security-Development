@@ -5,25 +5,25 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (46.1%) | June 2026 |
+| CPTS | 📖 In Progress (~50%) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
-## Current Status (May 9, 2026)
+## Current Status (May 11, 2026)
 
 ```
-CPTS Learning Pathway: ██████████████████░░░░░░░░░░░░░░░░░░░░░░ 46.1%
+CPTS Learning Pathway: ████████████████████░░░░░░░░░░░░░░░░░░░░ ~50%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 10 / 26 |
-| Academy Module In Progress | Active Directory Enumeration & Attacks (16/36 sections) |
-| Reference Guides | 200+ |
+| Academy Modules Complete | 11 / 26 |
+| Academy Module In Progress | None — between modules |
+| Reference Guides | 250+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -42,7 +42,7 @@ CPTS Learning Pathway: ██████████████████░
 | Password Attacks | ✅ Complete |
 | Attacking Common Services | ✅ Complete |
 | Pivoting, Tunneling & Port Forwarding | ✅ Complete |
-| Active Directory Enumeration & Attacks | 🔄 In Progress (16/36) |
+| Active Directory Enumeration & Attacks | ✅ Complete (36/36) |
 | Using Web Proxies | ⬚ Not Started |
 | Attacking Web Applications with FFuF | ⬚ Not Started |
 | Login Brute Forcing | ⬚ Not Started |
@@ -82,7 +82,7 @@ Offensive-Security-Development/
 |   |   |-- Password_Attacks/
 |   |   |-- Attacking_Common_Services/
 |   |   |-- Pivoting_Tunneling_and_Port_Forwarding/
-|   |   |-- Active_Directory_Enumeration_and_Attacks/
+|   |   |-- Active_Directory_Enumeration_and_Attacks/  ← 37 guides (complete)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -175,148 +175,133 @@ Offensive-Security-Development/
 ### Information Gathering - Web Edition
 | Guide | Description |
 |-------|-------------|
-| 01-Introduction.md | Web recon overview |
-| 02-WHOIS.md | Registrar data, privacy services |
-| 03-Utilising_WHOIS.md | Practical WHOIS analysis |
-| 04-DNS.md | DNS fundamentals, record types |
-| 05-Digging_DNS.md | dig command reference |
-| 06-Subdomains.md | Active vs passive enumeration |
-| 07-Subdomain_Bruteforcing.md | dnsenum, wordlists |
-| 08-DNS_Zone_Transfers.md | AXFR exploitation |
-| 09-Virtual_Hosts.md | Vhost discovery, ffuf |
-| 10-Certificate_Transparency.md | CT log analysis |
-| 11-Fingerprinting.md | whatweb, wappalyzer |
-| 12-Crawling.md | Spider tools, link extraction |
-| 13-robots_txt.md | Hidden directories |
-| 14-Well_Known_URIs.md | /.well-known/ paths |
-| 15-Creepy_Crawlies.md | Advanced crawling |
-| 16-Search_Engine_Discovery.md | Google dorking |
-| 17-Web_Archives.md | Wayback Machine |
-| 18-Automating_Recon.md | Tool chaining, scripted recon |
-| 19-Skills_Assessment.md | Practical assessment |
+| WHOIS, DNS, subdomain brute forcing | Domain intelligence gathering |
+| Virtual host enumeration | Internal hostname discovery via ffuf |
+| Certificate Transparency | crt.sh for subdomain discovery |
+| Web fingerprinting | whatweb, Wappalyzer, response headers |
+| Crawling & Google dorking | Automated recon and OSINT |
 
 ### File Transfers
 | Guide | Description |
 |-------|-------------|
-| 02-Windows_File_Transfer_Methods_Downloads.md | PowerShell, certutil, BITS |
-| 03-Linux_File_Transfer_Methods.md | wget, curl, SCP, base64 |
-| 04-Transferring_Files_with_Code.md | Python, PHP, Ruby servers |
-| 05-Miscellaneous_File_Transfer_Methods.md | Netcat, SMB, FTP |
-| 06-Protected_File_Transfers.md | Encrypted transfers |
-| 07-Catching_Files_over_HTTP_S.md | Nginx, Apache upload handlers |
-| 08-Living_off_the_Land.md | LOLBins for transfer |
-| 09-Detection.md | AV/EDR evasion considerations |
-| 10-Evading_Detection.md | Encoding, obfuscation |
+| Windows download methods | PowerShell, certutil, BITS, Base64 |
+| Linux download methods | wget, curl, SCP, /dev/tcp |
+| Code-based transfers | Python, PHP, Ruby HTTP servers |
+| Miscellaneous methods | Netcat, SMB, FTP, Impacket |
+| LOLBins | Living off the Land for file transfer |
+| Encrypted transfers | AES, OpenSSL, HTTPS |
 
 ### Shells & Payloads
 | Guide | Description |
 |-------|-------------|
-| 04-Bind_Shells.md | Target listens, attacker connects |
-| 05-Reverse_Shells.md | Attacker listens, target connects back |
-| 06-Introduction_to_Payloads.md | Payload types and delivery |
-| 07-Automating_Payloads_with_Metasploit.md | MSF payload automation |
-| 08-Crafting_Payloads_with_MSFvenom.md | Custom payload generation |
-| 09-Infiltrating_Windows.md | EternalBlue, ASPX shells |
-| 10-Spawning_Interactive_Shells.md | TTY upgrade, Perl/AWK/VIM escape |
-| 11-Introduction_to_Web_Shells.md | Browser-based shell access |
-| 12-Laudanum_Web_Shells.md | ASPX/PHP shells |
-| 13-Antak_Webshell.md | Nishang PowerShell web shell |
-| 14-PHP_Web_Shells.md | PHP shell variants |
-| SKILLS_ASSESSMENT_WRITEUP.md | Skills assessment writeup |
+| Bind & reverse shells | Shell fundamentals and mechanics |
+| Payload crafting | MSFvenom, staged vs stageless |
+| Windows infiltration | EternalBlue, ASPX shells |
+| Web shells | Laudanum, Antak (PowerShell), PHP variants |
+| TTY upgrade | Spawning interactive shells from dumb shells |
 
 ### Using the Metasploit Framework
 | Guide | Description |
 |-------|-------------|
-| 03-Introduction_to_MSFconsole.md | Console navigation, commands |
-| 04-Modules.md | Module types, search, use |
-| 05-Targets.md | Target selection |
-| 06-Payloads.md | Staged vs stageless, encoders |
-| 09-Plugins.md | Plugin ecosystem |
-| 10-Sessions.md | Session management, backgrounding |
-| 11-Meterpreter.md | Meterpreter commands, post-exploitation |
-| 13-Introduction_to_MSFVenom.md | Payload crafting |
-| 14-Firewall_and_IDS_IPS_Evasion.md | Encoding, obfuscation |
+| MSFconsole navigation | Modules, search, sessions |
+| Payloads & encoders | Staged/stageless, IDS/IPS evasion |
+| Meterpreter | Post-exploitation commands, pivoting |
+| MSFvenom | Custom payload generation |
 
 ### Password Attacks
 | Guide | Description |
 |-------|-------------|
-| 02-Introduction_to_Password_Cracking.md | Hash types, cracking methodology |
-| 03-Introduction_to_John_The_Ripper.md | John rules, wordlists, formats |
-| 04-Introduction_to_Hashcat.md | Hashcat modes, rules, masks |
-| 05-Writing_Custom_Wordlists_and_Rules.md | CeWL, CUPP, custom rules |
-| 10-Windows_Authentication_Process.md | NTLM, Kerberos, SAM, LSASS |
-| 11-Attacking_SAM_SYSTEM_and_SECURITY.md | Registry hive extraction |
-| 12-Attacking_LSASS.md | Mimikatz, task manager dump |
-| 14-Attacking_Active_Directory_and_NTDS.dit.md | Volume shadow copy, secretsdump |
-| 15-Credential_Hunting_in_Windows.md | LaZagne, registry, config files |
-| 17-Credential_Hunting_in_Linux.md | SSH keys, bash history, config files |
-| 20-Pass_the_Hash.md | PtH with Impacket, CrackMapExec |
-| 21-Pass_the_Ticket_Windows.md | Kerberos ticket abuse |
-| 22-Pass_the_Ticket_Linux.md | ccache files, keytab abuse |
-| 23-Pass_the_Certificate.md | ADCS certificate abuse |
+| John the Ripper & Hashcat | Cracking methodology, rules, masks |
+| SAM, LSASS, NTDS.dit | Windows credential extraction |
+| Pass-the-Hash / Pass-the-Ticket | NTLM and Kerberos lateral movement |
+| Pass-the-Certificate | ADCS certificate abuse |
+| Credential hunting | Windows and Linux cleartext credential hunting |
 
 ### Attacking Common Services
 | Guide | Description |
 |-------|-------------|
-| 07-Attacking_SMB.md | Brute force, RCE, relay |
-| 09-Attacking_SQL_Databases.md | SQLi, xp_cmdshell, UDF |
-| 11-Attacking_RDP.md | Brute force, session hijacking |
-| 13-Attacking_DNS.md | Zone transfer, cache poisoning |
-| 15-Attacking_Email_Services.md | SMTP enum, open relay, phishing |
-| 17-Skills_Assessment_Easy.md | Easy assessment writeup |
-| 18-Skills_Assessment_Medium.md | Medium assessment writeup |
-| 19-Skills_Assessment_Hard.md | Hard assessment writeup |
+| SMB attacks | Brute force, RCE, relay |
+| SQL database attacks | SQLi, xp_cmdshell, UDF escalation |
+| RDP attacks | Brute force, session hijacking |
+| DNS & email attacks | Zone transfer, open relay, enumeration |
 
 ### Pivoting, Tunneling & Port Forwarding
 | Guide | Description |
 |-------|-------------|
-| 03-Dynamic_Port_Forwarding_with_SSH_and_SOCKS_Tunneling.md | SSH -D, proxychains |
-| 04-Remote_Reverse_Port_Forwarding_with_SSH.md | SSH -R |
-| 05-Meterpreter_Tunneling_and_Port_Forwarding.md | MSF pivoting |
-| 06-Socat_Redirection_with_a_Reverse_Shell.md | Socat relay |
-| 08-SSH_for_Windows_plink.exe.md | Plink pivoting |
-| 09-SSH_Pivoting_with_Sshuttle.md | Transparent VPN-over-SSH |
-| 10-Web_Server_Pivoting_with_Rpivot.md | HTTP tunnel |
-| 13-SOCKS5_Tunneling_with_Chisel.md | Chisel HTTP tunnel |
-| 14-ICMP_Tunneling_with_SOCKS.md | ptunnel-ng |
-| 15-RDP_and_SOCKS_Tunneling_with_SocksOverRDP.md | SocksOverRDP |
-| 16-Skills_Assessment.md | Skills assessment writeup |
+| SSH SOCKS / local/remote forwarding | Tunnel traffic through SSH |
+| Chisel | HTTP-based SOCKS proxy |
+| Sshuttle | Transparent VPN-over-SSH |
+| Socat & Rpivot | TCP relays and HTTP pivots |
+| SocksOverRDP | Pivot using RDP sessions |
+| Meterpreter pivoting | MSF route and portfwd |
 
-### Active Directory Enumeration & Attacks (In Progress — 16/36)
+### Active Directory Enumeration & Attacks ✅ (36/36 complete)
 | Guide | Description |
 |-------|-------------|
-| 00-EXAM_CHEATSHEET.md | Full AD attack cheatsheet |
-| 04-External_Recon_and_Enumeration_Principles.md | OSINT, ASN, breach data |
-| 05-Initial_Enumeration_of_the_Domain.md | fping, kerbrute, tcpdump |
-| 06-LLMNR_NBT-NS_Poisoning_Linux.md | Responder, NTLMv2 cracking |
-| 07-LLMNR_NBT-NS_Poisoning_Windows.md | Inveigh |
-| 08-Password_Spraying_Overview.md | Methodology, lockout awareness |
-| 09-Enumerating_Password_Policy.md | rpcclient, enum4linux, LDAP |
-| 10-Password_Spraying_Building_User_List.md | kerbrute, CME, LDAP, RPC |
-| 11-Internal_Password_Spraying_Linux.md | kerbrute, CrackMapExec |
-| 12-Internal_Password_Spraying_Windows.md | DomainPasswordSpray |
-| 13-Enumerating_Security_Controls.md | Defender, AppLocker, LAPS |
-| 14-Credentialed_Enumeration_Linux.md | CME, BloodHound, windapsearch |
-| 15-Credentialed_Enumeration_Windows.md | PowerView, SharpHound, Snaffler |
-| 16-Living_Off_the_Land.md | dsquery, net commands, PS history |
+| 00-EXAM_CHEATSHEET.md | Full AD attack cheatsheet — all commands in one place |
+| 01-16: Enumeration | LLMNR/NBT-NS poisoning, password spraying, BloodHound, CME, PowerView, LOLAD |
+| 17-18: Kerberoasting | GetUserSPNs.py, Rubeus, hash cracking (Linux + Windows) |
+| 19-21: ACL Abuse | GenericAll/GenericWrite/WriteDACL/ForceChangePassword, targeted Kerberoasting |
+| 22: DCSync | secretsdump.py, Mimikatz lsadump::dcsync |
+| 23: Privileged Access | WinRM, RDP, PSExec, WMI, DCOM, SQL Server |
+| 24: Kerberos Double Hop | CredSSP workaround, Invoke-Command nested sessions |
+| 25: Bleeding Edge | NoPac, PrintNightmare (CVE-2021-1675), PetitPotam + ADCS relay |
+| 26: Misc Misconfigurations | PASSWD_NOTREQD, AS-REP Roasting, Group Policy abuse |
+| 27-31: Domain Trusts | Child→Parent ExtraSids, cross-forest Kerberoasting, foreign group membership |
+| 32-33: Defense & Auditing | Hardening controls, BloodHound/PingCastle/Group3r/ADRecon |
+| 34-35: Skills Assessments | Two full attack chains from zero creds to domain compromise |
 
 ### Vulnerability Assessment
 | Guide | Description |
 |-------|-------------|
-| 04-CVSS.md | CVSS scoring, risk calculation |
-| 05-CVE_and_OVAL.md | CVE research, OVAL definitions |
-| 07-Getting_Started_with_Nessus.md | Nessus setup, first scan |
-| 08-Nessus_Scan_Configuration.md | Scan templates, advanced settings |
-| 10-Working_with_Nessus_Scan_Output.md | Result analysis, prioritization |
-| 13-Getting_Started_with_OpenVAS.md | OpenVAS setup, configuration |
-| 14-OpenVAS_Scan_Configuration_and_Execution.md | Scan policies, NVT database |
-| 16-Vulnerability_Assessment_Reporting.md | Professional reporting |
+| Nessus setup & scan config | Templates, credentialed scans, prioritization |
+| OpenVAS setup & scan config | Policy-based scanning, NVT database |
+| CVSS scoring | Risk calculation, vulnerability prioritization |
+| Professional reporting | Assessment report structure |
+
+---
+
+## Skills Developed
+
+| Category | Skills | Source |
+|----------|--------|--------|
+| Reconnaissance | Nmap mastery, service enumeration, banner grabbing, firewall evasion | Nmap ✅ |
+| Service Enumeration | FTP, SMB, NFS, DNS, SMTP, MySQL, MSSQL, Oracle, SNMP, IPMI, WinRM | Footprinting ✅ |
+| Web Recon | WHOIS, subdomain discovery, vhost enumeration, CT logs, fingerprinting, dorking | Info Gathering ✅ |
+| Vulnerability Assessment | Nessus, OpenVAS, CVSS, risk prioritization | Vuln Assessment ✅ |
+| File Transfers | HTTP, SMB, FTP, base64, PowerShell, LOLBins, encrypted channels | File Transfers ✅ |
+| Shells & Payloads | Bind/reverse shells, MSFvenom, web shells, TTY upgrade, Windows infiltration | Shells ✅ |
+| Metasploit | MSFconsole, modules, Meterpreter, MSFvenom, IDS/IPS evasion | Metasploit ✅ |
+| Password Attacks | John, Hashcat, SAM/LSASS/NTDS.dit dumping, PtH, PtT, PtC, credential hunting | Passwords ✅ |
+| Common Service Attacks | FTP, SMB, SQL, RDP, DNS, email exploitation | Common Services ✅ |
+| Pivoting & Tunneling | SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, Meterpreter pivoting | Pivoting ✅ |
+| AD Enumeration | LLMNR/NBT-NS poisoning, password spraying, BloodHound, CME, PowerView, LOLAD | AD ✅ |
+| AD Credential Attacks | Kerberoasting, AS-REP Roasting, LSASS dump, DCSync, Pass-the-Hash | AD ✅ |
+| AD Lateral Movement | WinRM, PSExec, WMI, DCOM, SQL Server, RDP, Kerberos PTT | AD ✅ |
+| AD Privilege Escalation | ACL abuse, GenericAll/WriteDACL, Kerberos delegation abuse, SeImpersonatePrivilege | AD ✅ |
+| Bleeding Edge AD | NoPac, PrintNightmare, PetitPotam, NTLM relay to ADCS | AD ✅ |
+| Domain Trust Attacks | ExtraSids (child→parent), cross-forest Kerberoasting, SID history injection | AD ✅ |
+| AD Defense & Auditing | Hardening controls, PingCastle, Group3r, ADRecon, Protected Users group | AD ✅ |
+| Web Exploitation | SQLi, XSS, file inclusion, command injection, file upload | Upcoming |
+| Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 
 ---
 
 ## Tools
 
-Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, enum4linux-ng, Hydra, Responder, Inveigh, Impacket suite (psexec/wmiexec/secretsdump/GetNPUsers/GetUserSPNs), CrackMapExec/Netexec, BloodHound, SharpHound, PowerView, Mimikatz, Evil-WinRM, Chisel, Sshuttle, Socat, Proxychains, LinPEAS, WinPEAS, Netcat, Metasploit, MSFvenom, SQLmap, John the Ripper, Hashcat, Kerbrute, Certipy-AD, Snaffler, Windapsearch
+**Network & Recon:** Nmap, Gobuster, FFuF, Nikto, Whatweb, DNSenum, DNSrecon, Onesixtyone, Snmpwalk
+
+**AD & Windows:** Responder, Inveigh, CrackMapExec/Netexec, BloodHound, SharpHound, bloodhound-python, PowerView, SharpView, Mimikatz, Rubeus, Kerbrute, Evil-WinRM, Certipy-AD, Snaffler, Windapsearch, PingCastle, Group3r, ADRecon, AD Explorer
+
+**Impacket Suite:** psexec.py, wmiexec.py, smbexec.py, secretsdump.py, GetUserSPNs.py, GetNPUsers.py, ticketer.py, lookupsid.py, ntlmrelayx.py, mssqlclient.py, smbclient.py
+
+**Exploitation:** Metasploit, MSFvenom, SQLmap, PrintSpoofer, JuicyPotato, Chisel
+
+**Password Cracking:** John the Ripper, Hashcat, pypykatz
+
+**Pivoting:** Chisel, Sshuttle, Socat, Proxychains, Plink, Rpivot
+
+**Web:** Burp Suite, FFuF, Gobuster, Nikto, WPScan, WhatWeb
 
 ---
 
@@ -330,4 +315,4 @@ Nmap, Gobuster, FFuF, Nikto, SMBclient, enum4linux, enum4linux-ng, Hydra, Respon
 
 ---
 
-Last Updated: May 9, 2026
+Last Updated: May 11, 2026
