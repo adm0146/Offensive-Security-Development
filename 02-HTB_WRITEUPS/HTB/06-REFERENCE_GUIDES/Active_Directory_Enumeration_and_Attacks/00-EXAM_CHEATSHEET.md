@@ -15,6 +15,8 @@
 | INLANEFREIGHT\svc_qualys | svc_qualys | `security#1` | Captured via Inveigh |
 | INLANEFREIGHT\sgage | sgage | `Welcome1` | Password spray |
 | INLANEFREIGHT\tjohnson | tjohnson | `Welcome1` | Password spray |
+| INLANEFREIGHT\svc_vmwaresso | svc_vmwaresso | `Virtual01` | Kerberoasted (S18) |
+| INLANEFREIGHT\SAPService | SAPService | `!SapperFi2` | Kerberoasted (S17) |
 
 ```bash
 # RDP to Windows attack host
