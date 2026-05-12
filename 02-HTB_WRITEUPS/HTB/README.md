@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ██████████████████████░░░░░░░░░░░░░░░░░░ ~55.8%
+CPTS Learning Pathway: ██████████████████████████░░░░░░░░░░░░░░ ~66%
 ```
 
 ---
@@ -39,11 +39,11 @@ CPTS Learning Pathway: ███████████████████
 | Pivoting, Tunneling, Port Forwarding | ✅ Complete | All | Skills Assessment ✅ |
 | Active Directory Enumeration & Attacks | ✅ Complete | 36/36 | Skills Assessments I & II ✅ |
 | Using Web Proxies | ✅ Complete | 15/15 | Skills Assessment ✅ |
-| **Attacking Web Applications with FFuF** | ✅ **Complete** | **13/13** | **Skills Assessment ✅** |
-| Login Brute Forcing | ⬚ Not Started | — | |
-| SQL Injection Fundamentals | ⬚ Not Started | — | |
-| SQLMap Essentials | ⬚ Not Started | — | |
-| Cross-Site Scripting (XSS) | ⬚ Not Started | — | |
+| Attacking Web Applications with FFuF | ✅ Complete | 13/13 | Skills Assessment ✅ |
+| Login Brute Forcing | ✅ Complete | 13/13 | Skills Assessment ✅ |
+| SQL Injection Fundamentals | ✅ Complete | 17/17 | Skills Assessment ✅ (chattr.htb) |
+| SQLMap Essentials | ✅ Complete | 11/11 | Skills Assessment ✅ (Minishop) |
+| **Cross-Site Scripting (XSS)** | ✅ **Complete** | **10/10** | **Skills Assessment ✅ (WordPress)** |
 | File Inclusion | ⬚ Not Started | — | |
 | File Upload Attacks | ⬚ Not Started | — | |
 | Command Injections | ⬚ Not Started | — | |
@@ -154,7 +154,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 ~55.8% (15/28) — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 ~66% (19/28) — exam June 21, 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |

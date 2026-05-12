@@ -3,6 +3,8 @@
 *.pem
 *.pfx
 *.p12
+*.ccache
+*.kirbi
 secrets.txt
 credentials.txt
 password*.txt

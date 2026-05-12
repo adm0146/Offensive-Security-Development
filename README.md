@@ -5,25 +5,25 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (~55.8%, 15/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (~66%, 19/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
-## Current Status (May 11, 2026)
+## Current Status (May 12, 2026)
 
 ```
-CPTS Learning Pathway: ██████████████████████░░░░░░░░░░░░░░░░░░ ~55.8%
+CPTS Learning Pathway: ██████████████████████████░░░░░░░░░░░░░░ ~66%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 15 / 28 |
+| Academy Modules Complete | 19 / 28 |
 | Academy Module In Progress | None — between modules |
-| Reference Guides | 280+ |
+| Reference Guides | 330+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -45,10 +45,10 @@ CPTS Learning Pathway: ███████████████████
 | Active Directory Enumeration & Attacks | ✅ Complete (36/36) |
 | Using Web Proxies | ✅ Complete (15/15) |
 | Attacking Web Applications with FFuF | ✅ Complete (13/13) |
-| Login Brute Forcing | ⬚ Not Started |
-| SQL Injection Fundamentals | ⬚ Not Started |
-| SQLMap Essentials | ⬚ Not Started |
-| Cross-Site Scripting (XSS) | ⬚ Not Started |
+| Login Brute Forcing | ✅ Complete (13/13) |
+| SQL Injection Fundamentals | ✅ Complete (17/17) |
+| SQLMap Essentials | ✅ Complete (11/11) |
+| Cross-Site Scripting (XSS) | ✅ Complete (10/10) |
 | File Inclusion | ⬚ Not Started |
 | File Upload Attacks | ⬚ Not Started |
 | Command Injections | ⬚ Not Started |
@@ -85,6 +85,10 @@ Offensive-Security-Development/
 |   |   |-- Active_Directory_Enumeration_and_Attacks/  ← 37 guides (complete)
 |   |   |-- Using_Web_Proxies/                         ← 15 guides (complete)
 |   |   |-- Attacking_Web_Apps_with_FFuF/              ← 13 guides (complete)
+|   |   |-- Login_Brute_Forcing/                       ← 13 guides (complete)
+|   |   |-- SQL_Injection_Fundamentals/                ← 17 guides (complete)
+|   |   |-- SQLMap_Essentials/                         ← 11 guides (complete)
+|   |   |-- Cross_Site_Scripting/                      ← 10 guides (complete)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -223,6 +227,53 @@ SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, plink, ICMP tunneling.
 | 12 | Value fuzzing — `id=FUZZ` with numeric / names wordlists |
 | 13 | Skills Assessment — full chain: vhosts → extensions → pages → params → flag |
 
+### Login Brute Forcing ✅ (13 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full brute-forcing playbook: wordlist selection, Hydra/Medusa/ffuf commands per protocol |
+| 01-04 | Default creds, username/password enumeration, wordlist building (CeWL, username-anarchy) |
+| 05-07 | Hydra basics, syntax modules, web login forms (HTTP-POST-FORM with success/failure strings) |
+| 08-10 | Service brute force: SSH, FTP, SMB, RDP, MSSQL, VNC, POP3 |
+| 11-12 | Custom wordlists, password mutation (hashcat rules), hybrid attacks |
+| 13 | Skills Assessment — full chain: username harvest → spray → admin login |
+
+### SQL Injection Fundamentals ✅ (17 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Complete SQLi payload reference: auth bypass, UNION extraction, file ops, web shell |
+| 01-05 | SQL basics, MySQL CLI, statements, query results, operators |
+| 06-08 | Intro to SQLi, subverting query logic, comments, parenthesis handling |
+| 09-11 | UNION clause mechanics, column count, visible columns, UNION injection |
+| 12-13 | Database enumeration via INFORMATION_SCHEMA: schemata, tables, columns |
+| 14-15 | File ops: LOAD_FILE for source code leak, INTO OUTFILE for web shell |
+| 16 | Mitigations: parameterized queries, sanitization, least privilege, WAF |
+| 17 | Skills Assessment — chattr.htb: invitation bypass → UNION → admin hash → RCE |
+
+### SQLMap Essentials ✅ (11 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | All sqlmap flags by category: input, tuning, bypass, enumeration, OS exploitation |
+| 01-03 | Overview, BEUSTQ techniques, getting started, output interpretation |
+| 04 | Request types — GET/POST/cookie/JSON/header/-r request file |
+| 05 | Error handling: --parse-errors, -t traffic.txt, -v 6, --proxy |
+| 06 | Attack tuning: --prefix/--suffix for non-standard boundaries, --level/--risk, --tamper |
+| 07-08 | DB enumeration: --schema, --search, --dump, password hash cracking |
+| 09 | Bypasses: --csrf-token, --randomize, --random-agent, tamper scripts |
+| 10 | OS exploitation: --file-read, --file-write, --os-shell, --os-cmd |
+| 11 | Skills Assessment — Minishop JSON action.php with `>` filter, `--tamper=between` |
+
+### Cross-Site Scripting (XSS) ✅ (10 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full XSS playbook: types, breakouts, cookie stealer, phishing form, defacing |
+| 01-04 | Theory: Stored / Reflected / DOM-based — detection payloads per type |
+| 05 | Discovery: XSStrike, manual probing, SecLists XSS wordlists, error-path reflection |
+| 06 | Defacing: document.body.style, document.title, innerHTML body replacement |
+| 07 | Phishing: inject login form, redirect listener, credential capture |
+| 08 | Session Hijacking: blind XSS field probing (unique paths), cookie exfil, replay |
+| 09 | Prevention: htmlspecialchars, DOMPurify, CSP, HttpOnly cookies |
+| 10 | Skills Assessment — WordPress blog, blind XSS via comment `url` field (`http://x"` breakout) |
+
 ### Vulnerability Assessment
 Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
@@ -254,7 +305,11 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 | Web Proxy — Scanning | Burp Scanner (Pro), ZAP active scanner (free), Spider, Ajax Spider | Web Proxies ✅ |
 | Web Proxy — Encoding | Multi-layer decode/encode, MD5 cookie fuzzing, JWT manipulation | Web Proxies ✅ |
 | Web Fuzzing | Vhost discovery, extension fuzzing, recursive page fuzzing, param/value fuzzing | FFuF ✅ |
-| Web Exploitation | SQLi, XSS, file inclusion, command injection, file upload | Upcoming |
+| Login Brute Force | Hydra, Medusa, ffuf web logins, wordlist crafting, custom rules | Login Brute Forcing ✅ |
+| SQL Injection | UNION extraction, auth bypass, INFORMATION_SCHEMA enum, INTO OUTFILE web shells | SQL Injection ✅ |
+| SQLMap Automation | All injection types, --tamper bypass, --file-read/write, --os-shell | SQLMap Essentials ✅ |
+| XSS Exploitation | Stored / Reflected / DOM-based, cookie theft, phishing form injection, blind XSS | XSS ✅ |
+| Web Exploitation | File inclusion, command injection, file upload | Upcoming |
 | Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 
 ---
@@ -285,6 +340,10 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 - [Password Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Password_Attacks/00-EXAM_CHEATSHEET.md)
 - [Pivoting Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Pivoting_Tunneling_and_Port_Forwarding/00-EXAM_CHEATSHEET.md)
 - [FFuF Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Web_Apps_with_FFuF/00-EXAM_CHEATSHEET.md)
+- [Login Brute Forcing Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Login_Brute_Forcing/00-EXAM_CHEATSHEET.md)
+- [SQL Injection Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/SQL_Injection_Fundamentals/00-EXAM_CHEATSHEET.md)
+- [SQLMap Essentials Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/SQLMap_Essentials/00-EXAM_CHEATSHEET.md)
+- [XSS Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Cross_Site_Scripting/00-EXAM_CHEATSHEET.md)
 
 ---
 
