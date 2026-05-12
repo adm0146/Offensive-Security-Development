@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ████████████████████░░░░░░░░░░░░░░░░░░░░ ~50%
+CPTS Learning Pathway: █████████████████████░░░░░░░░░░░░░░░░░░░ ~54%
 ```
 
 ---
@@ -37,8 +37,8 @@ CPTS Learning Pathway: ███████████████████
 | Password Attacks | ✅ Complete | All | |
 | Attacking Common Services | ✅ Complete | All | Labs: E/M/H ✅ |
 | Pivoting, Tunneling, Port Forwarding | ✅ Complete | All | Skills Assessment ✅ |
-| **Active Directory Enumeration & Attacks** | ✅ **Complete** | **36/36** | **Skills Assessments I & II ✅** |
-| Using Web Proxies | ⬚ Not Started | — | |
+| Active Directory Enumeration & Attacks | ✅ Complete | 36/36 | Skills Assessments I & II ✅ |
+| **Using Web Proxies** | ✅ **Complete** | **15/15** | **Skills Assessment ✅** |
 | Attacking Web Applications with FFuF | ⬚ Not Started | — | |
 | Login Brute Forcing | ⬚ Not Started | — | |
 | SQL Injection Fundamentals | ⬚ Not Started | — | |
@@ -56,51 +56,54 @@ CPTS Learning Pathway: ███████████████████
 
 ---
 
-## Active Directory Enumeration & Attacks — Complete ✅
+## Using Web Proxies — Complete ✅
 
-All 36 sections finished May 11, 2026. Full reference guides at:
-`06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
+All 15 sections finished May 11, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Using_Web_Proxies/`
 
-### Attack Techniques Covered
+### Techniques Covered
 
 | Technique | Tool(s) | Section |
 |-----------|---------|---------|
-| LLMNR/NBT-NS Poisoning | Responder, Inveigh | 06, 07 |
-| Password Spraying | kerbrute, CrackMapExec | 11, 12 |
-| Kerberoasting | GetUserSPNs.py, Rubeus | 17, 18 |
-| AS-REP Roasting | GetNPUsers.py, Rubeus | 26 |
-| ACL Abuse (GenericAll/WriteDACL) | PowerView, ldap3 | 19, 20, 21 |
-| DCSync | secretsdump.py, Mimikatz | 22 |
-| Pass-the-Hash | evil-winrm, psexec.py, wmiexec.py | 23 |
-| SeImpersonatePrivilege | PrintSpoofer, JuicyPotato | 35 |
-| NoPac | noPac.py | 25 |
-| PrintNightmare | CVE-2021-1675 | 25 |
-| PetitPotam + ADCS relay | ntlmrelayx.py | 25 |
-| ExtraSids (Child→Parent) | ticketer.py, Mimikatz kerberos::golden | 28, 29 |
-| Cross-Forest Kerberoasting | GetUserSPNs.py -target-domain | 30, 31 |
-| BloodHound collection | bloodhound-python, SharpHound | 14, 15 |
-| Targeted Kerberoasting | PowerView Set-DomainObject | 21 |
-| Shadow Credentials | Certipy, pywhisker | 25 |
-| MSSQL abuse | mssqlclient.py, xp_cmdshell | 23, 35 |
+| Request interception & modification | Burp Proxy, ZAP | 04 |
+| Response interception (modify HTML) | Burp Proxy, ZAP | 05 |
+| Automatic Match & Replace rules | Burp Match/Replace, ZAP Replacer | 06 |
+| Request repeating / replaying | Burp Repeater, ZAP Request Editor | 07 |
+| Multi-layer encoding/decoding | Burp Decoder, ZAP E-D-H, Python | 08 |
+| Proxying CLI tools | proxychains, MSF PROXIES | 09 |
+| Directory/file fuzzing | Burp Intruder, ZAP Fuzzer, ffuf | 10–11 |
+| Web scanning (passive + active) | Burp Scanner (Pro), ZAP Scanner | 12–13 |
+| Extensions & add-ons | BApp Store, ZAP Marketplace | 14 |
+| Disabled button bypass | Response intercept, direct POST | 15 |
+| MD5 cookie fuzzing with encoding | ZAP Fuzzer + MD5 processor | 11, 15 |
 
 ### Skills Assessment Results
 
-**Part I** — External foothold → full domain compromise:
-- Web shell (Antak ASPX) → SYSTEM on WEB-WIN01
-- Kerberoasting `svc_sql` → cracked `lucky7`
-- LSA Secrets (DefaultPassword) → `tpetty:Sup3rS3cur3D0m@inU2eR`
-- DCSync as tpetty (DS-Replication rights) → Administrator hash
-- Chisel SOCKS proxy → wmiexec.py PTH → DC01 flag
+**Q1:** `/lucky.php` — disabled button bypassed by POSTing directly (client-side `disabled` is meaningless to the server)
 
-**Part II** — Internal Parrot Linux host → full domain compromise:
-- Responder → `AB920:weasal`
-- Password spray (kerbrute) → `BR086:Welcome1`
-- Department Shares → web.config → `netdb:D@ta_bAse_adm1n!`
-- MSSQL xp_cmdshell + PrintSpoofer (SeImpersonate) → SYSTEM on SQL01
-- Mimikatz on SQL01 → `mssqlsvc` NTLM hash → Pwn3d on MS01
-- BloodHound → CT059 has GenericAll on Domain Admins
-- **Inveigh on MS01** → CT059:charlie1 (key insight: Inveigh on internal Windows host catches what Responder misses)
-- GenericAll + LDAP → add CT059 to Domain Admins → DCSync → krbtgt hash
+**Q2:** `/admin.php` cookie decoded: Hex → Base64 → `3dac93b8cd250aa8c1a36fffc79a17a` (31-char MD5)
+
+**Q3:** Fuzzed last char of 31-char MD5 hash → char `d` → `3dac93b8cd250aa8c1a36fffc79a17ad` → flag via re-encoded cookie (plaintext → base64 → hex per request)
+
+**Q4:** MSF `coldfusion_locale_traversal` proxied through Burp — directory in path is `CFIDE`
+
+---
+
+## Active Directory Enumeration & Attacks — Complete ✅
+
+All 36 sections finished May 11, 2026. Skills Assessments I & II completed.
+Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
+
+### Key Attack Chains Mastered
+
+| Chain | Technique |
+|-------|-----------|
+| No creds → foothold | Responder/Inveigh LLMNR capture + hashcat |
+| One user → DA | BloodHound → ACL abuse → targeted Kerberoast → DCSync |
+| MSSQL → SYSTEM | xp_cmdshell + SeImpersonatePrivilege + PrintSpoofer |
+| Child domain → parent | ExtraSids Golden Ticket (ticketer.py) |
+| Cross-forest | Kerberoasting with -target-domain |
+| Internal pivot | Chisel SOCKS proxy + proxychains Impacket |
 
 ---
 
@@ -113,33 +116,6 @@ All 36 sections finished May 11, 2026. Full reference guides at:
 | Medium | 0 |
 | **Total** | **22** |
 
-### Box Skills Index
-
-| Skill | Box |
-|-------|-----|
-| Telnet default creds | MEOW |
-| FTP anonymous | FAWN |
-| SMB null session | DANCING |
-| Redis enum | REDEEMER |
-| RDP | EXPLOSION |
-| Directory brute force | PREIGNITION |
-| MongoDB | MONGOD |
-| Rsync | SYNCED |
-| SQLi auth bypass | APPOINTMENT |
-| MySQL enum | SEQUEL |
-| FTP + web login | CROCODILE |
-| NTLM capture (Responder) | RESPONDER |
-| AWS S3 | THREE |
-| Web enum | IGNITION |
-| SSTI | BIKE |
-| SSH tunneling | FUNNEL |
-| Jenkins RCE | PENNYWORTH |
-| SMB + PSExec | TACTICS |
-| MSSQL + xp_cmdshell + PSExec | ARCHETYPE |
-| Web exploit + Linux privesc | NIBBLES |
-| Theme injection + RCE | GETTING_STARTED |
-| SMB CVE-2007-2447 | LAME |
-
 ---
 
 ## Certification Roadmap
@@ -147,7 +123,7 @@ All 36 sections finished May 11, 2026. Full reference guides at:
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 ~50% — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 ~54% — exam June 21, 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |
