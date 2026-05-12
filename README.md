@@ -5,7 +5,7 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (~54%) | June 2026 |
+| CPTS | 📖 In Progress (~55.8%, 15/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
@@ -15,15 +15,15 @@ Documenting my path through security certifications and hands-on penetration tes
 ## Current Status (May 11, 2026)
 
 ```
-CPTS Learning Pathway: █████████████████████░░░░░░░░░░░░░░░░░░░ ~54%
+CPTS Learning Pathway: ██████████████████████░░░░░░░░░░░░░░░░░░ ~55.8%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 12 / 26 |
+| Academy Modules Complete | 15 / 28 |
 | Academy Module In Progress | None — between modules |
-| Reference Guides | 265+ |
+| Reference Guides | 280+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -44,7 +44,7 @@ CPTS Learning Pathway: ███████████████████
 | Pivoting, Tunneling & Port Forwarding | ✅ Complete |
 | Active Directory Enumeration & Attacks | ✅ Complete (36/36) |
 | Using Web Proxies | ✅ Complete (15/15) |
-| Attacking Web Applications with FFuF | ⬚ Not Started |
+| Attacking Web Applications with FFuF | ✅ Complete (13/13) |
 | Login Brute Forcing | ⬚ Not Started |
 | SQL Injection Fundamentals | ⬚ Not Started |
 | SQLMap Essentials | ⬚ Not Started |
@@ -84,6 +84,7 @@ Offensive-Security-Development/
 |   |   |-- Pivoting_Tunneling_and_Port_Forwarding/
 |   |   |-- Active_Directory_Enumeration_and_Attacks/  ← 37 guides (complete)
 |   |   |-- Using_Web_Proxies/                         ← 15 guides (complete)
+|   |   |-- Attacking_Web_Apps_with_FFuF/              ← 13 guides (complete)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -205,6 +206,23 @@ SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, plink, ICMP tunneling.
 | 14 | Extensions — BApp Store (Burp) + ZAP Marketplace |
 | 15 | Skills Assessment — disabled buttons, multi-encoded cookies, hash fuzzing |
 
+### Attacking Web Applications with FFuF ✅ (13 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full ffuf workflow: vhost → extension → page → param → value fuzzing |
+| 01-02 | Introduction and core fuzzing concepts, FUZZ keyword, filtering basics |
+| 03 | Directory fuzzing — flags, wordlists, reading 301/403 results |
+| 04 | Page fuzzing — two-step: extension fuzzing first, then page names |
+| 05 | Recursive fuzzing — `-recursion -recursion-depth 1 -e .php` |
+| 06 | DNS records — adding HTB targets to `/etc/hosts` |
+| 07 | Sub-domain fuzzing — public DNS-based subdomain discovery |
+| 08 | Vhost fuzzing — `Host: FUZZ.domain.htb` header manipulation |
+| 09 | Filtering results — `-fs` to remove noise from vhost scans |
+| 10 | Parameter fuzzing GET — `?FUZZ=key` in URL |
+| 11 | Parameter fuzzing POST — `-X POST -d 'FUZZ=key'` with Content-Type |
+| 12 | Value fuzzing — `id=FUZZ` with numeric / names wordlists |
+| 13 | Skills Assessment — full chain: vhosts → extensions → pages → params → flag |
+
 ### Vulnerability Assessment
 Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
@@ -235,6 +253,7 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 | Web Proxy — Fuzzing | Burp Intruder, ZAP Fuzzer, wordlists, payload processors | Web Proxies ✅ |
 | Web Proxy — Scanning | Burp Scanner (Pro), ZAP active scanner (free), Spider, Ajax Spider | Web Proxies ✅ |
 | Web Proxy — Encoding | Multi-layer decode/encode, MD5 cookie fuzzing, JWT manipulation | Web Proxies ✅ |
+| Web Fuzzing | Vhost discovery, extension fuzzing, recursive page fuzzing, param/value fuzzing | FFuF ✅ |
 | Web Exploitation | SQLi, XSS, file inclusion, command injection, file upload | Upcoming |
 | Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 
@@ -242,7 +261,7 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ## Tools
 
-**Network & Recon:** Nmap, Gobuster, FFuF, Nikto, Whatweb, DNSenum, DNSrecon, Onesixtyone, Snmpwalk
+**Network & Recon:** Nmap, Gobuster, FFuF (vhost/dir/param/value fuzzing), Nikto, Whatweb, DNSenum, DNSrecon, Onesixtyone, Snmpwalk
 
 **Web Proxies:** Burp Suite, ZAP (OWASP), FoxyProxy, Burp Intruder, ZAP Fuzzer, Burp Repeater
 
@@ -265,7 +284,8 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 - [AD Exam Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/00-EXAM_CHEATSHEET.md)
 - [Password Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Password_Attacks/00-EXAM_CHEATSHEET.md)
 - [Pivoting Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Pivoting_Tunneling_and_Port_Forwarding/00-EXAM_CHEATSHEET.md)
+- [FFuF Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Web_Apps_with_FFuF/00-EXAM_CHEATSHEET.md)
 
 ---
 
-Last Updated: May 11, 2026
+Last Updated: May 12, 2026
