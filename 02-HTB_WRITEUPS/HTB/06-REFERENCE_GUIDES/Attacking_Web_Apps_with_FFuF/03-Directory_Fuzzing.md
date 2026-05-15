@@ -24,6 +24,7 @@ ffuf -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt \
 # -ic = ignore comment lines in wordlist (lines starting with #)
 #       Always use this with directory-list-2.3 — it starts with copyright comments
 ```
+> Basic directory brute-force. Replace `TARGET_IP:PORT` with your target. `-ic` is required for this wordlist family because it starts with comment lines. The 87k-entry small list runs in under a minute at default thread count.
 
 **With explicit keyword assignment:**
 ```bash
@@ -33,6 +34,7 @@ ffuf -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt:FUZZ \
 # :FUZZ after the wordlist path assigns the keyword name
 # This matters when using multiple wordlists with different keywords
 ```
+> The `:FUZZ` suffix names the wordlist. You need unique names when using two or more wordlists so ffuf knows which one fills which placeholder.
 
 ---
 
@@ -51,6 +53,7 @@ ffuf -w WORDLIST -u http://TARGET/FUZZ \
   -o output.json   # save results to file
   -of json         # output format (json, csv, html, md)
 ```
+> A reference block of the most-used flags. `-mc` and `-fc` are opposites — one keeps, one removes. Use `-v` whenever recursion is on so you can see the full path of each hit.
 
 ---
 
@@ -66,6 +69,7 @@ ffuf -w WORDLIST -u http://TARGET/FUZZ \
 ~/SecLists/Discovery/Web-Content/common.txt                    # ~4.7k, very fast
 ~/SecLists/Discovery/Web-Content/raft-medium-directories.txt   # good balance
 ```
+> Start with `common.txt` for quick checks, then `raft-medium-directories.txt` for thorough scans. The `directory-list-2.3` family is larger but needs `-ic` to skip the copyright header lines.
 
 ---
 
@@ -83,7 +87,7 @@ forum   [Status: 301, Size: 323, Words: 20, Lines: 10, Duration: 434ms]
 | 403 | Forbidden — exists but you can't access it (still a finding) |
 | 404 | Not found — default for misses (filtered out automatically) |
 
-**301 is a hit** — the directory exists, server just redirects to the trailing-slash version.
+**301 is a hit.** The directory exists. The server is just redirecting you to the version with a trailing slash.
 
 ---
 
@@ -98,6 +102,7 @@ ffuf -w wordlist -u http://TARGET/FUZZ -ic -t 200
 
 # Don't go over ~200 threads on remote targets — risks DoS or connection drops
 ```
+> Default threads (40) is safe for remote targets. `-t 200` is only for local or lab targets where you own the server. Too many threads can knock over a fragile HTB lab box.
 
 ---
 

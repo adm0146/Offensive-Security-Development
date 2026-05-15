@@ -24,6 +24,7 @@ ifconfig            # legacy but everywhere
 ip a                # modern
 ip -br a            # one-line summary
 ```
+> Lists Linux NICs and IPs to spot extra adapters; run as-is on any Linux foothold.
 
 Example output of `ifconfig`:
 
@@ -65,6 +66,7 @@ ipconfig /all           # full (DHCP, DNS, MAC, lease)
 Get-NetIPAddress        # PowerShell native
 Get-NetIPConfiguration
 ```
+> Lists Windows NICs/IPs (cmd and PowerShell variants) to find extra adapters; run as-is on a Windows foothold.
 
 Example output:
 
@@ -100,12 +102,14 @@ netstat -r
 ip route                 # modern
 ip route get 10.129.10.25     # show which route applies for an IP
 ```
+> Reads the Linux routing table to find reachable internal subnets; swap `10.129.10.25` for the IP whose route you want to test.
 
 ```cmd
 :: Windows
 route print
 Get-NetRoute               # PowerShell
 ```
+> Reads the Windows routing table to find reachable internal subnets; run as-is on a Windows foothold.
 
 Example `netstat -r` from Pwnbox:
 
@@ -192,6 +196,7 @@ cat /etc/hosts /etc/resolv.conf         # name → IP hints
 ls /etc/openvpn /etc/wireguard 2>/dev/null   # pre-configured tunnels?
 which sshpass socat chisel ssh nc       # tools available for pivoting
 ```
+> Full Linux foothold recon: identity, NICs, routes, neighbors, listeners, name hints, preconfigured tunnels, and pivot tools; run as-is.
 
 ```powershell
 # Windows
@@ -203,6 +208,7 @@ Get-NetTCPConnection | Sort State,LocalPort
 Get-Service | Where-Object Status -eq Running | Select Name,DisplayName
 Get-NetAdapter
 ```
+> Full Windows foothold recon: privileges, NICs, routes, neighbors, connections, services, and adapters; run as-is.
 
 What to look for:
 

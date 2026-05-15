@@ -52,6 +52,7 @@ For an RDP session to work:
 ```bash
 nmap -sV -sC 10.129.201.248 -p3389 --script rdp*
 ```
+> Runs all RDP NSE scripts against port 3389 to enumerate encryption/NLA, hostname, and Windows build. Swap `10.129.201.248` for your target IP.
 
 ```
 PORT     STATE SERVICE       VERSION

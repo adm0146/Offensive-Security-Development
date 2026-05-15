@@ -256,6 +256,7 @@ smbclient -L //target -U username
 snmpwalk -c public -v1 target
 ftp target
 ```
+> Full initial sweep: nmap detects all ports, versions, and runs scripts; SMB share enumeration; SNMP walk with default community string; and FTP connection for anonymous login test. Replace `target` with the IP and `username` with valid credentials when available.
 
 ---
 

@@ -6,7 +6,7 @@
 
 ## The Core Concept
 
-Web servers don't publish a list of all their pages. Fuzzing = sending requests for every word in a wordlist and seeing which ones return something real (200 OK) vs not found (404).
+Web servers don't give you a list of every page they have. Fuzzing means sending a request for every word in a wordlist and seeing which ones return a real page (200 OK) instead of "not found" (404).
 
 ```
 Request: GET /FUZZ HTTP/1.1          (ffuf replaces FUZZ with each wordlist line)
@@ -39,14 +39,16 @@ ffuf -w WORDLIST -u http://TARGET/FUZZ
 # -u = URL with FUZZ as the injection point
 # -ic = ignore comments in wordlist (lines starting with #)
 ```
+> The simplest possible ffuf command. Replace `WORDLIST` with a path and `TARGET` with an IP or hostname. Every line in the wordlist is tried as the value of `FUZZ`.
 
-**-ic flag is important:** The directory-list-2.3 wordlists start with copyright comment lines. Without `-ic`, those comment lines become part of the fuzzing — they'll all 404 but clutter results.
+**-ic flag is important:** The directory-list-2.3 wordlists start with copyright comment lines. Without `-ic`, those lines get tested as directory names. They all return 404 and just add noise.
 
 ```bash
 ffuf -w /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt \
      -u http://SERVER_IP:PORT/FUZZ \
      -ic
 ```
+> `-ic` skips the copyright comment lines at the top of the `directory-list-2.3` wordlists. Without it, those comment lines get tested as directory names and all 404 — just noise.
 
 ---
 

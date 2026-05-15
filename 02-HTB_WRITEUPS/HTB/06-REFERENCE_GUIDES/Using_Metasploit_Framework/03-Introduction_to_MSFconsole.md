@@ -13,18 +13,21 @@
 ```bash
 msfconsole
 ```
+> Launches with the full banner showing exploit/payload/module counts. On slow machines give it 10–15 seconds to start the Java VM.
 
 ### Quiet Launch (no banner)
 
 ```bash
 msfconsole -q
 ```
+> Skips the banner and drops straight to the `msf6 >` prompt. Use this on the exam to save time.
 
 ### View All Available Commands
 
 ```bash
 msf6 > help
 ```
+> Lists every available command with brief descriptions. Pipe through `grep` to find specific commands.
 
 ---
 

@@ -6,13 +6,13 @@
 
 ## What File Inclusion Is
 
-Web apps that load resources dynamically based on user input (`?page=about`, `?language=en`) can be coerced into loading **other files** when the path isn't sanitized. The classic pattern: a templating engine builds a page by including a partial whose name comes from a URL parameter — change the parameter, change the file the server reads (or executes).
+Web apps that load resources dynamically based on user input — like `?page=about` or `?language=en` — can be tricked into loading **other files** when the path is not sanitized. The classic pattern: a templating engine builds a page by including a partial whose name comes from a URL parameter. Change the parameter and the server reads (or executes) a different file.
 
-Two outcomes possible:
-- **Read** → source code disclosure, config files, credentials, SSH keys
-- **Execute** → remote code execution
+Two outcomes are possible:
+- **Read** — source code disclosure, config files, credentials, SSH keys
+- **Execute** — remote code execution (RCE)
 
-Severity depends on which function the dev used.
+Severity depends on which function the developer used.
 
 ---
 
@@ -82,13 +82,13 @@ Response.WriteFile(HttpContext.Request.Query['language']);
 
 ## Why It's Critical Even Without RCE
 
-Even "just" file reads can compromise the whole app:
+Even "just" file reads can compromise the whole app. Common high-value targets include:
 - `/etc/passwd` — user enumeration
-- App config files — DB credentials, API keys, AWS secrets
+- App config files — database credentials, API keys, AWS secrets
 - `~/.ssh/id_rsa` — direct SSH access
-- App source code — find other vulnerabilities (SQLi, auth bypass, hardcoded keys)
+- App source code — reveals other vulnerabilities like SQL injection, auth bypass, or hardcoded keys
 - `.git/config` or `.env` — secrets that should never have been web-readable
-- Apache/nginx access logs — set up for log poisoning → RCE chain
+- Apache/nginx access logs — can be used for log poisoning leading to RCE
 
 ---
 
@@ -96,10 +96,10 @@ Even "just" file reads can compromise the whole app:
 
 | Compared to | Difference |
 |-------------|-----------|
-| **Path Traversal** | LFI = include + execute/render. Path Traversal = just read raw bytes (e.g., from a download endpoint). LFI is the strictly stronger primitive. |
-| **RFI** | RFI = include a remote URL. LFI = include a local path. RFI requires `allow_url_include=On` in PHP (off by default since 5.2). |
-| **SSRF** | SSRF makes the server connect to a URL. RFI makes the server **execute** content from a URL. SSRF is read-only; RFI is RCE. |
-| **Arbitrary File Read** | Same outcome as LFI-read, different vector (e.g., XXE, broken auth). LFI specifically uses an include/render sink. |
+| **Path Traversal** | Local File Inclusion (LFI) = include + execute/render. Path Traversal = just read raw bytes (e.g., from a download endpoint). LFI is the strictly stronger primitive. |
+| **RFI** | Remote File Inclusion (RFI) = include a remote URL. LFI = include a local path. RFI requires `allow_url_include=On` in PHP (off by default since 5.2). |
+| **SSRF** | Server-Side Request Forgery (SSRF) makes the server connect to a URL. RFI makes the server **execute** content from a URL. SSRF is read-only; RFI is RCE. |
+| **Arbitrary File Read** | Same outcome as LFI-read, different vector (e.g., XML External Entity injection, broken auth). LFI specifically uses an include/render sink. |
 
 ---
 

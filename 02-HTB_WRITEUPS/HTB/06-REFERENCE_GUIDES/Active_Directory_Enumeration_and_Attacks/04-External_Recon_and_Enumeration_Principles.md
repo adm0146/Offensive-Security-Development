@@ -26,6 +26,7 @@ trufflehog git https://github.com/target/repo
 # Breach data
 sudo python3 dehashed.py -q target.local -p
 ```
+> `dig any` pulls all DNS record types in one shot. Google dorks find email addresses that reveal username formats. `linkedin2username` generates username permutations from employee names. `trufflehog` scans git history for leaked secrets. `dehashed.py` queries the Dehashed breach database.
 
 ---
 
@@ -72,9 +73,9 @@ sudo python3 dehashed.py -q target.local -p
 
 ## Exam Notes
 
-- All external recon is passive — no scanning, no direct interaction with target systems
-- Username format from emails/docs = gold for internal spraying later
-- Breach passwords + AD-authenticated portals = potential low-priv foothold
-- Third-party hosted infra (AWS, Azure, Cloudflare) requires written authorization from the **provider**, not just the client
-- `dig any` pulls all record types — make it your default over single-type queries
-- Job postings reveal software versions, security tooling, cloud providers
+- All external recon is passive. Do not scan or directly touch target systems.
+- The username format from emails or documents is valuable. Use it to build your spray list for later.
+- Breach passwords combined with AD-authenticated portals (like OWA or VPN) can give you a low-privilege foothold.
+- Third-party hosted infrastructure (AWS, Azure, Cloudflare) requires written authorization from the **provider**, not just the client.
+- `dig any` pulls all record types. Use it as your default instead of running separate queries.
+- Job postings reveal software versions, security tooling, and cloud providers. Read them carefully.

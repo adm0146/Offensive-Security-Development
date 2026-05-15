@@ -31,7 +31,7 @@ The auth rule covers SOME verbs but not all. Different verb → no auth.
     Require valid-user
 </Limit>
 ```
-This denylist style ONLY enforces auth on `GET` and `POST`. Send `HEAD`, `PUT`, `DELETE`, `OPTIONS` → auth never invoked. Fix: `<LimitExcept GET POST>` (note "Except" — applies the rule to all OTHER methods).
+> `<Limit>` is a denylist — it only enforces the rule on the listed methods. Any other verb bypasses the auth check entirely. The fix is `<LimitExcept GET POST>` which enforces auth on every method except those listed.
 
 ```xml
 <!-- J2EE web.xml — same denylist bug -->
@@ -45,6 +45,7 @@ This denylist style ONLY enforces auth on `GET` and `POST`. Send `HEAD`, `PUT`, 
     </auth-constraint>
 </security-constraint>
 ```
+> The J2EE `<http-method>` denylist has the same problem — it only restricts the listed verbs. Send `DELETE` or `PUT` and the auth constraint is never evaluated.
 
 ### 2. Inconsistent Input Source Handling (Code-Level)
 Application filters input from ONE source (e.g., `$_GET`) but USES input from BOTH sources (e.g., `$_REQUEST` covers GET + POST).
@@ -56,6 +57,7 @@ if (preg_match('/^[A-Za-z\s]+$/', $_GET["code"])) {
     $query = "SELECT * FROM ports WHERE code LIKE '%" . $_REQUEST["code"] . "%'";
 }
 ```
+> The regex only checks `$_GET["code"]`. If the attacker sends a GET request with a safe value AND a POST body with a SQL payload, `$_REQUEST["code"]` resolves to the POST value — the filter never sees it. This is the `$_REQUEST` input-source mismatch vulnerability.
 
 Attacker sends GET with safe value (passes filter) AND POST with malicious payload → `$_REQUEST` resolves to the POST value → SQLi triggered.
 
@@ -103,6 +105,7 @@ for V in GET HEAD POST PUT DELETE OPTIONS PATCH TRACE; do
   curl -sk -o /dev/null -w "%{http_code} %{size_download}\n" -X "$V" "http://TARGET/protected/"
 done
 ```
+> Sweeps all common HTTP methods against the target path and prints the response code and body size for each. Any method that returns 200 when others return 401/403 is a potential bypass. Replace `http://TARGET/protected/` with the actual protected endpoint.
 
 Anything other than `301/302/401/403` on an unauthenticated request → potential bypass.
 

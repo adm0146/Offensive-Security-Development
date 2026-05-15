@@ -6,10 +6,10 @@
 
 ## Why Automate?
 
-- **Speed** — tools run hundreds of queries while you'd do one
-- **Scale** — scan multiple targets/domains simultaneously
-- **Consistency** — no missed steps, reproducible results
-- **Coverage** — DNS, subdomains, headers, SSL, crawling, Wayback all in one run
+- Speed — tools run hundreds of queries while you would manually run one.
+- Scale — scan multiple targets or domains at the same time.
+- Consistency — no missed steps, reproducible results every time.
+- Coverage — Domain Name System (DNS), subdomains, headers, SSL certificates, crawling, and Wayback Machine all in one run.
 
 ---
 
@@ -36,6 +36,7 @@ pip3 install -r requirements.txt --break-system-packages
 chmod +x ./finalrecon.py
 ./finalrecon.py --help
 ```
+> Clones FinalRecon from GitHub, installs its Python dependencies, makes the main script executable, and prints the help menu. `--break-system-packages` bypasses the PEP 668 restriction on newer Kali. Run `--help` after install to confirm everything loaded correctly.
 
 ### Flags Reference
 
@@ -90,6 +91,7 @@ chmod +x ./finalrecon.py
 # Wayback URLs
 ./finalrecon.py --wayback --url http://TARGET
 ```
+> Each command runs FinalRecon with a specific combination of modules. Stack multiple flags to run several at once. `--full` enables every module in one pass — useful when you want comprehensive coverage. Replace `http://TARGET` with your target URL. Results are saved to `~/.local/share/finalrecon/dumps/`.
 
 ---
 
@@ -126,12 +128,12 @@ Link : <.../wp-json/>; rel="https://api.w.org/"
 
 ## Key Takeaways
 
-- **`--full` runs everything** — use it when you want comprehensive recon in one command
-- **FinalRecon exports results** to `~/.local/share/finalrecon/dumps/` — review later
-- **Combine with manual recon** — automation finds the leads, you analyze them
-- **Add API keys** (`-k shodan@KEY`) for deeper subdomain and port data
-- **PEP 668 fix** — use `--break-system-packages` when installing on Kali
-- **theHarvester** is better for email harvesting; **FinalRecon** is better for full web recon
+- `--full` runs every module. Use it when you want comprehensive recon in one command.
+- FinalRecon exports results to `~/.local/share/finalrecon/dumps/` for later review.
+- Combine automation with manual recon — tools find the leads, you analyze them.
+- Add API keys with `-k shodan@KEY` for deeper subdomain and port data.
+- On Kali, use `--break-system-packages` when installing Python dependencies to bypass the PEP 668 restriction.
+- theHarvester is better for email harvesting. FinalRecon is better for full web recon.
 
 ---
 

@@ -27,6 +27,7 @@ netdom query /domain:inlanefreight.local trust
 netdom query /domain:inlanefreight.local dc
 netdom query /domain:inlanefreight.local workstation
 ```
+> Quick reference for trust enumeration. Use `Get-DomainTrustMapping` for the most complete picture — it includes trusts in remote domains too. `netdom` works when PowerShell execution is locked down since it is a built-in command-line tool.
 
 ---
 
@@ -72,6 +73,7 @@ Import-Module activedirectory
 # Available on any machine with RSAT (Remote Server Administration Tools) installed
 # Does not require downloading anything — useful when you can't run PowerView
 ```
+> Loads the built-in AD module. Available on any machine with Remote Server Administration Tools (RSAT). Use this when you cannot run PowerView.
 
 ```powershell
 Get-ADTrust -Filter *
@@ -83,6 +85,7 @@ Get-ADTrust -Filter *
 #   SIDFilteringQuarantined = True means SID history attacks are blocked (more secure)
 #   TGTDelegation = True means TGT delegation across this trust is allowed (dangerous)
 ```
+> Lists all domain trusts. Focus on `Direction`, `IntraForest`, and `SIDFilteringQuarantined`. `IntraForest: True` means same forest — attacks are easier. `SIDFilteringQuarantined: False` means SID history attacks may be possible.
 
 Key fields decoded:
 - `IntraForest: True` = child/parent relationship within the same forest = same security boundary
@@ -98,6 +101,7 @@ Key fields decoded:
 cd C:\Tools
 Import-Module .\PowerView.ps1
 ```
+> Loads PowerView for trust enumeration commands.
 
 ```powershell
 Get-DomainTrust
@@ -106,6 +110,7 @@ Get-DomainTrust
 # TrustAttributes field shows: WITHIN_FOREST (child domain) or FOREST_TRANSITIVE (forest trust)
 # TrustDirection field shows: Bidirectional / Inbound / Outbound
 ```
+> Shows all trusts for the current domain in a cleaner format than `Get-ADTrust`. `WITHIN_FOREST` means a child domain in the same forest. `FOREST_TRANSITIVE` means a trust to a completely separate forest.
 
 Lab output interpreted:
 ```
@@ -131,6 +136,7 @@ Get-DomainTrustMapping
 # Get-DomainTrustMapping also shows trusts configured in REMOTE domains (e.g. what FREIGHTLOGISTICS trusts)
 # Useful for finding indirect paths: A → B → C where you might be able to chain trust abuse
 ```
+> Maps the full trust chain across all visible domains. Unlike `Get-DomainTrust`, this also shows what remote domains trust — useful for finding indirect attack paths through chained trusts.
 
 ---
 
@@ -143,6 +149,7 @@ Get-DomainUser -Domain LOGISTICS.INLANEFREIGHT.LOCAL | select SamAccountName
 # select SamAccountName = just show usernames, not the full 40-attribute AD object per user
 # Use this to find accounts worth targeting in the child domain
 ```
+> Enumerates user accounts in a trusted domain. This works because the bidirectional trust allows your current credentials to authenticate there. Replace the domain name with any trusted domain you want to enumerate.
 
 ---
 
@@ -156,39 +163,42 @@ netdom query /domain:inlanefreight.local trust
 # trust = list all trust relationships for this domain
 # No PowerShell, no imports — useful when execution policy blocks scripts
 ```
+> Lists domain trusts without needing PowerShell or any imports. Works even when execution policy is locked down. Replace the domain with your target.
 
 ```cmd
 netdom query /domain:inlanefreight.local dc
 # dc = list all domain controllers with accounts in this domain
 # Identifies the DCs you'll need to target for attacks
 ```
+> Lists all Domain Controllers (DCs) in the specified domain. Tells you which systems to target for DCSync and other DC-specific attacks.
 
 ```cmd
 netdom query /domain:inlanefreight.local workstation
 # workstation = list all workstations and servers with accounts in the domain
 # Gives a full picture of domain-joined machines — useful for lateral movement planning
 ```
+> Lists all workstations and servers joined to the domain. Use this to plan lateral movement when you have compromised credentials but have not yet mapped all hosts.
 
 ---
 
 ## What to Do with Trust Information
 
-Once you've mapped trusts, these are the attack paths to evaluate (covered in Sections 28–30):
+Once you have mapped trusts, evaluate these attack paths (covered in Sections 28–30):
 
 | Scenario | Attack |
 |----------|--------|
 | Child domain compromised → parent domain | ExtraSids / Golden Ticket with Enterprise Admin SID |
-| Bidirectional forest trust | Kerberoasting / ASREPRoasting across trust, foreign group membership abuse |
-| SID filtering disabled (SIDFilteringQuarantined: False) | SID history injection attacks |
+| Bidirectional forest trust | Kerberoasting / AS-REP Roasting across trust, foreign group membership abuse |
+| SID filtering disabled (SIDFilteringQuarantined: False) | Security Identifier (SID) history injection attacks |
 | TGTDelegation: True | Unconstrained delegation across forest boundary |
 | One-way trust (outbound from root) | Users in trusted domain can still enumerate / Kerberoast root domain |
 
 **Enumeration checklist after finding trusts:**
-1. Map all trusts with `Get-DomainTrustMapping` — find the full chain
-2. Enumerate users in each trusted domain — look for SPNs, pre-auth disabled, admin accounts
-3. Enumerate groups in the trusted domain — look for foreign principals (accounts from YOUR domain in their groups)
-4. Check SID filtering status — if off, SID history attacks may work
-5. Check BloodHound for cross-trust edges (CanRDP, AdminTo, SQLAdmin)
+1. Map all trusts with `Get-DomainTrustMapping` — find the full chain.
+2. Enumerate users in each trusted domain — look for SPNs, pre-auth disabled, admin accounts.
+3. Enumerate groups in the trusted domain — look for foreign principals (accounts from your domain in their groups).
+4. Check SID filtering status — if off, SID history attacks may work.
+5. Check BloodHound for cross-trust edges (CanRDP, AdminTo, SQLAdmin).
 
 ---
 

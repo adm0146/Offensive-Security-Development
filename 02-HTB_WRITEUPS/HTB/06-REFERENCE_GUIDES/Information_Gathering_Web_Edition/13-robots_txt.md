@@ -6,12 +6,13 @@
 
 ## What Is robots.txt?
 
-A plain text file at the **root directory** of a website (e.g., `https://example.com/robots.txt`) that tells crawlers which paths they can and cannot access. It follows the **Robots Exclusion Standard**.
+robots.txt is a plain text file at the root of a website (for example, `https://example.com/robots.txt`). It tells web crawlers which paths they are allowed or not allowed to access. It follows the Robots Exclusion Standard.
 
 ```bash
 # Always check this first on any target
 curl https://example.com/robots.txt
 ```
+> Fetches the robots.txt file from the root of the target website. Swap the domain for your target. Scan the output for `Disallow:` lines — those paths are what the site owner does not want you to find.
 
 > **Key insight:** robots.txt is a suggestion, not enforcement. Bots can ignore it. But for recon, the disallowed paths are a **goldmine** — they tell you exactly what the site owner wants hidden.
 
@@ -19,7 +20,7 @@ curl https://example.com/robots.txt
 
 ## robots.txt Structure
 
-Each block (record) has a **User-agent** line followed by **directives**, separated by blank lines:
+Each block has a `User-agent` line followed by directives, separated by blank lines:
 
 ```
 User-agent: *
@@ -106,17 +107,18 @@ curl -s https://TARGET/robots.txt | grep -i "sitemap"
 curl -s https://TARGET/admin/
 curl -s https://TARGET/private/
 ```
+> Step 1 fetches the file. Step 2 pipes it through `grep` and `awk` to extract only the path from each `Disallow:` line. Step 3 finds the sitemap URL if present — parse it for the full site structure. Steps 4+ attempt direct access to disallowed paths — robots.txt is advisory only and does not enforce access control. Swap TARGET for your IP or hostname.
 
 ---
 
 ## Key Takeaways
 
-- **Always check `robots.txt` first** -- it's free intel the site gives you
-- **Disallowed paths = interesting paths** -- admin panels, backups, private content
-- **Sitemap URLs** reveal the full site structure in one request
-- **Crawl-delay** hints at server capacity -- useful for tuning scan speed
-- **Honeypot directories** may exist -- indicates active defense
-- **robots.txt is not access control** -- disallowed paths may still be accessible
+- Always check `robots.txt` first. It is free intelligence the site gives you.
+- Disallowed paths are interesting paths. They often point to admin panels, backups, and private content.
+- The `Sitemap:` URL reveals the full site structure in one request.
+- `Crawl-delay` hints at server capacity. Use it to tune your scan speed so you do not overwhelm the target.
+- Honeypot directories may exist. If you see unusual decoy paths, the site has active defenses.
+- robots.txt is not access control. Disallowed paths may still be accessible — always try them directly.
 
 ---
 

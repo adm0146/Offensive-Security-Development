@@ -5,8 +5,8 @@
 ## Spotting a Command Injection Sink
 
 Look for any input that:
-- Goes to a feature involving system tools (ping, dig, curl, ls, conversion, archives, etc.)
-- Returns the output of those tools verbatim
+- Goes to a feature involving system tools (ping, dig, curl, ls, file conversion, archives, etc.)
+- Returns the output of those tools verbatim in the response
 - Accepts shell-special characters
 
 Classic candidates:
@@ -53,6 +53,7 @@ for op in ';' '|' '&&' '||' '%0a'; do
   echo "[$op] size=$(echo -n \"$resp\" | wc -c)"
 done
 ```
+> Loops through common injection operators and appends `whoami` after each one. Compares response sizes — a different size usually means the operator allowed execution. Use `input` or the actual parameter name from the form.
 
 Different response sizes signal which operator the server accepts.
 
@@ -84,6 +85,7 @@ Client-side patterns are bypassable — submit directly via curl:
 ```bash
 curl -sk -X POST "http://154.57.164.66:32362/" --data-urlencode "ip=127.0.0.1;ls"
 ```
+> Bypasses the browser's HTML pattern validation by submitting the POST request directly via curl. The `--data-urlencode` flag handles special characters. The server has no backend validation, so the `;ls` injection runs.
 
 Response includes:
 ```
@@ -103,9 +105,9 @@ Command injection confirmed — `;` operator works. The server has **no** valida
 
 ## Exam Notes
 
-- HTML5 `pattern="..."` is **client-side only** — never relied on for security
-- Always submit via curl/Burp to bypass front-end-only patterns
-- Test multiple operators (`;`, `|`, `&&`, `||`, `%0a`) — different filters block different ones
-- If response sizes vary across operators, the server is processing some but not others — start with whichever produces the biggest response (output included)
-- Even when a command runs successfully, output may not always reflect — pipe operators only show stdout of the second command, `&` may show ordering oddly
-- The "error message" question is a sneaky CPTS thing — they want you to recognize the browser-side validation, NOT a server error
+- HTML5 `pattern="..."` is **client-side only**. Never rely on it for security.
+- Always submit via curl or Burp to bypass front-end-only patterns.
+- Test multiple operators (`;`, `|`, `&&`, `||`, `%0a`) because different filters block different ones.
+- If response sizes vary across operators, the server is processing some but not others. Start with whichever produces the largest response, since that likely includes injected output.
+- Even when a command runs, its output may not appear. Pipe operators only show stdout of the second command. The `&` operator may display output out of order.
+- The "error message" question on CPTS tests whether you recognize the browser-side validation message, not a server error.

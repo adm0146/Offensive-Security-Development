@@ -58,6 +58,7 @@ Exploit targets:
 msf6 exploit(windows/browser/ie_execcommand_uaf) > set target 6
 target => 6
 ```
+> Replace `6` with the ID from `show targets` that matches your enumerated target. `Automatic` (ID 0) works when you don't know the exact version.
 
 ### When to Use Automatic vs Manual
 
@@ -108,6 +109,7 @@ To correctly identify a target, you need to:
 ```bash
 msf6 exploit(windows/browser/ie_execcommand_uaf) > info
 ```
+> Run `info` inside any selected module to see available targets, required conditions, CVE references, and a full description. Always read before running.
 
 This reveals:
 - **Available targets** with OS/version combinations

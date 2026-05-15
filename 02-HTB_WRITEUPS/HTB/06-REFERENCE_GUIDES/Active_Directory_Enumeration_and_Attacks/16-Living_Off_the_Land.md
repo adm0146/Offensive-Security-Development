@@ -33,6 +33,7 @@ dsquery * -filter "(&(objectCategory=person)(objectClass=user)(userAccountContro
 # STEP 6 — PS history (may contain plaintext creds)
 Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_history.txt
 ```
+> All of these use built-in Windows tools — no file uploads needed. `systeminfo` gives OS version and patch level in one command. `arp -a` shows hosts the machine recently talked to without running a noisy scan. `wmic ntdomain` lists DC addresses. The `dsquery` filters use User Account Control (UAC) bit flags to find DCs (bit 8192) and accounts with no password required (bit 32). The PowerShell history file often contains plaintext passwords typed by admins.
 
 ---
 
@@ -51,6 +52,7 @@ net localgroup administrators
 dsquery * -filter "(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=2))" -attr distinguishedName description
 # Betty Ross (IT Admins OU, disabled) — description: HTB{LD@P_I$_W1ld}
 ```
+> `Get-MpComputerStatus` returns the Defender version string. `net localgroup administrators` lists all local admins including domain accounts. The `dsquery` filter matches UAC bit 2 (disabled accounts) and returns both the distinguished name and description — description fields often contain notes or even passwords left by admins.
 
 **Lab answers:** AMProductVersion = `4.18.2109.6` | Local admin = `adunn` | Flag = `HTB{LD@P_I$_W1ld}`
 
@@ -67,6 +69,7 @@ set                                                # environment variables
 echo %USERDOMAIN%
 echo %logonserver%
 ```
+> `systeminfo` is the most efficient — it runs one query and returns OS version, patches, domain, and network config all at once, generating fewer log entries than running each separately. `wmic qfe` lists installed hotfixes. `set` shows all environment variables including domain and username details.
 
 ---
 
@@ -79,6 +82,7 @@ Set-ExecutionPolicy Bypass -Scope Process         # bypasses for current session
 Get-ChildItem Env: | ft Key,Value                 # all environment variables
 Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_history.txt  # PS history — gold
 ```
+> `Get-ExecutionPolicy -List` shows the policy at every scope. `Bypass -Scope Process` only affects the current terminal session — it resets when the window closes. `Get-ChildItem Env:` lists all environment variables in a clean table. The history file is a top priority — admins frequently type passwords directly in the console.
 
 ---
 
@@ -89,6 +93,7 @@ Get-host              # confirm version 5.1
 powershell.exe -version 2
 Get-host              # confirm version 2.0
 ```
+> `-version 2` launches a legacy PowerShell 2 process. Script Block Logging only exists in PS 5+, so downgrading stops those logs. However, the downgrade command itself is still logged before the switch.
 
 **Caveat:** The downgrade command itself still logs. Defenders see logs stop = indicator.
 
@@ -101,6 +106,7 @@ netsh advfirewall show allprofiles
 sc query windefend
 Get-MpComputerStatus | select RealTimeProtectionEnabled, AMServiceEnabled
 ```
+> `netsh advfirewall` shows rules for Domain, Private, and Public profiles. `sc query windefend` checks if the Windows Defender service is running. `Get-MpComputerStatus` gives the detailed status — combine with the earlier foothold check.
 
 ---
 
@@ -111,6 +117,7 @@ arp -a          # hosts this machine communicated with — find targets without 
 route print     # known subnets and gateways
 ipconfig /all
 ```
+> `arp -a` shows the ARP cache — hosts this machine recently connected to. This gives you real live targets without running a noisy scan. `route print` shows the routing table, which reveals additional internal subnets you can pivot into.
 
 ---
 
@@ -124,6 +131,7 @@ wmic useraccount list /format:list
 wmic group list /format:list
 wmic ntdomain get Caption,Description,DnsForestName,DomainName,DomainControllerAddress
 ```
+> All WMI (Windows Management Instrumentation) queries — no extra tools needed. `/format:List` outputs one field per line, which is easier to read. `ntdomain` returns DC addresses and domain info. `useraccount` and `group` enumerate local accounts and groups.
 
 ---
 
@@ -139,8 +147,7 @@ net user <USER> /domain           # specific user
 net localgroup administrators     # local admins (includes DA)
 net view /all /domain             # shares across domain
 ```
-
-**EDR evasion:** Replace `net` with `net1` — same output, avoids the `net` string trigger.
+> Standard `net` commands. All built into Windows with no privileges needed. Replace `<USER>` with an actual username to get details on a specific account. **Endpoint Detection and Response (EDR) evasion:** Replace `net` with `net1` — same output, but avoids string matching rules that trigger on the literal word `net`.
 
 ---
 
@@ -162,6 +169,7 @@ dsquery * -filter "(&(objectCategory=person)(objectClass=user)(userAccountContro
 # Disabled accounts (UAC bit 2)
 dsquery * -filter "(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=2))" -attr distinguishedName description
 ```
+> `dsquery` is a native binary on all modern Windows systems — no upload needed. The OID `1.2.840.113556.1.4.803` is a bitwise AND match rule. The number after `:=` is the User Account Control (UAC) bit to match. Swap `8192` for `32` or `2` to find different account types. The `-attr` flag controls which fields are returned.
 
 ---
 

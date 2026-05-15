@@ -22,6 +22,7 @@ curl -s http://target:8080/doesnotexist
 curl -s http://target:8080/docs/ | grep Tomcat
 # <title>Apache Tomcat 9 (9.0.30) - Documentation Index</title>
 ```
+> Fingerprints the Tomcat version via the default 404 error page and the /docs title; swap `target` and the port.
 
 Custom error pages may suppress the version — try `/docs/` as fallback.
 
@@ -116,6 +117,7 @@ gobuster dir -u http://target:8080/ \
   -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt
 # Finds: /docs, /examples, /manager
 ```
+> Locates the Tomcat manager/host-manager pages by direct request and directory brute force; swap `target`, port, and wordlist.
 
 ### Default credentials to try
 ```

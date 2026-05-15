@@ -6,11 +6,11 @@
 
 ## The Problem
 
-Browsers resolve domain names by checking:
-1. Local `/etc/hosts` file
+When your browser gets a domain name, it checks two places in order:
+1. Your local `/etc/hosts` file
 2. Public DNS (e.g. 8.8.8.8)
 
-HTB lab domains like `academy.htb` don't exist in public DNS. Visiting `http://academy.htb:PORT` fails with a connection error because the browser can't resolve the hostname to an IP.
+HTB lab domains like `academy.htb` are not in public DNS. If you try to visit `http://academy.htb:PORT`, the browser fails right away because it can't look up the IP address.
 
 ---
 
@@ -22,16 +22,17 @@ sudo sh -c 'echo "TARGET_IP  academy.htb" >> /etc/hosts'
 # Verify it was added:
 grep academy.htb /etc/hosts
 ```
+> Appends a line to `/etc/hosts` so your machine resolves `academy.htb` to the target IP without using public DNS. The `grep` confirms the entry was written correctly before you try to browse it.
 
-After adding the entry, `http://academy.htb:PORT` works — the browser maps the hostname to the IP via `/etc/hosts` before hitting DNS.
+After adding the entry, `http://academy.htb:PORT` works. Your browser finds the IP in `/etc/hosts` before it ever queries DNS.
 
 ---
 
 ## Why This Matters for Subdomain Fuzzing
 
-Once the base domain (`academy.htb`) is added to `/etc/hosts`, it resolves to the same content as the IP. But subdomains like `admin.academy.htb` won't be in `/etc/hosts` yet — they require vhost fuzzing to discover, then a separate `/etc/hosts` entry to access.
+Once the base domain (`academy.htb`) is in `/etc/hosts`, it resolves to the same content as the IP. But subdomains like `admin.academy.htb` are not there yet. You need to fuzz for them first, then add each one you find.
 
-The presence of a message like **"Admin panel moved to academy.htb"** buried in a page is a signal to start looking for subdomains or vhosts — the admin panel is likely hiding at something like `admin.academy.htb`.
+A message like **"Admin panel moved to academy.htb"** somewhere on the page is a hint. The admin panel is probably at something like `admin.academy.htb`. Start vhost fuzzing when you see anything like that.
 
 ---
 
@@ -50,6 +51,7 @@ cat /etc/hosts
 # Remove an entry (edit manually):
 sudo nano /etc/hosts
 ```
+> Multiple hostnames on one line all resolve to the same IP. After vhost fuzzing finds a new subdomain, add it here before trying to browse it.
 
 ---
 

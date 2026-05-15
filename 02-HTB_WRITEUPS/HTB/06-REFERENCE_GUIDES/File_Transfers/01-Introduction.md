@@ -2,7 +2,7 @@
 
 ## Why File Transfers Matter
 
-File transfers are one of the most critical skills in penetration testing. Almost every engagement requires moving tools, scripts, or data between your attack machine and the target — and there's almost always something blocking the obvious path.
+File transfers are one of the most critical skills in penetration testing. Almost every engagement requires moving tools, scripts, or data between your attack machine and the target. There is almost always something blocking the obvious path.
 
 ---
 
@@ -50,11 +50,11 @@ Imagine this engagement chain:
 
 ## The Mindset
 
-- **Know multiple transfer methods** — if one is blocked, pivot to the next
-- **Understand host controls** — application whitelisting, AV/EDR can block tools
-- **Understand network controls** — firewalls, IDS/IPS monitor or block ports and patterns
-- **Every OS has built-in transfer tools** — leverage what's already on the system
-- **Adapt to the environment** — the "best" method depends entirely on what's allowed
+- Know multiple transfer methods. If one is blocked, pivot to the next.
+- Understand host controls. Application whitelisting and Antivirus/Endpoint Detection and Response (AV/EDR) can block your tools.
+- Understand network controls. Firewalls and Intrusion Detection/Prevention Systems (IDS/IPS) monitor or block specific ports and traffic patterns.
+- Every operating system has built-in transfer tools. Use what is already on the system.
+- Adapt to the environment. The best method depends entirely on what is allowed.
 
 ---
 
@@ -69,9 +69,9 @@ Imagine this engagement chain:
 
 ## Key Takeaways
 
-- File transfer is a **core penetration testing skill** — not optional
-- There is **no single universal method** — you need a toolkit of techniques
-- Obstacles include **host controls** (app whitelisting, AV/EDR) and **network controls** (firewalls, IDS/IPS)
-- The scenario above is realistic — expect to try **3-4 methods** before one works
-- Always have a **fallback plan** for getting files onto a target
-- This module serves as a **reference guide** for all future HTB work
+- File transfer is a core penetration testing skill — it is not optional.
+- There is no single universal method. You need a toolkit of techniques.
+- Obstacles include host controls (application whitelisting, AV/EDR) and network controls (firewalls, IDS/IPS).
+- The scenario above is realistic. Expect to try 3-4 methods before one works.
+- Always have a fallback plan for getting files onto a target.
+- This module is a reference guide for all future HTB work.

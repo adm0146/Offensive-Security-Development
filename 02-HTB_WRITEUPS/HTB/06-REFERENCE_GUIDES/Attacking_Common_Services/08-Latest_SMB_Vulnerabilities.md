@@ -51,6 +51,7 @@ All exploitation, regardless of complexity, can be modeled with **four categorie
 attacker      vulnerable                     attacker-controlled
  input        parser/code                     code execution
 ```
+> The categories are constant across all vulnerability types. Memorize this flow — it helps you understand any exploit write-up quickly.
 
 Apply this to **any** vuln (SQLi, deserialization, BOF, format string) — the structure is constant.
 
@@ -90,12 +91,14 @@ The two-cycle model is generalizable: **memory-corruption exploits almost always
 nmap -p445 --script smb-protocols 10.10.10.10
 nmap -p445 --script smb2-vuln-uptime,smb-vuln-ms17-010 10.10.10.10
 ```
+> `smb-protocols` checks which SMB versions the target advertises. `smb2-vuln-uptime` and `smb-vuln-ms17-010` check for known SMB vulnerabilities. Replace the IP with your target.
 
 For SMBGhost specifically:
 ```bash
 # ZecOps scanner (PoC)
 python3 SMBGhost_scanner.py 10.10.10.10
 ```
+> Download the ZecOps scanner from GitHub. Replace the IP with your target. This only checks for vulnerability — it does not exploit.
 Indicators:
 - SMB 3.1.1 advertised in dialect negotiation.
 - `SMB2_COMPRESSION_CAPABILITIES` present in negotiate response.
@@ -107,6 +110,7 @@ Indicators:
 python3 SMBGhost_RCE_PoC.py -ip 10.10.10.10
 # → SYSTEM shell on success; BSOD on failure
 ```
+> `-ip` specifies the target. Replace with your target's IP. This PoC is unstable — take a VM snapshot before running. A failed attempt will BSOD the target machine.
 > **Warning:** SMBGhost RCE PoCs are **highly unstable** — failed exploitation almost always BSODs the target. Snapshot before testing.
 
 ---

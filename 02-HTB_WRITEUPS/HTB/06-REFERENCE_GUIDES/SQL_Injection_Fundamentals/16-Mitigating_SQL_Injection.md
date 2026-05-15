@@ -41,7 +41,7 @@ if (!preg_match($pattern, $code)) {
 // $code is now safe to use
 ```
 
-> Allowlist (only permit known-good characters) is stronger than denylist (block known-bad). `'`, `"`, `-`, `;` in a denylist can be bypassed with encoding — an allowlist rejects everything not explicitly permitted.
+> An allowlist (only permit known-good characters) is stronger than a denylist (block known-bad). Characters like `'`, `"`, `-`, and `;` in a denylist can be bypassed with encoding or alternate representations. An allowlist rejects everything that isn't explicitly approved.
 
 ---
 
@@ -61,8 +61,8 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 ```
 
-- The `?` placeholders are filled after query parsing — the DB engine never sees user input as SQL syntax
-- Works the same in Python (psycopg2), Java (PreparedStatement), C# (SqlCommand with Parameters), etc.
+- The `?` placeholders are filled in after the query structure is already parsed. The database engine never treats the user's input as SQL syntax — it is always treated as data.
+- The same pattern works in Python (psycopg2), Java (PreparedStatement), C# (SqlCommand with Parameters), and most other languages.
 
 ---
 
@@ -74,8 +74,9 @@ Never run web apps as root or a DBA. Create a dedicated user with only the permi
 CREATE USER 'reader'@'localhost';
 GRANT SELECT ON ilfreight.ports TO 'reader'@'localhost' IDENTIFIED BY 'p@ssw0Rd!!';
 ```
+> Creates a restricted DB user and grants only `SELECT` on a specific table. Even if SQLi succeeds against this user, the attacker cannot read other tables, write files, or execute OS commands. Replace the username, database, table, and password with your app's values.
 
-Result: even if injection succeeds, the attacker can only `SELECT` from `ports`. No `FILE`, no `DROP`, no cross-database reads.
+Result: even if injection succeeds, the attacker can only `SELECT` from `ports`. No file access, no `DROP`, no reading from other databases.
 
 ---
 
@@ -90,7 +91,7 @@ Blocks requests containing known SQLi patterns before they reach the app:
 
 Default rules block strings like `INFORMATION_SCHEMA`, `UNION SELECT`, `OR 1=1`, etc.
 
-> WAF is a last line of defense — it can be bypassed (obfuscation, encoding, fragmentation). Fix the code first; WAF is a supplement, not a replacement.
+> A WAF (Web Application Firewall) is a last line of defense. It can be bypassed with obfuscation, encoding, or fragmentation. Fix the code first. WAF is a supplement, not a replacement for proper input handling.
 
 ---
 

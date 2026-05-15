@@ -36,6 +36,7 @@ The attacker re-registers the dangling resource at the provider — the victim's
 ```
 customer-drive.inlanefreight.com.   3600   IN   CNAME   ilf-customer-drive.s3.amazonaws.com.
 ```
+> This is an example DNS record showing a CNAME to an S3 bucket. If the bucket `ilf-customer-drive` is deleted but this record stays, the subdomain is open for takeover.
 
 If `ilf-customer-drive` no longer exists in S3, **anyone** can register it. The CNAME still resolves; the browser still shows `customer-drive.inlanefreight.com` in the address bar; the TLS certificate the attacker provisions (e.g., via S3 + CloudFront ACM, or just bare S3 with a wildcard cert from the victim) still validates as far as the user is concerned.
 
@@ -115,6 +116,7 @@ subfinder -d victim.com -all -recursive -silent -o subs.txt
 amass enum -passive -d victim.com -o subs2.txt
 sort -u subs.txt subs2.txt > all_subs.txt
 ```
+> Combine two passive tools and deduplicate with `sort -u`. Replace `victim.com` with your target domain. Both tools send no traffic to the target — safe for stealth recon.
 
 ### 2. Resolve & Find CNAME Tails
 
@@ -125,6 +127,7 @@ puredns resolve all_subs.txt -r resolvers.txt -w resolved.txt
 # Pull every CNAME — these are your takeover candidates
 dnsx -l resolved.txt -cname -resp -silent | tee cnames.txt
 ```
+> `puredns` resolves the subdomain list against a trusted resolver set. `dnsx -cname` extracts CNAME records from every resolved host — these are your takeover leads.
 
 ### 3. Identify Dangling Targets
 
@@ -132,6 +135,7 @@ dnsx -l resolved.txt -cname -resp -silent | tee cnames.txt
 # Filter CNAMEs to known third-party providers
 grep -Ei 's3.amazonaws|cloudfront|github\.io|herokuapp|azurewebsites|fastly|shopify|unbouncepages|zendesk|surge\.sh|bitbucket\.io' cnames.txt > suspects.txt
 ```
+> Filters the CNAME list to only records pointing at providers known to allow unclaimed resource registration. Add more patterns as new providers are discovered.
 
 ### 4. Fingerprint
 
@@ -145,6 +149,7 @@ nuclei -t http/takeovers/ -l suspects.txt -o nuclei_takeovers.txt
 # dnstake — DNS-layer detection (catches NS takeovers subjack misses)
 dnstake -d victim.com -t 50 -o dnstake.txt
 ```
+> Use all three in sequence — they have different fingerprint databases. `-t 50` sets parallel threads. `-v` enables verbose output to see which checks are running.
 
 ### 5. Verify (manually, before claiming)
 
@@ -154,6 +159,7 @@ dig sub.victim.com CNAME +short
 curl -sI https://sub.victim.com
 curl -s  https://sub.victim.com | head
 ```
+> Always verify manually before claiming. `dig CNAME` confirms the delegation is still active. `curl -sI` checks the HTTP response headers. `curl | head` looks for the provider's "not found" fingerprint string.
 
 If the response matches a fingerprint **and** the resource is genuinely unclaimed at the provider, proceed to PoC.
 
@@ -171,6 +177,7 @@ For a bug bounty submission, the PoC is the **claim itself** + a benign HTML pag
   <p>Reported under <a href="https://hackerone.com/victim">victim's bounty program</a>.</p>
 </body></html>
 ```
+> This is the minimum acceptable PoC page. Replace `@yourhandle` and `sub.victim.com` with your values. Host this and screenshot it — this is your proof of control without harming real users.
 
 Host on the claimed S3 bucket / GH Pages / Heroku app and screenshot. **Never** harvest credentials, send phishing, or set cookies on real users — that converts a paid finding into a CFAA problem.
 
@@ -212,6 +219,7 @@ Researcher
 ----------
 @yourhandle  -  yourhandle@protonmail.com
 ```
+> Use this as a template for H1/Bugcrowd submissions. Replace all placeholder values. The "Steps to Reproduce" section with screenshots (before and after claim) is the most important part for triage.
 
 ---
 

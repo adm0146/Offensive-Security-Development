@@ -6,7 +6,7 @@
 
 ## What Command Injection Is
 
-User-controlled input is concatenated into a string that gets passed to an OS command execution function (`system()`, `exec()`, `child_process.exec()`, `Runtime.exec()`, etc.) without sanitization. Attacker breaks out of the intended argument context and appends their own commands.
+User-controlled input is joined into a string that gets passed to an OS command execution function — like `system()`, `exec()`, `child_process.exec()`, or `Runtime.exec()` — without sanitization. The attacker breaks out of the intended argument context and appends their own commands.
 
 ```
 Intended:    touch /tmp/<USER_FILENAME>.pdf
@@ -14,7 +14,7 @@ Attacker:    USER_FILENAME = "x; whoami"
 Executed:    touch /tmp/x; whoami.pdf
 ```
 
-The shell parses the `;` as a command separator — runs `touch /tmp/x` then runs `whoami`. Server returns command output (or the attacker exfils it via DNS/HTTP if blind).
+The shell parses the `;` as a command separator. It runs `touch /tmp/x`, then runs `whoami`. The server returns command output, or the attacker exfiltrates it via DNS or HTTP if the injection is blind.
 
 ---
 
@@ -34,10 +34,10 @@ The shell parses the `;` as a command separator — runs `touch /tmp/x` then run
 
 Common thread: **user input → query/code context → boundary break → attacker controls behavior**.
 
-OS Command Injection sits at OWASP #3 because:
-- Direct RCE outcome (no chain needed)
-- Easy to find — anything that runs a shell command with user input
-- Hard to filter completely without breaking functionality
+OS Command Injection sits at OWASP Top 10 #3 because:
+- It produces direct Remote Code Execution (RCE) without needing a chain
+- It is easy to find — any feature that runs a shell command with user input is a candidate
+- It is hard to filter completely without breaking functionality
 
 ---
 
@@ -121,12 +121,12 @@ Command injection isn't only about explicit `system()` calls. These also touch s
 
 ## Why It's Still Common
 
-Despite being well-known:
-- Devs reach for `exec("cmd " + input)` because it's intuitive (vs. argv arrays)
-- Codebases inherit legacy shell-based command invocations
-- Third-party libraries internally shell out without exposing safer APIs
-- Sanitization is hard to get right — bypass payloads keep getting discovered
-- Containerized envs feel "safe" so devs skip input validation
+Despite being well-known, command injection keeps showing up because:
+- Developers reach for `exec("cmd " + input)` because it feels intuitive compared to argv arrays.
+- Codebases inherit legacy shell-based command invocations.
+- Third-party libraries internally shell out without exposing safer APIs.
+- Sanitization is hard to get right — new bypass payloads keep being discovered.
+- Containerized environments feel "safe," so developers skip input validation.
 
 ---
 

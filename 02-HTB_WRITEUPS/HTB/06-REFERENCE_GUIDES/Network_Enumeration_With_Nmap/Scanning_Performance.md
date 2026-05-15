@@ -72,6 +72,8 @@ Sets the starting timeout value for probe responses.
 sudo nmap 10.129.2.0/24 -F --initial-rtt-timeout 50ms
 ```
 
+> `--initial-rtt-timeout 50ms` sets the starting probe timeout to 50 milliseconds. Lower values speed up scans on fast networks. Higher values improve reliability on slow or congested networks.
+
 **Effect:**
 - Lower values = faster initial responses (but may miss packets)
 - Higher values = more reliable (but slower overall)
@@ -85,18 +87,25 @@ Sets the ceiling for timeout values during the scan.
 sudo nmap 10.129.2.0/24 -F --max-rtt-timeout 100ms
 ```
 
+> `--max-rtt-timeout` caps how long Nmap will wait for a probe response. Combine with `--initial-rtt-timeout` for full timeout control.
+
 ### Timeout Optimization Example
 
 **Default Scan (No Optimization):**
 ```bash
 sudo nmap 10.129.2.0/24 -F
 ```
+
+> Default scan with no performance tuning. `-F` scans the top 100 ports. Use this as a baseline to compare against optimized scans.
+
 **Result:** 256 IP addresses (10 hosts up) scanned in **39.44 seconds**
 
 **Optimized RTT Scan:**
 ```bash
 sudo nmap 10.129.2.0/24 -F --initial-rtt-timeout 50ms --max-rtt-timeout 100ms
 ```
+
+> Same scan with reduced timeouts. 3x faster but missed 2 hosts. Accept this tradeoff only when speed is critical and you can follow up with a thorough scan.
 **Result:** 256 IP addresses (8 hosts up) scanned in **12.29 seconds**
 
 ### Analysis
@@ -128,18 +137,25 @@ sudo nmap 10.129.2.0/24 -F --initial-rtt-timeout 50ms --max-rtt-timeout 100ms
 sudo nmap 10.129.2.0/24 -F --max-retries 0
 ```
 
+> `--max-retries 0` tells Nmap not to retry any probe. If a packet gets no response, skip it immediately. Significantly faster but may miss ports on lossy networks.
+
 ### Retry Optimization Example
 
 **Default Scan (10 retries):**
 ```bash
 sudo nmap 10.129.2.0/24 -F | grep "/tcp" | wc -l
 ```
+
+> Pipes scan output directly to `grep` to count open TCP ports. The `wc -l` counts the matching lines.
+
 **Result:** **23 open ports** found
 
 **Optimized Scan (0 retries):**
 ```bash
 sudo nmap 10.129.2.0/24 -F --max-retries 0 | grep "/tcp" | wc -l
 ```
+
+> Same counting pattern on the faster no-retry scan. Compare the port count to verify accuracy loss.
 **Result:** **21 open ports** found
 
 ### Analysis
@@ -170,6 +186,8 @@ Tells Nmap to send **at least N packets per second**.
 sudo nmap 10.129.2.0/24 -F --min-rate 300
 ```
 
+> `--min-rate 300` sends at least 300 packets per second. This keeps the scan moving even when some probes get no response. Good for whitelisted assessments on reliable networks.
+
 **Parameters:**
 - Maintains specified rate throughout scan
 - Requires sufficient bandwidth
@@ -185,6 +203,8 @@ Limits Nmap to **at most N packets per second** to avoid overwhelming the networ
 sudo nmap 10.129.2.0/24 -F --max-rate 100
 ```
 
+> `--max-rate 100` caps the send rate at 100 packets per second. Use this to avoid overwhelming the target network or triggering IDS rate-based alerts.
+
 ### Rate Optimization Example
 
 **Default Scan:**
@@ -195,6 +215,8 @@ cat tnet.default | grep "/tcp" | wc -l
 # Result: 23 open ports
 ```
 
+> Baseline scan saving normal output. `cat | grep | wc -l` counts open ports for comparison.
+
 **Optimized Scan with --min-rate 300:**
 ```bash
 sudo nmap 10.129.2.0/24 -F -oN tnet.minrate300 --min-rate 300
@@ -202,6 +224,8 @@ sudo nmap 10.129.2.0/24 -F -oN tnet.minrate300 --min-rate 300
 cat tnet.minrate300 | grep "/tcp" | wc -l
 # Result: 23 open ports (same results, faster execution)
 ```
+
+> Same scan with `--min-rate 300` forcing faster sends. Same ports found with better speed.
 
 **Analysis:**
 - Same number of open ports discovered
@@ -221,6 +245,8 @@ The timing templates automatically adjust multiple parameters for optimal perfor
 sudo nmap 10.129.2.0/24 -F -oN tnet.default
 ```
 
+> Default T3 scan. Use this as the reference baseline.
+
 **Result:** 256 IP addresses (10 hosts up) scanned in **32.44 seconds**
 
 **Open Ports Found:**
@@ -228,6 +254,8 @@ sudo nmap 10.129.2.0/24 -F -oN tnet.default
 cat tnet.default | grep "/tcp" | wc -l
 # Result: 23
 ```
+
+> Count open ports in the saved normal output file.
 
 ### Aggressive Scan (T5 - Insane)
 

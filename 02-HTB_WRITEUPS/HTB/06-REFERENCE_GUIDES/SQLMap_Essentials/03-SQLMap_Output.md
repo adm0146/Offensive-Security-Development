@@ -27,13 +27,13 @@
 
 ## Important Behaviors to Know
 
-**Static parameter** → `does not appear to be dynamic` → sqlmap won't find SQLi because the value doesn't affect output. Move on.
+**Static parameter** — if sqlmap says `does not appear to be dynamic`, the parameter value does not affect the output. SQLi is not possible here. Move on.
 
-**`--string` anchor**: When sqlmap finds a constant string that appears in all TRUE responses and not in FALSE, it uses that as the discrimination signal. This is more reliable than fuzzy response comparison — if you see `--string="..."` in the detection message, the boolean blind result is trustworthy.
+**`--string` anchor:** When sqlmap finds a constant string that appears in every TRUE response but not in FALSE responses, it uses that string as the signal. This is more reliable than comparing fuzzy page differences. If you see `--string="..."` in the detection message, the boolean blind result is trustworthy.
 
-**Session files**: `~/.sqlmap/output/<host>/session.sqlite` — sqlmap reads this on re-run to skip re-detection and jump straight to exploitation. Delete it to force a fresh scan.
+**Session files:** `~/.sqlmap/output/<host>/session.sqlite` — sqlmap reads this on every re-run to skip re-testing confirmed injection points. Delete the file to force a completely fresh scan.
 
-**UNION extension**: sqlmap caps UNION probes at 10 requests per parameter by default (expensive). Once any other technique is confirmed, it removes that cap and does a full UNION search.
+**UNION extension:** sqlmap limits UNION probes to 10 requests per parameter by default (they are expensive). Once any other injection technique is confirmed, it lifts that cap and runs a full UNION search.
 
 ---
 

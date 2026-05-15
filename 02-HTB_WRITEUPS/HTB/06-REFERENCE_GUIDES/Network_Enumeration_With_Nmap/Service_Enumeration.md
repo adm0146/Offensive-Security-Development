@@ -35,6 +35,8 @@ Service version detection is a critical step that bridges port discovery and exp
 nmap 10.129.2.28
 ```
 
+> Quick scan of the top 1000 TCP ports with no version detection. Use this as a first pass to identify which ports are open before running the slower `-sV` scan.
+
 **Advantage:**
 - Significantly less network traffic
 - Lower chance of triggering IDS/IPS alerts
@@ -46,6 +48,8 @@ nmap 10.129.2.28
 ```bash
 sudo nmap 10.129.2.28 -p- -sV
 ```
+
+> Scans all 65,535 TCP ports and detects service versions. This is slow — expect several minutes to an hour depending on how many ports are filtered. Run in the background while doing other tasks.
 
 **Parameters:**
 - `-p-` - Scan all 65,535 TCP ports
@@ -88,6 +92,8 @@ Use `--stats-every` to display status at regular intervals.
 sudo nmap 10.129.2.28 -p- -sV --stats-every=5s
 ```
 
+> `--stats-every=5s` prints a progress update every 5 seconds. Use `m` for minutes (for example `--stats-every=1m`). Useful for long scans so you know Nmap is still working.
+
 **Parameters:**
 - `--stats-every=5s` - Show status every 5 seconds
 - Use `m` for minutes: `--stats-every=2m`
@@ -109,6 +115,8 @@ Use `-v` or `-vv` to show open ports as they are discovered in real-time.
 ```bash
 sudo nmap 10.129.2.28 -p- -sV -v
 ```
+
+> `-v` enables verbose mode. Nmap prints each open port as it discovers it rather than waiting until the scan finishes. Use `-vv` for even more detail.
 
 **Output:**
 ```
@@ -203,6 +211,8 @@ The **Ubuntu OS information** was present in the banner but not fully captured i
 sudo tcpdump -i eth0 host 10.10.14.2 and 10.129.2.28
 ```
 
+> Starts a packet capture on `eth0` filtering for traffic between your machine and the target. Run this in a separate terminal before running the `nc` banner grab. Replace `eth0` with your actual interface (use `ip a` to find it).
+
 **Output:**
 ```
 tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
@@ -213,6 +223,8 @@ listening on eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
 ```bash
 nc -nv 10.129.2.28 25
 ```
+
+> Manual banner grab using netcat (nc). `-n` skips DNS resolution. `-v` shows verbose connection info. Replace `25` with the port you want to probe. The service banner will appear immediately after connecting.
 
 **Output:**
 ```
@@ -268,6 +280,8 @@ Payload: SMTP: 220 inlane ESMTP Postfix (Ubuntu)
 sudo nmap 10.129.2.28 -p- -sV -Pn -n --disable-arp-ping --packet-trace
 ```
 
+> Full scan with maximum debug visibility. Shows every probe Nmap sends and every byte received, including raw service banners. Use this when `-sV` is not reporting version info correctly.
+
 **Parameters:**
 | Parameter | Description |
 |-----------|-------------|
@@ -312,6 +326,8 @@ When scanning non-standard ports with unknown services, using both packet tracin
 ```bash
 nmap -p 31337 -sV -Pn -n --disable-arp-ping --packet-trace -vv -oA banner_discovery 10.129.34.51
 ```
+
+> Targets a single non-standard port with maximum verbosity and packet tracing. `-vv` shows every probe Nmap attempts. The raw response will appear in the fingerprint even if Nmap cannot match the service to a known signature.
 
 **Parameters:**
 | Parameter | Description |

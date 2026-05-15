@@ -48,6 +48,7 @@ Certificate Transparency (RFC 6962) requires all digital certificates issued by 
 ```bash
 curl -s https://crt.sh/\?q\=inlanefreight.com\&output\=json | jq .
 ```
+> Pulls all certificates logged for the domain from the crt.sh Certificate Transparency database as JSON and pretty-prints with `jq`. Swap `inlanefreight.com` for your target domain.
 
 Example response shows certificates for `matomo.inlanefreight.com`, `smartfactory.inlanefreight.com`, and others -- each with issuer, validity dates, and serial numbers.
 
@@ -56,6 +57,7 @@ Example response shows certificates for `matomo.inlanefreight.com`, `smartfactor
 ```bash
 curl -s https://crt.sh/\?q\=inlanefreight.com\&output\=json | jq . | grep name | cut -d":" -f2 | grep -v "CN=" | cut -d'"' -f2 | awk '{gsub(/\\n/,"\n");}1;' | sort -u
 ```
+> Same crt.sh query but parsed down to a clean, sorted, deduplicated list of subdomain names. Swap `inlanefreight.com` for your target domain; redirect to a file to feed later tools.
 
 This extracts a clean list of all unique subdomains from the certificate logs.
 
@@ -66,6 +68,7 @@ Filter out third-party hosted services (we cannot test those without permission)
 ```bash
 for i in $(cat subdomainlist); do host $i | grep "has address" | grep inlanefreight.com | cut -d" " -f1,4; done
 ```
+> Resolves each subdomain in `subdomainlist` and prints only those whose A record stays within the target domain (filters out third-party-hosted hosts). Swap `subdomainlist` for your file and `inlanefreight.com` for your domain.
 
 ### Shodan Reconnaissance
 
@@ -76,12 +79,14 @@ Shodan finds devices and systems permanently connected to the internet -- IoT de
 ```bash
 for i in $(cat subdomainlist); do host $i | grep "has address" | grep inlanefreight.com | cut -d" " -f4 >> ip-addresses.txt; done
 ```
+> Resolves each subdomain and appends only the in-domain IP addresses to `ip-addresses.txt`. Swap `subdomainlist` and `inlanefreight.com` for your target; the output file feeds the Shodan loop next.
 
 **Run IPs through Shodan:**
 
 ```bash
 for i in $(cat ip-addresses.txt); do shodan host $i; done
 ```
+> Queries Shodan's database for each IP in `ip-addresses.txt` — open ports, service versions, and SSL info — without touching the target. Requires a configured Shodan API key; swap the file name as needed.
 
 Shodan returns city, country, organization, open ports, service versions, and SSL information for each IP. This reveals the attack surface without sending a single packet to the target.
 
@@ -94,6 +99,7 @@ Display all available DNS records to find additional hosts and infrastructure de
 ```bash
 dig any inlanefreight.com
 ```
+> Requests all DNS record types (A, MX, NS, TXT, SOA) for the domain in one query using your system resolver. Swap `inlanefreight.com` for your target; TXT records often leak third-party service integrations.
 
 DNS records reveal:
 

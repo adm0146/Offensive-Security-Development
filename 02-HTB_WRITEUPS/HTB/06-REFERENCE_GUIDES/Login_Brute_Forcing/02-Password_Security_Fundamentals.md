@@ -13,7 +13,7 @@
 | **Uniqueness** | One password per account — breach on one doesn't cascade |
 | **Randomness** | No dictionary words, personal info, or common phrases |
 
-**Why length beats complexity:** A 6-char lowercase-only password = 26^6 (~300M combos). An 8-char = 26^8 (~200B combos). Same character set, two extra characters = 667x harder.
+**Why length beats complexity:** A 6-character lowercase password has about 300 million possible combinations. An 8-character one has 200 billion. Same character set, two extra characters, 667 times harder to crack.
 
 ---
 
@@ -62,6 +62,7 @@ Default creds are pre-set by manufacturers and rarely changed. Always try these 
 ~/SecLists/Passwords/Default-Credentials/default-passwords.csv
 ~/SecLists/Usernames/top-usernames-shortlist.txt
 ```
+> The CSV file has `user:pass` pairs for common devices. The username shortlist covers the 17 most common admin account names. Use both with Hydra or Medusa when attacking routers, cameras, or IoT (Internet of Things) devices.
 
 ---
 

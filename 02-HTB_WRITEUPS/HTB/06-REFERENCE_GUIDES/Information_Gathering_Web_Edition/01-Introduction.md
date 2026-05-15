@@ -2,9 +2,9 @@
 
 ## Overview
 
-Web recon is the **Information Gathering** phase of the pentest process. You're mapping the target's attack surface before touching anything.
+Web recon is the Information Gathering phase of the pentest process. You are mapping the target's attack surface before touching anything.
 
-**Two approaches — use both:**
+Two approaches — use both:
 
 | Approach | Interaction | Detection Risk | When to Use |
 |---|---|---|---|
@@ -30,7 +30,7 @@ No direct contact with the target. Start every engagement here.
 
 ## Active Recon — After Authorization
 
-Direct interaction with the target. **Requires written permission.**
+Direct interaction with the target. Requires written permission.
 
 | Technique | Command / Tool | What You Get |
 |---|---|---|
@@ -44,7 +44,7 @@ Direct interaction with the target. **Requires written permission.**
 
 ## Module Workflow
 
-This module follows this progression — each technique feeds the next:
+This module follows this progression. Each technique feeds into the next:
 
 ```
 WHOIS → DNS → Subdomains → Zone Transfers → Virtual Hosts → Web Fingerprinting
@@ -54,7 +54,7 @@ WHOIS → DNS → Subdomains → Zone Transfers → Virtual Hosts → Web Finger
 
 ## Key Takeaways
 
-- **Passive first, active second** — always gather publicly available intel before direct interaction
-- **Active recon requires authorization** — port scanning without permission can be illegal
-- **Findings are iterative** — WHOIS reveals name servers → DNS reveals subdomains → subdomains reveal more attack surface
-- **Document everything** — each finding feeds into the next phase
+- Passive first, active second. Always gather publicly available intelligence before making direct contact.
+- Active recon requires authorization. Port scanning without permission can be illegal.
+- Findings are iterative. WHOIS reveals name servers, DNS reveals subdomains, and subdomains reveal more attack surface.
+- Document everything. Each finding feeds into the next phase.

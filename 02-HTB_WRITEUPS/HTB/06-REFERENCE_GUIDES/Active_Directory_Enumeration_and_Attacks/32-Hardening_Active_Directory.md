@@ -33,21 +33,22 @@ Get-Service -Name Spooler | select Name,Status
 # Find stale computer accounts (not logged in for 90+ days) — defender audit
 Search-ADAccount -ComputersOnly -AccountInactive -TimeSpan 90.00:00:00 | select Name,LastLogonDate
 ```
+> AD hardening audit commands. Run these from a Domain Admin session to identify misconfigured accounts and risky settings. Each result is a potential finding or attack path: AS-REP Roastable accounts, Kerberoastable SPNs, unconstrained delegation, and stale accounts are common pentest wins.
 
 ---
 
 ## The Attacker Perspective
 
-Hardening directly counters the attack paths in Sections 1–31. As a pentester, you need to understand each control so you can:
-1. Identify when it IS in place — and pivot to a different technique
-2. Report when it is NOT in place — high-value findings for the client
-3. Explain to defenders exactly what each control prevents
+Hardening directly counters the attack paths in Sections 1–31. As a pentester, you need to understand each control for three reasons:
+1. Identify when it IS in place — and pivot to a different technique.
+2. Report when it is NOT in place — that is a high-value finding for the client.
+3. Explain to defenders exactly what each control prevents.
 
 ---
 
 ## Step One: Document and Audit
 
-**Why this matters:** You cannot protect what you don't know you have. Most breaches succeed because defenders had no inventory of privileged accounts, orphaned service accounts, or legacy systems.
+**Why this matters:** You cannot protect what you do not know you have. Most breaches succeed because defenders had no inventory of privileged accounts, orphaned service accounts, or legacy systems.
 
 ### Things to Document and Track
 
@@ -68,7 +69,7 @@ Hardening directly counters the attack paths in Sections 1–31. As a pentester,
 
 ### People
 
-The human layer is the weakest link. The controls below prevent "easy wins" that make up most of the Module TTPs.
+The human layer is the weakest link. The controls below prevent "easy wins" that cover most of the Tactics, Techniques, and Procedures (TTPs) in this module.
 
 **Password controls:**
 - Strong password policy with a filter that blocks `welcome`, `password`, months, seasons, company name
@@ -94,6 +95,7 @@ Get-ADGroup -Identity "Protected Users" -Properties Name,Description,Members
 # Members receive hardened Kerberos and authentication behavior automatically
 # Adding an account here requires NO other configuration changes
 ```
+> Lists current members of the Protected Users group. Membership blocks NTLM, RC4 Kerberos, delegation, Digest auth, and caps TGT lifetime at 4 hours. As an attacker, note which privileged accounts are NOT in this group — those are easier targets.
 
 What Protected Users enforces for members:
 | Protection | What It Blocks |
@@ -145,7 +147,7 @@ BloodHound   — graph-based AD attack path analysis
 PingCastle   — automated AD risk score and misconfiguration report
 Grouper      — GPO misconfiguration scanner (checks for cred exposure in SYSVOL)
 ```
-Run these as part of quarterly security assessments. These are the same tools attackers use — defenders should find misconfigs first.
+Run these as part of quarterly security assessments. These are the same tools attackers use. Defenders should find the misconfigs first.
 
 **Specific hardening controls and what they block:**
 

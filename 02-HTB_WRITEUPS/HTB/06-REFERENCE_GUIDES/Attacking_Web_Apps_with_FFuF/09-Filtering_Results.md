@@ -27,7 +27,7 @@ MATCHERS — keep responses that match:        FILTERS — drop responses that m
 - Use **matchers** when you know what a hit looks like (e.g., `-mc 200`)
 - Use **filters** when you know what a miss looks like (e.g., `-fs 986` to drop the default page)
 
-For vhost fuzzing, filters are the right tool — you don't know the real vhost's size, but you do know the default "catch-all" size.
+For vhost fuzzing, filters are the right choice. You don't know the real vhost's size yet, but you do know the default "catch-all" size after one curl probe.
 
 ---
 
@@ -40,6 +40,7 @@ curl -s -o /dev/null -w "%{size_download}" \
   http://TARGET_IP:PORT/
 # Returns: 986  ← this is the noise size
 ```
+> Sends a request for a fake vhost to measure the default "not found" response size. `-o /dev/null` discards the body; `-w "%{size_download}"` prints only the byte count. Use this number with `-fs` in the next step.
 
 **Step 2 — Fuzz filtering out that size:**
 ```bash
@@ -50,6 +51,7 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
   -t 100
 # Returns only: admin, test  ← real vhosts with different content
 ```
+> `-fs 986` removes every 986-byte default response. Only vhosts with different content (different size) survive the filter. The result is a short list of real vhosts.
 
 ---
 
@@ -65,6 +67,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-small
   -u http://admin.academy.htb:PORT/FUZZ \
   -recursion -recursion-depth 1 -e .php -v -ic -t 100
 ```
+> After adding the vhosts to `/etc/hosts`, curl the root to see what's there, then immediately start recursive directory fuzzing on the new vhost. Each new vhost is treated as a fresh target.
 
 ---
 
@@ -78,8 +81,9 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
   -H 'Host: FUZZ.academy.htb' \
   -ac -t 100
 ```
+> `-ac` replaces the manual curl-probe step. ffuf sends a few baseline requests itself, measures the default response, and filters it automatically. Cleaner and faster than finding `-fs` by hand.
 
-`-ac` sends a few probe requests first to determine baseline response characteristics, then auto-filters anything matching the baseline.
+`-ac` sends a few probe requests first. It measures the baseline response, then automatically filters anything that matches it.
 
 ---
 

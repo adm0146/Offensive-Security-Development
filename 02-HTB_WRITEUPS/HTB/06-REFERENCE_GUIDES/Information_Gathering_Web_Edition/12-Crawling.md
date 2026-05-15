@@ -6,7 +6,7 @@
 
 ## What Is Crawling?
 
-Crawling (spidering) = a bot starts at a **seed URL**, fetches the page, extracts all links, adds them to a queue, and repeats. Unlike fuzzing (guessing URLs), crawling **follows what the site itself reveals**.
+Crawling (also called spidering) means a bot starts at a seed URL, fetches the page, extracts all links, adds them to a queue, and repeats. Unlike fuzzing — which guesses URLs — crawling follows what the site itself reveals.
 
 ```
 Seed URL (Homepage)
@@ -73,7 +73,7 @@ Follows each branch to its end before backtracking.
 
 ## Context Is Everything
 
-A single finding means nothing alone. **Connect the dots:**
+A single finding means nothing alone. Connect the dots:
 
 | Finding Alone | Combined With | Becomes |
 |---|---|---|
@@ -81,18 +81,18 @@ A single finding means nothing alone. **Connect the dots:**
 | Outdated software version in metadata | Known CVE for that version | Confirmed exploitable vulnerability |
 | Several URLs point to `/files/` | Directory browsing is enabled | Exposed backup archives, internal documents |
 
-**The recon value is in correlation, not isolation.**
+The recon value is in correlation, not isolation.
 
 ---
 
 ## Key Takeaways
 
-- **Crawling follows links the site reveals** -- fuzzing guesses them
-- **Breadth-first** = wide site map; **depth-first** = deep specific paths
-- **Always check extracted files** -- backups, configs, env files can contain credentials
-- **Comments and metadata** leak more than people think
-- **Correlate findings** -- a comment + a directory + a version = actionable intel
-- **Context turns noise into signal** -- analyze data holistically
+- Crawling follows links the site reveals. Fuzzing guesses them.
+- Breadth-first search gives you a wide site map. Depth-first search follows specific paths as deep as possible.
+- Always check extracted files. Backups, config files, and `.env` files often contain credentials.
+- Comments and metadata leak more than people expect.
+- Correlate findings. A comment plus a directory plus a version number equals actionable intelligence.
+- Context turns noise into signal. Analyze data together, not in isolation.
 
 ---
 

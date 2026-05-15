@@ -23,6 +23,7 @@ Archives consolidate multiple files into one — and are often password-protecte
 # Scrape all known archive extensions from FileInfo
 curl -s https://fileinfo.com/filetypes/compressed | html2text | awk '{print tolower($1)}' | grep "\." | tee -a compressed_ext.txt
 ```
+> Fetches the FileInfo compressed types page, converts HTML to text, lowercases, and filters for lines with dots (file extensions). Saves to a file with `tee`. Useful for building a comprehensive extension list.
 
 ---
 
@@ -39,6 +40,7 @@ john --wordlist=/usr/share/wordlists/rockyou.txt zip.hash
 john zip.hash --show
 # ZIP.zip/customers.csv:1234
 ```
+> `zip2john` extracts a crackable hash from the ZIP's encryption header. Crack with JtR, then display results with `--show`. Use the recovered password to open the ZIP with `unzip -P <password> ZIP.zip`.
 
 ---
 
@@ -50,6 +52,7 @@ john zip.hash --show
 file GZIP.gzip
 # GZIP.gzip: openssl enc'd data with salted password
 ```
+> The `file` command reads the magic bytes to identify the true format. "openssl enc'd data with salted password" means it was encrypted with `openssl enc`, not standard gzip compression.
 
 > `file` command reveals it's OpenSSL-encrypted, not a standard gzip.
 
@@ -62,6 +65,7 @@ for i in $(cat rockyou.txt); do
   openssl enc -aes-256-cbc -d -in GZIP.gzip -k $i 2>/dev/null | tar xz
 done
 ```
+> Tries every password in rockyou.txt as the AES-256-CBC decryption key. Wrong passwords produce errors (suppressed by `2>/dev/null`). The correct password silently extracts the tarball. Check the directory afterward for new files.
 
 - Ignore `gzip: stdin: not in gzip format` errors — they mean wrong password
 - When the correct password is found, the file extracts silently
@@ -71,6 +75,7 @@ done
 ls
 # customers.csv  GZIP.gzip  rockyou.txt
 ```
+> Confirms the extracted file appeared. Run this after the brute-force loop completes to see what was extracted.
 
 ---
 
@@ -85,6 +90,7 @@ bitlocker2john -i Backup.vhd > backup.hashes
 # Filter for password hash only ($bitlocker$0$...)
 grep "bitlocker\$0" backup.hashes > backup.hash
 ```
+> `bitlocker2john` extracts four hashes from the BitLocker header. Only the `$bitlocker$0$` (password) hashes are worth cracking. Filter them out with `grep` to avoid wasting time on the 48-digit recovery key hashes.
 
 | Hash Prefix | Type | Crackable? |
 |-------------|------|------------|
@@ -96,6 +102,7 @@ grep "bitlocker\$0" backup.hashes > backup.hash
 ```bash
 hashcat -a 0 -m 22100 backup.hash /usr/share/wordlists/rockyou.txt
 ```
+> `-m 22100` is BitLocker. Very slow due to AES encryption with high iteration count. Expect ~25–200 H/s on CPU. Use GPU if available. Targeted wordlists are essential here.
 
 | Detail | Value |
 |--------|-------|
@@ -131,6 +138,7 @@ ls -la /media/bitlockermount/
 sudo umount /media/bitlockermount
 sudo umount /media/bitlocker
 ```
+> `losetup -f -P` attaches the VHD as a loop device and creates partition entries. `dislocker` decrypts the BitLocker partition into `/media/bitlocker/dislocker-file`. Then `mount -o loop` mounts that decrypted image. Check with `ls /dev/loop0*` first to find the correct partition (p1 or p2).
 
 ---
 
@@ -157,6 +165,7 @@ sudo umount /media/bitlocker
 unzip cracking-protected-archives.zip
 # inflating: Private.vhd
 ```
+> Extracts the unencrypted outer ZIP to get the VHD file inside. The BitLocker encryption is on the VHD, not the ZIP container.
 
 ### Step 2: Extract BitLocker hashes
 
@@ -166,12 +175,14 @@ bitlocker2john -i Private.vhd > bitlocker.hashes
 # Filter for password hash only (not recovery key)
 grep "bitlocker\$0" bitlocker.hashes > bitlocker.hash
 ```
+> Extracts all BitLocker hashes from the VHD, then filters down to just the password hash. The filtered file is what you feed to hashcat.
 
 ### Step 3: Crack with hashcat
 
 ```bash
 hashcat -a 0 -m 22100 bitlocker.hash /usr/share/wordlists/rockyou.txt
 ```
+> Cracks the BitLocker password hash. Took ~14 seconds for `francisco` — a simple rockyou word. Complex passwords would require days.
 
 ```
 $bitlocker$0$16$b3c105c7ab7faaf544e84d712810da65$...:francisco
@@ -218,6 +229,7 @@ sudo umount /media/bitlockermount
 sudo umount /media/bitlocker
 sudo losetup -d /dev/loop0
 ```
+> Full Linux mount chain: attach VHD as loop device, identify the partition number, decrypt with dislocker using `-u<password>` (no space), mount the resulting dislocker-file, read files, then unmount and detach everything.
 
 **Flag: `43d95aeed3114a53ac66f01265f9b7af`**
 

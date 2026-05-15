@@ -6,7 +6,7 @@
 
 ## How Web Apps Use SQL
 
-PHP example of unsafe query construction:
+Here is an example of unsafe PHP (a web scripting language) query construction:
 
 ```php
 $searchInput = $_POST['findUser'];
@@ -14,7 +14,7 @@ $query = "select * from logins where username like '%$searchInput'";
 $result = $conn->query($query);
 ```
 
-User input is embedded directly into the query string — no sanitization. Whatever the user types becomes part of the SQL sent to the database.
+User input drops straight into the query string with no checking. Whatever the user types becomes part of the SQL sent to the database.
 
 ---
 
@@ -29,7 +29,7 @@ select * from logins where username like '%1'; DROP TABLE users;'
 
 The `'` after `1` **closes the string context**, allowing raw SQL to follow. The original query ends, and a new one executes.
 
-> **Sanitization** = stripping or escaping special characters (especially `'` and `"`) so they can't break out of the string context.
+> **Sanitization** means stripping or escaping special characters — especially `'` and `"` — so they cannot break out of the string context and alter the query.
 
 ---
 

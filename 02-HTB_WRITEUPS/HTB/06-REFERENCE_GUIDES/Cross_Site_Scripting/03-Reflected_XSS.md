@@ -4,7 +4,7 @@
 
 ## What Makes It Reflected
 
-User input is echoed back in the immediate server response (error messages, search results, parameter echoing) without sanitization. **Not stored** — payload only executes for someone who follows a crafted link/request.
+User input is echoed back in the immediate server response — in error messages, search results, or echoed parameters — without sanitization. The payload is **not stored**. It only executes for someone who follows a crafted link.
 
 ---
 
@@ -18,19 +18,20 @@ User input is echoed back in the immediate server response (error messages, sear
 
 ## Delivery Mechanism
 
-Reflected XSS needs the victim to send the malicious input themselves. The delivery method depends on the HTTP method:
+Reflected XSS (Cross-Site Scripting) requires the victim to send the malicious input themselves. How the attacker delivers the payload depends on the HTTP method.
 
 | Method | How attacker delivers payload |
 |--------|-------------------------------|
 | GET | Crafted URL with payload in query string (`?task=<script>...`) — sent via phishing link |
 | POST | Trickier — needs a malicious page that auto-submits a form, or a CSRF-style attack |
 
-Most reflected XSS in CTFs uses GET — check the Network tab in DevTools to confirm the method.
+Most reflected XSS in CTFs uses GET. Check the Network tab in browser DevTools to confirm the method.
 
 ```bash
 # Inspect request method
 curl -sk "http://TARGET/index.php?task=test" -v 2>&1 | grep '> '
 ```
+> Sends a verbose request (`-v`) and filters for lines starting with `>` (the outgoing headers). Shows the method and path the request used.
 
 ---
 
@@ -42,6 +43,7 @@ curl -sk "http://TARGET/index.php?task=test" -v 2>&1 | grep '> '
 <img src=x onerror=alert(1)>
 <svg onload=alert(1)>
 ```
+> These are quick proof-of-concept payloads. Use `window.origin` to show which page is running the script. Use `document.cookie` to see what cookies are accessible. The `<img>` and `<svg>` variants work when `<script>` is filtered.
 
 ---
 
@@ -65,6 +67,7 @@ curl -sk -G "http://154.57.164.79:31042/index.php" \
   -i | grep -i set-cookie
 # Set-Cookie: cookie=HTB{r3fl3c73d_b4ck_2_m3}
 ```
+> Sends the payload as a GET parameter via `--data-urlencode` (handles special characters automatically) and prints headers (`-i`). The `grep` isolates the flag cookie.
 
 **Flag:** `HTB{r3fl3c73d_b4ck_2_m3}`
 
@@ -72,8 +75,8 @@ curl -sk -G "http://154.57.164.79:31042/index.php" \
 
 ## Exam Notes
 
-- Reflected XSS requires victim interaction (clicking a link) — lower severity than stored, but easy to phish
-- The "is it persistent?" check: load the page in a fresh tab without the malicious params → if XSS still fires, it's stored, not reflected
-- GET-reflected XSS is the most common variant — search params, error message echoes, URL-based filters
-- POST-reflected requires CSRF-style delivery — usually escalates via a separate XSS in another reflected sink
-- Even though they're non-persistent, reflected XSS can be devastating with mass phishing (Twitter TweetDeck 2014 = self-retweeting via reflected XSS)
+- Reflected XSS requires victim interaction (clicking a link). It has lower severity than stored XSS, but it is easy to deliver via phishing.
+- The "is it persistent?" check: load the page in a fresh tab without the malicious parameters. If the XSS still fires, it is stored, not reflected.
+- GET-reflected XSS is the most common variant. Look in search parameters, error message echoes, and URL-based filters.
+- POST-reflected XSS requires a Cross-Site Request Forgery (CSRF)-style delivery. It usually needs a separate XSS sink to escalate.
+- Even non-persistent reflected XSS can be devastating at scale. The Twitter TweetDeck self-retweeting attack in 2014 used reflected XSS to spread to 38,000 users in two minutes.

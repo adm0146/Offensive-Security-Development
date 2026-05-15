@@ -28,17 +28,18 @@ group3r.exe -s
 :: ADRecon — generate Excel report from previously collected CSVs (run on host with Excel)
 .\ADRecon.ps1 -GenExcel C:\Tools\ADRecon-Report-20220328092458
 ```
+> Quick reference for the four AD auditing tools. PingCastle generates a scored risk report. Group3r scans all Group Policy Objects (GPOs) for security issues. ADRecon collects a comprehensive AD data dump. All work with standard domain user credentials — no Domain Admin required for most modules.
 
 ---
 
 ## Tool 1 — AD Explorer (Sysinternals)
 
-**What it is:** An advanced AD viewer and editor that lets you browse AD objects, view all attributes without dialog boxes, and save offline snapshots for later analysis.
+**What it is:** An advanced Active Directory (AD) viewer and editor. It lets you browse AD objects, see all attributes without dialog boxes, and save offline snapshots for later analysis.
 
 **Why it matters on an assessment:**
-- You can export a point-in-time snapshot of the full AD database to disk and analyze it during the reporting phase without staying connected to the target
-- Enables before/after comparison — if you make changes or the client makes changes between engagements, you can diff the two snapshots
-- Lets you browse AD with any valid domain user — no admin rights needed for read access
+- You can export a point-in-time snapshot of the full AD database to disk and analyze it during reporting without staying connected to the target.
+- It enables before/after comparison. If you or the client makes changes between engagements, you can diff the two snapshots.
+- Any valid domain user can browse AD with this tool. No admin rights needed for read access.
 
 **How to use:**
 1. Launch `ADExplorer.exe` from the Sysinternals suite
@@ -52,9 +53,9 @@ group3r.exe -s
 
 ## Tool 2 — PingCastle
 
-**What it is:** A domain security scoring tool that produces a risk report based on CMMI (Capability Maturity Model Integration). It goes beyond raw enumeration — it scores the domain's security posture and calls out specific misconfigurations with severity ratings.
+**What it is:** A domain security scoring tool. It produces a risk report based on the Capability Maturity Model Integration (CMMI) framework. It goes beyond raw enumeration — it scores the domain's security posture and flags specific misconfigurations with severity ratings.
 
-**Why it matters:** PingCastle finds the same misconfigs you look for manually (delegation issues, trusts, weak GPOs, stale accounts, shares) but presents them in a client-readable report with risk scores. It also flags recent CVE susceptibility.
+**Why it matters:** PingCastle finds the same misconfigs you look for manually (delegation issues, trusts, weak Group Policy Objects, stale accounts, open shares) but presents them in a client-readable report with risk scores. It also flags Common Vulnerabilities and Exposures (CVE) susceptibility.
 
 ### Running PingCastle
 
@@ -63,6 +64,7 @@ PingCastle.exe
 :: Drops into interactive TUI — choose option 1 for healthcheck
 :: The healthcheck is the main output: domain risk score + full misconfiguration report
 ```
+> Launches PingCastle in interactive mode. Choose option 1 for the healthcheck, which produces the scored domain risk report. Use this when running interactively from an RDP session.
 
 ```cmd
 PingCastle.exe --healthcheck --server INLANEFREIGHT.LOCAL
@@ -70,6 +72,7 @@ PingCastle.exe --healthcheck --server INLANEFREIGHT.LOCAL
 :: --server = target domain name or DC IP
 :: Outputs: ad_hc_inlanefreight.local.html (HTML report) in the current directory
 ```
+> Runs PingCastle headless (no interactive prompts). `--server` accepts a domain name or DC IP. The HTML report is saved in the current directory. Replace `INLANEFREIGHT.LOCAL` with your target domain.
 
 **PingCastle scanner options** (from the interactive menu → option 4-scanner):
 
@@ -101,14 +104,14 @@ PingCastle.exe --healthcheck --server INLANEFREIGHT.LOCAL
 
 ## Tool 3 — Group3r
 
-**What it is:** A purpose-built GPO vulnerability scanner. It parses every GPO in the domain and identifies security-relevant misconfigurations, embedded credentials, weak settings, and interesting policy paths.
+**What it is:** A purpose-built Group Policy Object (GPO) vulnerability scanner. It reads every GPO in the domain and flags security-relevant misconfigurations, embedded credentials, weak settings, and risky policy paths.
 
-**Why it matters:** GPOs are frequently overlooked in manual enumeration. Group3r automates what would take hours of manual GPO review and flags the interesting findings with context.
+**Why it matters:** GPOs are easy to overlook during manual enumeration. Group3r automates what would take hours of manual GPO review and explains each finding in plain English.
 
 **Requirements:**
-- Must run from a domain-joined host
-- Must run as a domain user (does NOT need to be an administrator)
-- If running from a non-joined host, use `runas /netonly` to run in the context of a domain user
+- Must run from a domain-joined host.
+- Must run as a domain user (no admin rights needed).
+- If running from a non-joined host, use `runas /netonly` to run in the context of a domain user.
 
 ### Running Group3r
 
@@ -118,17 +121,20 @@ group3r.exe -f C:\Tools\group3r_output.log
 :: Recommended: always use -f so output isn't lost in terminal scroll
 :: The tool will parse every GPO linked in the domain — can take a few minutes on large domains
 ```
+> Scans all domain Group Policy Objects (GPOs) and writes findings to a log file. Always use `-f` — the output is long and will scroll off the terminal. Search the log for `[FINDING]` to jump straight to security-relevant issues.
 
 ```cmd
 group3r.exe -s
 :: -s = write output to stdout instead of a file
 :: Useful for quick checks or piping to grep/findstr
 ```
+> Prints findings to the terminal instead of a file. Useful for quick runs or piping to `findstr` to filter by keyword (e.g., `group3r.exe -s | findstr /i "password"`).
 
 ```cmd
 group3r.exe -h
 :: -h = print help — shows all available flags and options
 ```
+> Prints the Group3r help menu listing all available flags and options.
 
 **Reading Group3r output — indentation levels:**
 
@@ -150,9 +156,9 @@ GPO Name                          ← no indent = the Group Policy Object itself
 
 ## Tool 4 — ADRecon
 
-**What it is:** A comprehensive AD data collection script that gathers almost everything enumerable from AD in a single run and produces a structured report (HTML + CSV + optionally Excel).
+**What it is:** A comprehensive AD data collection script. It gathers almost everything enumerable from AD in one run and produces a structured report (HTML + CSV + optional Excel).
 
-**Why it matters:** Acts as a catch-all — collects data that manual enumeration may have missed and outputs it in a format that's directly useful for reporting. The Excel output is particularly useful for delivering evidence to clients.
+**Why it matters:** It acts as a catch-all. It collects data that manual enumeration may have missed and formats it for client reports. The Excel output is especially useful for delivering evidence to clients.
 
 ### Running ADRecon
 
@@ -164,6 +170,7 @@ GPO Name                          ← no indent = the Group Policy Object itself
 # Total run time: ~10–15 minutes on a typical domain
 # Output: creates a new folder named ADRecon-Report-YYYYMMDDHHMMSS in the current directory
 ```
+> Runs ADRecon with all modules active. Takes about 10–15 minutes on a typical domain. Output lands in a timestamped folder in the current directory — look for the `CSV-Files\` subfolder for raw data and `ADRecon-Report.xlsx` for the formatted workbook (requires Excel).
 
 **What ADRecon collects:**
 
@@ -202,6 +209,7 @@ ADRecon-Report-YYYYMMDDHHMMSS\
 # Use this if the initial run was on a host without Excel — copy the folder to a host with Excel
 # and re-run with this flag to generate the .xlsx workbook
 ```
+> Generates the Excel workbook from an existing collection folder. Use this when the initial run was on a host without Microsoft Excel installed. Copy the output folder to a host with Excel and run this command against it.
 
 **Requirements note:**
 - Excel must be installed on the host for the `.xlsx` report to be auto-generated
@@ -219,7 +227,7 @@ ADRecon-Report-YYYYMMDDHHMMSS\
 | Group3r | Deep GPO audit; finding embedded creds and weak policy settings |
 | ADRecon | Comprehensive data dump for reporting; catch-all enumeration at end of assessment |
 
-**Assessment workflow:** Run these tools toward the **end** of an assessment, after initial exploitation and enumeration. They're loud (lots of LDAP queries) but comprehensive. Their output feeds directly into the client deliverable.
+**Assessment workflow:** Run these tools toward the **end** of an assessment, after initial exploitation and enumeration. They are loud (lots of Lightweight Directory Access Protocol queries) but comprehensive. Their output feeds directly into the client deliverable.
 
 ---
 

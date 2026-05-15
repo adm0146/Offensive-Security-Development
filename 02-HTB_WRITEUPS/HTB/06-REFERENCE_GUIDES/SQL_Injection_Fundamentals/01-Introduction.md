@@ -6,15 +6,15 @@
 
 ## What is SQL Injection?
 
-A SQL injection (SQLi) occurs when an attacker manipulates user input to alter the SQL query sent by the web application to its database — executing unintended queries directly against it.
+SQL Injection (SQLi) happens when an attacker puts special characters into user input to change the SQL query that the web application sends to its database. The database then runs unintended queries it was never supposed to execute.
 
 **How it happens:**
-1. App takes user input and embeds it directly in a SQL query (no sanitization)
-2. Attacker injects special characters (`'` or `"`) to break out of the expected input context
-3. Attacker appends malicious SQL to change or add query logic
-4. Results are returned to the front-end or inferred from app behavior
+1. The app takes user input and drops it directly into a SQL query without checking it first
+2. The attacker adds special characters (`'` or `"`) that break out of the expected input context
+3. The attacker adds malicious SQL that changes or adds new query logic
+4. Results come back in the app's response, or the attacker infers them from app behavior
 
-> This module focuses on **MySQL** and relational databases. MongoDB-style attacks are NoSQL injection — different topic.
+> This module focuses on **MySQL** and relational databases. MongoDB-style attacks are called NoSQL injection — that is a different topic covered elsewhere.
 
 ---
 

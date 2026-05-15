@@ -6,13 +6,14 @@
 
 ## What Are Well-Known URIs?
 
-Defined in **RFC 8615**, the `/.well-known/` directory is a standardized location in a website's root for hosting metadata, configuration files, and service information. The **IANA** maintains a registry of all registered URIs.
+The `/.well-known/` directory is a standardized location in a website's root for hosting metadata, configuration files, and service information. It is defined in RFC 8615. The Internet Assigned Numbers Authority (IANA) maintains a registry of all registered well-known URIs.
 
 ```bash
 # Check for well-known URIs on any target
 curl -s https://TARGET/.well-known/security.txt
 curl -s https://TARGET/.well-known/openid-configuration
 ```
+> Fetches two common well-known URIs. `security.txt` returns the security contact and disclosure policy. `openid-configuration` returns a JSON document mapping the entire authentication infrastructure. Replace TARGET with your IP or domain. Run both on every target.
 
 ---
 
@@ -30,11 +31,12 @@ curl -s https://TARGET/.well-known/openid-configuration
 
 ## OpenID Configuration — Deep Dive
 
-This is the most recon-rich well-known URI. It returns a JSON document mapping the entire auth infrastructure:
+This is the richest well-known URI for recon. It returns a JSON document that maps the entire authentication infrastructure:
 
 ```bash
 curl -s https://TARGET/.well-known/openid-configuration | jq .
 ```
+> Fetches the OpenID Connect (OIDC) discovery document and pretty-prints it with `jq`. The JSON response maps every authentication endpoint — authorization, token, userinfo, and the JSON Web Key Set (JWKS). Each endpoint is a potential attack surface.
 
 ### Example Response
 
@@ -83,17 +85,18 @@ curl -s https://TARGET/.well-known/assetlinks.json
 curl -s https://TARGET/.well-known/mta-sts.txt
 curl -s https://TARGET/.well-known/change-password
 ```
+> Step 1 gets the security contact info. Step 2 gets and pretty-prints the full OpenID discovery document. Step 3 uses `jq` to extract every value that starts with `http` — pulling out all endpoint URLs at once without manual reading. Steps 4+ check additional well-known URIs that may reveal mobile app associations or email security policy. Replace TARGET throughout.
 
 ---
 
 ## Key Takeaways
 
-- **Always check `/.well-known/`** paths early in recon — it's structured, standardized intel
-- **`openid-configuration`** is the richest target — maps the entire auth infrastructure in one request
-- **`security.txt`** reveals the security team and disclosure process
-- **IANA registry** has the full list — browse it for less common URIs that may be present
-- **Each endpoint discovered** becomes a new attack surface to test
-- **`jq`** is essential for parsing the JSON responses efficiently
+- Always check `/.well-known/` paths early in recon. The information is structured and standardized.
+- `openid-configuration` is the richest target — it maps the entire auth infrastructure in one request.
+- `security.txt` reveals the security team and the responsible disclosure process.
+- The IANA registry has the full list of registered well-known URIs — check it for less common paths that may be present on the target.
+- Every endpoint you discover becomes a new attack surface to test.
+- `jq` is essential for parsing the JSON responses efficiently.
 
 ---
 

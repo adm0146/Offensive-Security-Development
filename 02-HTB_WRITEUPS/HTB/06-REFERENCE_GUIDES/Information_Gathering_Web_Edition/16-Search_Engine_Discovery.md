@@ -6,10 +6,10 @@
 
 ## Why Search Engine Discovery Matters
 
-- **Public and legal** — all indexed data is openly accessible
-- **Massive coverage** — search engines index billions of pages
-- **Free** — no tools to install, no accounts needed
-- **No direct interaction** with the target — completely passive recon
+- Public and legal — all indexed data is openly accessible.
+- Massive coverage — search engines index billions of pages.
+- Free — no tools to install and no accounts needed.
+- No direct interaction with the target — completely passive recon.
 
 ---
 
@@ -124,12 +124,12 @@ site:example.com inurl:wp-config.php
 
 ## Key Takeaways
 
-- **Google dorking is passive recon** — no packets touch the target
-- **`site:` + `filetype:` + `inurl:`** is the holy trinity of dorking
-- **Exposed config files** (`config.php`, `.env`) often contain credentials
-- **Directory listings** (`intitle:"index of"`) expose file structures
-- **GHDB** has thousands of pre-built dorks — don't reinvent the wheel
-- **Always combine operators** — broad searches waste time, specific dorks find gold
+- Google dorking is passive recon — no packets touch the target.
+- `site:` combined with `filetype:` and `inurl:` is the core combination for most dorks.
+- Exposed config files such as `config.php` and `.env` often contain credentials.
+- Directory listings found with `intitle:"index of"` expose file structures.
+- The Google Hacking Database (GHDB) at exploit-db.com has thousands of pre-built dorks — do not reinvent the wheel.
+- Always combine operators. Broad searches waste time; specific dorks find the gold.
 
 ---
 

@@ -6,7 +6,7 @@
 
 ## What Is the Wayback Machine?
 
-The **Internet Archive's Wayback Machine** ([web.archive.org](https://web.archive.org)) has been archiving websites since 1996. It stores full snapshots (HTML, CSS, JS, images) of websites at various points in time.
+The Internet Archive's Wayback Machine (web.archive.org) has been archiving websites since 1996. It stores full snapshots — Hypertext Markup Language (HTML), CSS, JavaScript, and images — of websites at different points in time.
 
 ```
 https://web.archive.org/web/*/TARGET.com
@@ -22,9 +22,9 @@ https://web.archive.org/web/*/TARGET.com
 | **Archiving** | Pages + resources stored with a timestamp (date/time snapshot) |
 | **Accessing** | Users browse snapshots by entering a URL and selecting a date |
 
-- Archive frequency varies — popular sites may be captured daily, others monthly or less
-- Not every page is captured — prioritizes cultural, historical, and research value
-- Site owners can request exclusion (but not guaranteed)
+- Archive frequency varies. Popular sites may be captured daily; others monthly or less.
+- Not every page is captured. The archive prioritizes cultural, historical, and research value.
+- Site owners can request exclusion, but it is not guaranteed.
 
 ---
 
@@ -59,6 +59,7 @@ curl -s "https://web.archive.org/cdx/search/cdx?url=target.com&output=text&fl=ti
 # 5. Download an archived page
 curl -s "https://web.archive.org/web/20170610042301/https://www.hackthebox.eu/" -o archived_page.html
 ```
+> The CDX API returns a list of all archived URLs and timestamps — no browser needed. `fl=timestamp,original` selects which fields to return. `collapse=urlkey` deduplicates URLs with different timestamps so you see each unique URL once. `limit=1` returns only the first result (useful for the earliest snapshot). Step 5 downloads a specific archived page by its timestamp — swap the timestamp and domain for your target.
 
 ---
 
@@ -78,12 +79,12 @@ curl -s "https://web.archive.org/web/20170610042301/https://www.hackthebox.eu/" 
 
 ## Key Takeaways
 
-- **Completely passive** — no packets touch the target, just browsing an archive
-- **Old pages may still exist** — just because they're unlinked doesn't mean they're deleted
-- **Check old robots.txt** — previously hidden paths might still be accessible
-- **Employee turnover** — old team pages reveal past staff, username patterns
-- **CDX API** enables programmatic queries — script it for large-scale recon
-- **Compare snapshots** — diff old vs current to find what changed and what was removed
+- This technique is completely passive. No packets touch the target — you are browsing an archive.
+- Old pages may still exist on the live site. Unlinked does not mean deleted.
+- Check old robots.txt from archived snapshots. Previously hidden paths might still be accessible.
+- Old team pages reveal past employees, username patterns, and org structure.
+- The CDX API enables programmatic queries. Script it for large-scale recon across many targets.
+- Compare old and current snapshots to find what changed, what was added, and what was removed.
 
 ---
 

@@ -139,6 +139,7 @@ sudo apt install vsftpd
 # View active settings (exclude comments)
 cat /etc/vsftpd.conf | grep -v "#"
 ```
+> `grep -v "#"` removes all comment lines from the config file so you only see active settings. This is faster than reading through the full config. Use the same trick on any config file to filter out noise.
 
 ### Key Settings
 
@@ -173,6 +174,7 @@ guest
 john
 kevin
 ```
+> `/etc/ftpusers` is a deny list — users in this file cannot log in via FTP even if their credentials are valid. Check this file during post-exploitation to understand which accounts are restricted.
 
 Users in this file cannot login even if they exist on the system.
 
@@ -214,6 +216,7 @@ ftp 10.129.14.136
 # Response code 220 = banner (often shows version!)
 # Login as: anonymous
 ```
+> Connect to the FTP server and log in as `anonymous`. The 220 banner often reveals the server software and version — note it for CVE research. Replace `10.129.14.136` with your target IP.
 
 ### Useful FTP Commands
 ```bash
@@ -223,6 +226,7 @@ ftp> trace           # Enable packet tracing
 ftp> ls              # List directory
 ftp> ls -R           # Recursive listing (if ls_recurse_enable=YES)
 ```
+> Run these interactively after connecting. `debug` and `trace` show the raw protocol exchange — useful when something isn't working. `ls -R` recursively lists all directories in one command, giving you the full file tree.
 
 ### What to Look For
 - **Banner** - May reveal version info
@@ -294,6 +298,7 @@ ftp> get Important\ Notes.txt
 # Escapes spaces in filename
 # File saved to current local directory
 ```
+> Use `get` inside the FTP session to download a file. Backslash-escape spaces in filenames. The file lands in whichever directory you were in when you launched `ftp`.
 
 ### Download ALL Files (wget)
 ```bash
@@ -303,6 +308,7 @@ wget -m --no-passive ftp://anonymous:anonymous@10.129.14.136
 # Downloads entire FTP structure
 # ⚠️ May trigger alarms - unusual behavior
 ```
+> `-m` mirrors the entire FTP directory tree recursively. `--no-passive` forces active mode, which works better with some servers. The downloaded files are placed in a folder named after the target IP. Use this to grab everything at once when anonymous access is allowed. Replace the IP with your target.
 
 **Result:**
 ```
@@ -326,6 +332,7 @@ touch testupload.txt
 ftp> put testupload.txt
 226 Transfer complete.
 ```
+> `put` uploads a file from your local machine to the FTP server. If anonymous uploads are allowed and the FTP root syncs to a web directory, you can upload a web shell and trigger it via HTTP.
 
 **Why uploads matter:** If FTP syncs to webserver → upload malicious file → LFI/RCE
 
@@ -337,6 +344,7 @@ ftp> put testupload.txt
 ```bash
 sudo nmap --script-updatedb
 ```
+> Updates Nmap's local database of Nmap Scripting Engine (NSE) scripts. Run this after installing new scripts so Nmap can find them by name.
 
 ### Find FTP Scripts
 ```bash
@@ -351,11 +359,13 @@ find / -type f -name ftp* 2>/dev/null | grep scripts
 /usr/share/nmap/scripts/ftp-proftpd-backdoor.nse # Known backdoor
 /usr/share/nmap/scripts/ftp-vuln-cve2010-4221.nse
 ```
+> `find` with `-name ftp*` locates all FTP-related NSE scripts. `2>/dev/null` suppresses permission errors. The key script to always run is `ftp-anon` — it checks for anonymous login automatically.
 
 ### Standard FTP Scan
 ```bash
 sudo nmap -sV -p21 -sC -A 10.129.14.136
 ```
+> Runs version detection (`-sV`), default scripts (`-sC`), and OS/traceroute (`-A`) against FTP port 21. The default scripts include `ftp-anon`, so you automatically get an anonymous login check. Replace `10.129.14.136` with your target IP.
 
 **Example Output:**
 ```
@@ -380,6 +390,7 @@ sudo nmap -sV -p21 -sC -A 10.129.14.136
 sudo nmap -sV -p21 -sC -A 10.129.14.136 --script-trace
 # Shows exact commands sent/received at network level
 ```
+> `--script-trace` prints every NSE command and server response at the network level. Use it when a script produces unexpected results — you can see exactly what was sent and what came back. Replace `10.129.14.136` with your target IP.
 
 ---
 
@@ -389,16 +400,19 @@ sudo nmap -sV -p21 -sC -A 10.129.14.136 --script-trace
 ```bash
 nc -nv 10.129.14.136 21
 ```
+> Grabs the raw FTP banner without opening a full FTP session. Useful for quick version identification when you just need the banner. Replace `10.129.14.136` with your target IP.
 
 ### Telnet
 ```bash
 telnet 10.129.14.136 21
 ```
+> Another raw banner grab method. Telnet lets you type FTP commands manually line by line. Useful when the standard `ftp` client is unavailable.
 
 ### OpenSSL (TLS/SSL FTP)
 ```bash
 openssl s_client -connect 10.129.14.136:21 -starttls ftp
 ```
+> `-starttls ftp` upgrades a plain FTP connection to TLS. This reveals the SSL certificate, which often contains the hostname, organization name, and admin email — valuable recon data. Replace `10.129.14.136` with your target IP.
 
 **Why OpenSSL matters:** Shows SSL certificate with:
 - Hostname (e.g., `master.inlanefreight.htb`)

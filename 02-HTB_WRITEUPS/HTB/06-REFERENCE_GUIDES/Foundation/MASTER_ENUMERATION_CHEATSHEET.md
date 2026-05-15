@@ -14,19 +14,19 @@
 ```bash
 sudo nmap 10.129.2.0/24 -sn -oA network_scan
 ```
-Discovers all active hosts on a network subnet to identify potential targets.
+> `-sn` ping-only scan (no port scan) to find live hosts; `-oA` saves results in all three formats (.nmap, .xml, .gnmap). Replace the CIDR with your target subnet. Discovers all active hosts on a network subnet to identify potential targets.
 
 **Scan from IP List**
 ```bash
 sudo nmap -sn -oA ip_list_scan -iL hosts.txt
 ```
-Tests multiple targets from a file for quick online/offline status check.
+> `-iL` reads targets from a file (one IP per line). Use this when you have a pre-built target list instead of scanning a whole subnet. Tests multiple targets from a file for quick online/offline status check.
 
 **Specific Port Range with Version Detection**
 ```bash
 sudo nmap 10.129.2.28 --top-ports=20 -sV -oA quick_enum
 ```
-Fast scan of 20 most common ports with service version identification.
+> `--top-ports=20` scans only the 20 most commonly open ports — fastest way to get an initial picture. Replace 20 with 100 or 1000 for broader coverage. Fast scan of 20 most common ports with service version identification.
 
 ---
 
@@ -36,24 +36,28 @@ Fast scan of 20 most common ports with service version identification.
 ```bash
 sudo nmap 10.129.2.28 -sS -p- -oA syn_full_scan
 ```
+> `-sS` sends SYN packets and reads responses without completing the handshake — stealthier and faster than -sT. Requires root. Replace the IP with your target.
 Half-open TCP scan that doesn't complete handshake; faster and stealthier than Connect scan.
 
 **TCP Connect Scan (Non-Root User)**
 ```bash
 sudo nmap 10.129.2.28 -sT -p- -oA tcp_connect_scan
 ```
+> `-sT` completes the full TCP handshake — works without root but creates full connection logs on the target. Use when you can't run sudo.
 Full TCP three-way handshake; more reliable but easily logged by IDS/IPS systems.
 
 **UDP Port Scan**
 ```bash
 sudo nmap 10.129.2.28 -sU -F -oA udp_scan
 ```
+> `-sU` sends UDP probes; `-F` limits to top 100 ports (full UDP scans take very long). Critical for finding SNMP (161), DNS (53), and DHCP (67/68).
 Identifies open UDP services like DNS, SNMP, DHCP; much slower than TCP due to stateless protocol.
 
 **All Ports Comprehensive Scan**
 ```bash
 sudo nmap 10.129.2.28 -p- -sV -sC -oA comprehensive
 ```
+> `-sC` runs default NSE scripts on top of version detection — the all-in-one initial scan. Can take 10+ minutes on -p-; add `-T4` to speed it up.
 Complete enumeration of all 65,535 ports with version detection and default NSE scripts.
 
 ---
@@ -64,18 +68,21 @@ Complete enumeration of all 65,535 ports with version detection and default NSE 
 ```bash
 sudo nmap 10.129.2.28 -sV -oA service_versions
 ```
+> `-sV` sends probes to identify service banners and version strings. Combine with `-p [ports]` after a port scan to target only open ports for speed.
 Probes open ports to identify service names, versions, and configuration details for CVE research.
 
 **Packet-Level Analysis**
 ```bash
 sudo nmap 10.129.2.28 -p 445 -Pn -n --disable-arp-ping --packet-trace --reason -oA packet_analysis
 ```
+> `--packet-trace` shows every sent/received packet; `--reason` explains why each port got its state. Use this to debug firewall behavior or when you suspect packets are being dropped.
 Shows every packet sent/received; reveals firewall behavior and exact port state determination method.
 
 **Default Port Detection**
 ```bash
 sudo nmap 10.129.2.28 -F -sV -oA fast_services
 ```
+> `-F` scans the top 100 most common ports — much faster than -p- for initial triage. Run this first, then follow up with -p- for a thorough scan.
 Quick scan of top 100 ports with service identification; good for initial reconnaissance.
 
 ---
@@ -190,6 +197,7 @@ Quick scan of top 100 ports with service identification; good for initial reconn
 ftp TARGET_IP                           # Connect
 nmap --script=ftp-anon -p 21 TARGET_IP  # Check anonymous
 ```
+> `ftp TARGET_IP` opens an interactive FTP session — at the login prompt, try `anonymous` with a blank password. The nmap `ftp-anon` script does the same check automatically; if it prints "Anonymous FTP login allowed" you can connect and list files without credentials.
 
 ---
 
@@ -224,6 +232,7 @@ nmap --script=ftp-anon -p 21 TARGET_IP  # Check anonymous
 ssh user@TARGET_IP                      # Connect
 ssh -i key.pem user@TARGET_IP           # With private key
 ```
+> Replace `user` with a discovered username and `TARGET_IP` with the box IP. `-i key.pem` authenticates with a private key instead of a password — always `chmod 600` the key file first or SSH will refuse it.
 
 ---
 
@@ -264,6 +273,7 @@ curl -I http://TARGET_IP                                    # Headers
 gobuster dir -u http://TARGET_IP -w /usr/share/wordlists/dirb/common.txt
 nikto -h http://TARGET_IP                                   # Vuln scan
 ```
+> `curl -I` fetches only the HTTP headers — look for the `Server:` header to identify Apache/nginx/IIS version. `gobuster dir` brute-forces directories; replace the wordlist with `~/SecLists/Discovery/Web-Content/common.txt` for broader coverage. `nikto` runs automated web vulnerability checks.
 
 ---
 
@@ -305,6 +315,7 @@ smbclient -N \\\\TARGET_IP\\share              # Connect to share
 nmap --script=smb-enum-shares -p 445 TARGET_IP # Nmap enum
 enum4linux TARGET_IP                           # Full SMB enum
 ```
+> `-N` is the null session flag (no username/password). `-L` lists available shares. Replace `share` with a discovered share name when connecting. `enum4linux` wraps smbclient, rpcclient, and nmblookup into one comprehensive tool — run it for a full dump of users, shares, and policies.
 
 ---
 
@@ -348,6 +359,7 @@ cd impacket && pip3 install .
 # Connect
 python3 mssqlclient.py user@TARGET_IP -windows-auth
 ```
+> Impacket is already installed on this system at `/usr/local/bin/mssqlclient.py` — skip the git clone. `-windows-auth` uses Windows domain authentication instead of SQL auth; replace `user` and `TARGET_IP` with discovered credentials and the box IP.
 
 ---
 

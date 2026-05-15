@@ -13,7 +13,7 @@
 | Works on HTB targets | No | Yes |
 | Requires DNS | Yes | No — hits the IP directly |
 
-**Key insight:** A server at one IP can host multiple sites, each responding to a different `Host:` header. Vhost fuzzing probes those by sending every wordlist entry as the `Host:` value.
+**Key insight:** One IP address can serve many different websites. Each site has its own `Host:` header value. Vhost fuzzing sends every wordlist entry as the `Host:` header value to find them all.
 
 ---
 
@@ -25,6 +25,7 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
   -H 'Host: FUZZ.academy.htb' \
   -t 100
 ```
+> `-u` is the actual IP destination — all requests hit the same server. `-H 'Host: FUZZ.academy.htb'` changes only the header, which is what the server uses to route to the right virtual host. This finds vhosts that have no DNS record.
 
 - `-u` points to the known IP/domain — the actual destination for every request
 - `-H 'Host: FUZZ.academy.htb'` — the header is what changes per request
@@ -34,7 +35,7 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
 
 ## The Noise Problem and How to Fix It
 
-An unconfigured vhost will fall through to the default page — so every wordlist entry returns 200 OK with the same response size. You'll get thousands of false positives.
+If a vhost doesn't exist, the server serves the default page instead. That means every single wordlist entry returns 200 OK with the same size. You get thousands of false positives.
 
 **Step 1:** Run without a filter to find the default response size:
 ```
@@ -51,8 +52,9 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
   -fs 900 \
   -t 100
 ```
+> `-fs 900` removes every response that is exactly 900 bytes — the default "catch-all" page size found in the step above. Any response with a different size is a real vhost with actual content.
 
-Any result with a different size = a real vhost.
+Any result with a different size is a real vhost.
 
 ---
 
@@ -62,6 +64,7 @@ Add it to `/etc/hosts` to browse it:
 ```bash
 sudo sh -c 'echo "TARGET_IP  admin.academy.htb" >> /etc/hosts'
 ```
+> Adds the discovered vhost to `/etc/hosts` so your browser can resolve it. Replace `TARGET_IP` with the actual IP of the HTB box.
 
 Then visit `http://admin.academy.htb:PORT/` in the browser.
 
@@ -77,3 +80,4 @@ Then visit `http://admin.academy.htb:PORT/` in the browser.
   ```bash
   ffuf -w WORDLIST:FUZZ -u http://TARGET/ -H 'Host: FUZZ.academy.htb' -ac
   ```
+  > `-ac` probes a fake vhost automatically, measures the default response, and filters it out — no need to run a manual curl step first.

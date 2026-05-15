@@ -2,7 +2,7 @@
 
 ## Overview
 
-Fingerprinting extracts **technical details** about the technologies running on a target — web server software, versions, frameworks, CMS platforms, and WAFs. This tells you exactly what to look for when hunting for exploits.
+Fingerprinting extracts technical details about the technologies running on a target. This includes the web server software and version, backend frameworks, Content Management System (CMS) platforms, and Web Application Firewalls (WAFs). Knowing what software the target runs tells you exactly what to look for when hunting exploits.
 
 ---
 
@@ -24,14 +24,16 @@ Fingerprinting extracts **technical details** about the technologies running on 
 ```bash
 curl -I <target>
 ```
+> Sends a HEAD request to the target and prints only the response headers. `-I` stands for "headers only" — no page body is downloaded. Replace `<target>` with your IP or domain.
 
-The `-I` flag fetches **headers only** — no page content.
+The `-I` flag fetches headers only — no page content.
 
 ### Example — Following Redirects
 
 ```bash
 curl -I inlanefreight.com
 ```
+> First hop — returns a 301 redirect and reveals the web server version (`Apache/2.4.41 (Ubuntu)`). Follow each redirect to the next hop to collect more headers.
 
 ```
 HTTP/1.1 301 Moved Permanently
@@ -42,6 +44,7 @@ Location: https://inlanefreight.com/
 ```bash
 curl -I https://inlanefreight.com
 ```
+> Second hop — `X-Redirect-By: WordPress` leaks the CMS handling the redirect. This header would not appear on a non-WordPress site.
 
 ```
 HTTP/1.1 301 Moved Permanently
@@ -53,6 +56,7 @@ Location: https://www.inlanefreight.com/
 ```bash
 curl -I https://www.inlanefreight.com
 ```
+> Final hop — `wp-json` in the `Link` header confirms WordPress. The `Content-Type` confirms HTML is being served.
 
 ```
 HTTP/1.1 200 OK
@@ -76,19 +80,21 @@ Content-Type: text/html; charset=UTF-8
 
 ## WAF Detection with wafw00f
 
-Before deeper fingerprinting, check if a WAF is in place — it can block your probes.
+Before running deeper fingerprinting, check whether a WAF is in place. A WAF can block or distort your probe results.
 
 ### Install
 
 ```bash
 pip3 install git+https://github.com/EnableSecurity/wafw00f
 ```
+> Installs `wafw00f` directly from its GitHub repository using pip3. Run this only if the tool is not already installed.
 
 ### Run
 
 ```bash
 wafw00f inlanefreight.com
 ```
+> Detects the Web Application Firewall (WAF) in front of the target by sending known probe requests and analyzing the responses. Replace the domain with your target. If a WAF is detected, adapt your scanning techniques — some probes may be blocked or rate-limited.
 
 ### Example Output
 
@@ -98,7 +104,7 @@ wafw00f inlanefreight.com
 [~] Number of requests: 2
 ```
 
-**If a WAF is detected:** Adapt your techniques — some probes may be blocked or rate-limited. Note the WAF type for potential bypass research.
+If a WAF is detected, adapt your techniques. Some probes may be blocked or rate-limited. Note the WAF type so you can research bypass methods.
 
 ---
 
@@ -111,12 +117,14 @@ sudo apt update && sudo apt install -y perl
 git clone https://github.com/sullo/nikto
 cd nikto/program && chmod +x ./nikto.pl
 ```
+> Installs the Perl dependency, clones the nikto repository, and makes the main script executable. Kali Linux has nikto pre-installed — only run this if the command is missing.
 
 ### Fingerprint-Only Scan
 
 ```bash
 nikto -h inlanefreight.com -Tuning b
 ```
+> Runs nikto against the target with `-Tuning b` to limit the scan to Software Identification modules only. This fingerprints the server without running a full vulnerability scan. Swap the hostname for your target.
 
 | Flag | Purpose |
 |---|---|
@@ -163,12 +171,12 @@ nikto -h inlanefreight.com -Tuning b
 
 ## Key Takeaways
 
-- **`curl -I` is step one** — always grab headers before running heavier tools
-- **Follow redirects** — each hop can leak new info (`X-Redirect-By: WordPress`)
-- **Check for WAFs first** with `wafw00f` — a WAF can block your scans
-- **Nikto `-Tuning b`** runs fingerprinting only without full vuln scanning
-- **Outdated software versions** in headers = check for known CVEs immediately
-- **WordPress indicators**: `wp-json`, `wp-login.php`, `X-Redirect-By: WordPress`, `wp-content` paths
+- `curl -I` is step one. Always grab headers before running heavier tools.
+- Follow redirects — each hop can leak new information (for example, `X-Redirect-By: WordPress`).
+- Check for WAFs first with `wafw00f` — a WAF can block or alter your scans.
+- `nikto -Tuning b` runs fingerprinting modules only, without a full vulnerability scan.
+- Outdated software versions in headers mean you should check for known CVEs immediately.
+- WordPress indicators: `wp-json`, `wp-login.php`, `X-Redirect-By: WordPress`, and `wp-content` paths.
 
 ---
 
@@ -192,26 +200,30 @@ Question gave VHosts: `app.inlanefreight.local` and `dev.inlanefreight.local`
 ```bash
 echo "<TARGET_IP>  app.inlanefreight.local dev.inlanefreight.local" | sudo tee -a /etc/hosts
 ```
+> Adds both discovered VHosts to `/etc/hosts` at once so tools can resolve them. Replace `<TARGET_IP>` with the actual lab IP.
 
 ### Identifying the CMS on app.inlanefreight.local
 
 ```bash
 curl -I http://app.inlanefreight.local
 ```
+> Fetches headers from the app VHost. Look for `X-Redirect-By`, `X-Powered-By`, and the cookie format to identify the CMS.
 
 Check headers for `X-Redirect-By`, `X-Powered-By`, and cookie format. Also check page source:
 
 ```bash
 curl -s http://app.inlanefreight.local | grep -i "wordpress\|joomla\|drupal\|wp-content\|wp-json"
 ```
+> Downloads the page body and searches for CMS-specific strings. A match on `wp-content` or `wp-json` means WordPress. `com_content` or `components/com_` means Joomla. Adjust the grep pattern for whatever CMS you suspect.
 
-**Answer:** Joomla — identified by the random hex session cookie and aggressive anti-caching headers.
+Answer: Joomla — identified by the random hex session cookie and aggressive anti-caching headers.
 
 ### Identifying the OS on dev.inlanefreight.local
 
 ```bash
 curl -I http://dev.inlanefreight.local
 ```
+> Fetches headers from the dev VHost. The OS is revealed in the `Server` header in parentheses after the version string — `Apache/2.4.41 (Ubuntu)` means Ubuntu.
 
 ```
 HTTP/1.1 200 OK
@@ -221,7 +233,7 @@ Expires: Wed, 17 Aug 2005 00:00:00 GMT
 Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
 ```
 
-**Answer:** Ubuntu — from `Apache/2.4.41 (Ubuntu)` in the `Server` header. The OS is in the parentheses after the version.
+Answer: Ubuntu — from `Apache/2.4.41 (Ubuntu)` in the `Server` header. The operating system is in the parentheses after the version string.
 
 ### Header Analysis
 

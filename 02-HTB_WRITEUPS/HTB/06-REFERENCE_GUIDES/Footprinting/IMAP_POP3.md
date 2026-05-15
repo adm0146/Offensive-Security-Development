@@ -97,6 +97,7 @@ Both IMAP and POP3 have many configuration options. For hands-on experimentation
 # Install Dovecot IMAP and POP3 packages
 sudo apt install dovecot-imapd dovecot-pop3d
 ```
+> Installs Dovecot for lab testing. Run this on a test server to set up a local IMAP/POP3 service to practice against.
 
 📚 **Dovecot Documentation:**
 - [Core Settings](https://doc.dovecot.org/2.4.1/core/summaries/settings.html)
@@ -161,6 +162,7 @@ Improperly configured options can allow attackers to obtain sensitive informatio
 ```bash
 sudo nmap 10.129.14.128 -sV -p110,143,993,995 -sC
 ```
+> Scans all four IMAP and POP3 ports with version detection and default scripts. The SSL certificate in the output often contains the mail server hostname and admin email. Replace `10.129.14.128` with your target IP.
 
 ```
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-09-19 22:09 CEST
@@ -209,6 +211,7 @@ Nmap done: 1 IP address (1 host up) scanned in 12.74 seconds
 ```bash
 curl -k 'imaps://10.129.14.128' --user user:p4ssw0rd
 ```
+> `-k` skips SSL certificate validation (for self-signed certs). `--user user:password` authenticates and lists available mailboxes. Replace `10.129.14.128` with your target IP and `user:p4ssw0rd` with valid credentials.
 
 ```
 * LIST (\HasNoChildren) "." Important
@@ -220,6 +223,7 @@ curl -k 'imaps://10.129.14.128' --user user:p4ssw0rd
 ```bash
 curl -k 'imaps://10.129.14.128' --user cry0l1t3:1234 -v
 ```
+> `-v` shows the full TLS handshake and IMAP protocol exchange. The certificate output reveals the server hostname and email address. Replace the IP and credentials with your target values.
 
 ```
 *   Trying 10.129.14.128:993...
@@ -267,6 +271,7 @@ curl -k 'imaps://10.129.14.128' --user cry0l1t3:1234 -v
 ```bash
 openssl s_client -connect 10.129.14.128:pop3s
 ```
+> Connects to POP3S (port 995) and shows the TLS certificate details before dropping into the POP3 prompt. Once connected, type `USER username` then `PASS password` to log in, then `LIST` to see emails and `RETR 1` to read message 1. Replace `10.129.14.128` with your target IP.
 
 ```
 CONNECTED(00000003)
@@ -287,6 +292,7 @@ Certificate chain
 ```bash
 openssl s_client -connect 10.129.14.128:imaps
 ```
+> Connects to IMAPS (port 993). Once connected, authenticate with `A001 LOGIN username password`, then select the inbox with `A002 SELECT INBOX`, and fetch messages with `A003 FETCH 1 BODY[]`. Replace `10.129.14.128` with your target IP.
 
 ```
 CONNECTED(00000003)

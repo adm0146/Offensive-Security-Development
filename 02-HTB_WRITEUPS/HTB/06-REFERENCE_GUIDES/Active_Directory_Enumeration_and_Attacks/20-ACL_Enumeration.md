@@ -21,6 +21,7 @@ Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $si
 # Check if a group is nested into another group
 Get-DomainGroup -Identity "Help Desk Level 1" | select memberof
 ```
+> Finds all Active Directory (AD) objects that a given user has rights over. `Convert-NameToSid` turns a username into a SID for filtering. `-ResolveGUIDs` turns raw GUID values into readable right names like `GenericWrite`. Replace `wley` with any user you control.
 
 **Key flag:** `-ResolveGUIDs` — converts GUID values to human-readable ACE type names. Always use it.
 
@@ -67,6 +68,7 @@ Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $ad
 # Result: DS-Replication-Get-Changes + DS-Replication-Get-Changes-In-Filtered-Set over domain
 #         → DCSync capable
 ```
+> Walks the full ACL chain step by step. Each iteration finds what rights the current user has, then pivots to the next account. Swap in any username to trace a different attack path.
 
 ---
 
@@ -84,6 +86,7 @@ Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $ad
 $sid = Convert-NameToSid forend
 Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $sid} | ? {$_.ObjectDN -match "dpayne"}
 ```
+> Filters ACL results to only show rights that `forend` has over objects containing "dpayne" in their distinguished name. Add `| ? {$_.ObjectDN -match "TARGET"}` to narrow any enumeration to one object.
 
 ---
 
@@ -108,6 +111,7 @@ foreach($line in [System.IO.File]::ReadLines("C:\Users\htb-student\Desktop\ad_us
     Where-Object {$_.IdentityReference -match 'INLANEFREIGHT\\wley'}
 }
 ```
+> Three enumeration options. Use the targeted SID method first — it is fast and quiet. `Find-InterestingDomainAcl` is slow and noisy; use it as a last resort. The native PS loop at the bottom works without PowerView but is very slow on large domains.
 
 ---
 

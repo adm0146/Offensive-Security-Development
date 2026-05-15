@@ -26,6 +26,7 @@ searchsploit -t Nagios3 --exclude=".py"
 # Show file path
 searchsploit -p 9861
 ```
+> `-t` searches only in exploit titles, not descriptions. `--exclude` filters out file types you don't want. `-p` shows the full filesystem path for a specific exploit ID — use this to find the file to copy.
 
 > `.rb` files ending in Ruby are likely MSF-compatible, but not all `.rb` scripts are valid MSF modules.
 
@@ -52,6 +53,7 @@ cp ~/Downloads/9861.rb /usr/share/metasploit-framework/modules/exploits/unix/web
 
 # 3. Load in msfconsole (pick one method)
 ```
+> Match the destination directory to the exploit type (exploits/unix/webapp). Rename the file to snake_case describing the vulnerability. Keep the folder hierarchy — MSF uses it to categorize modules.
 
 ### Loading Methods
 
@@ -130,6 +132,7 @@ class MetasploitModule < Msf::Exploit::Remote
   end
 end
 ```
+> Copy an existing MSF module as your starting point — don't build from scratch. Fill in Name, Description, CVE, Author, and `register_options`. Put your exploit logic inside the `def exploit` method. Use hard tabs (not spaces) per MSF convention.
 
 ### Common Mixins
 
@@ -179,6 +182,7 @@ end
 8. reload_all in msfconsole
 9. Test with show options → set params → check → run
 ```
+> Steps 7–9 must happen in order — the file must exist before `reload_all`, and `reload_all` must run before the module is searchable.
 
 ---
 

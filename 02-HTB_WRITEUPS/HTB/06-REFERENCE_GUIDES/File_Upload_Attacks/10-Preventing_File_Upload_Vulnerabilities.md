@@ -33,6 +33,7 @@ if (!preg_match('/\.(jpg|jpeg|png|gif)$/i', $fileName)) {
     echo "Only images allowed"; die();
 }
 ```
+> Uses both a blacklist and a whitelist together. The blacklist catches PHP extensions anywhere in the filename (including double-extension tricks). The `$` anchor in the whitelist requires the filename to actually end with an image extension. The `/i` flag makes both checks case-insensitive.
 
 Key points:
 - Blacklist regex uses `\.ph(p|ps|ar|tml)` to catch `.php.jpg` (reverse-double)
@@ -56,6 +57,7 @@ foreach ([$contentType, $MIMEtype] as $t) {
     }
 }
 ```
+> Checks both the client-supplied Content-Type header and the server-detected MIME type from the file's actual bytes. Attackers can spoof the header but cannot easily fake both simultaneously.
 
 **Stronger: re-encode the file server-side after upload.**
 ```php
@@ -64,6 +66,7 @@ $img = imagecreatefromjpeg($_FILES['uploadFile']['tmp_name']);
 imagejpeg($img, $target_path, 85);
 imagedestroy($img);
 ```
+> Re-encoding the image through PHP's GD library destroys any embedded PHP code or JavaScript. Only valid pixel data survives the round-trip. This kills the polyglot file technique entirely.
 Re-encoding destroys polyglot files (PHP-in-image, JS-in-EXIF) because only valid image data survives the round-trip.
 
 ---
@@ -81,6 +84,7 @@ Store the original (sanitized) name in DB; use random hex/UUID on disk:
 $randomName = bin2hex(random_bytes(16)) . '.' . $allowed_ext;
 $db->insert('uploads', ['display_name' => $sanitized, 'disk_name' => $randomName, 'owner_id' => $uid]);
 ```
+> Stores the original display name in the database but saves the file with a random hex name on disk. This defeats filename injection, path traversal, and predictable-path attacks.
 
 Defeats:
 - Filename injection (randomized → no user-controlled chars in path)
@@ -94,6 +98,7 @@ Host uploads on a different server or in a Docker volume. Even if RCE achieved, 
 // In php.ini
 open_basedir = /var/www/uploads/   # restrict PHP file access to this dir
 ```
+> `open_basedir` restricts PHP so it can only open files within the specified directory tree. Even if an attacker achieves code execution, they cannot read files outside the uploads directory.
 
 ### Download proxy with security headers
 ```php
@@ -107,6 +112,7 @@ header('X-Content-Type-Options: nosniff');   // no MIME sniffing
 header('Content-Security-Policy: default-src \'none\'');
 readfile('/storage/' . $file['disk_name']);
 ```
+> Serves files through a proxy script instead of exposing the storage directory directly. `Content-Disposition: attachment` forces download instead of inline rendering, which kills stored XSS via SVG or HTML uploads. `X-Content-Type-Options: nosniff` prevents browser MIME type guessing.
 
 Critical headers:
 - `Content-Disposition: attachment` — forces download instead of inline render (kills stored XSS via SVG/HTML)
@@ -125,6 +131,7 @@ allow_url_include = Off
 allow_url_fopen = Off
 expose_php = Off
 ```
+> Disables PHP functions that execute OS commands, restricts file system access, and turns off remote file inclusion. Even if an attacker uploads a shell, `disable_functions` prevents them from running system commands.
 
 ### Apache — `/etc/apache2/mods-enabled/php*.conf`
 ```apache
@@ -138,6 +145,7 @@ expose_php = Off
     php_flag engine off
 </Directory>
 ```
+> The `$` anchor prevents the reverse-double-extension attack. `php_flag engine off` blocks PHP execution in the uploads directory entirely — even if a PHP file is stored there, it will never execute.
 
 ### nginx
 ```nginx
@@ -149,6 +157,7 @@ location ~ ^/uploads/ {
     try_files $uri =404;   # serve static only — never pass to PHP
 }
 ```
+> Blocks requests for PHP files in the uploads directory and serves all other content as static files. The second block ensures nginx never passes upload directory requests to the PHP-FPM handler.
 
 ### Error handling
 - **Never display raw errors** (`display_errors = Off` in PHP)
@@ -174,6 +183,7 @@ location ~ ^/uploads/ {
 upload_max_filesize = 5M
 post_max_size = 6M
 ```
+> Sets the maximum upload and POST sizes in `php.ini`. Files larger than `upload_max_filesize` are rejected by PHP before your code even runs.
 
 ### Code-level size check
 ```php
@@ -181,6 +191,7 @@ if ($_FILES['uploadFile']['size'] > 5 * 1024 * 1024) {
     echo "File too large"; die();
 }
 ```
+> Adds an explicit size check in application code as a second layer. This catches edge cases where `php.ini` limits might not apply (e.g., chunked uploads).
 
 ---
 
@@ -245,6 +256,7 @@ $db->prepare('INSERT INTO uploads(owner_id, disk_name, display_name, mime) VALUE
 echo "Upload OK";
 ?>
 ```
+> Full secure upload implementation. The seven steps cover size, extension whitelist, extension blacklist, MIME content check, re-encoding (kills polyglots), random filename on disk, and parameterized database storage. Each step is a separate defense layer — defeating one still leaves six more.
 
 ---
 

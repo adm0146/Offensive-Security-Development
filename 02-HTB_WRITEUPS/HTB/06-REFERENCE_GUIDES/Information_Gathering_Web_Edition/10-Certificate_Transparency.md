@@ -2,13 +2,13 @@
 
 ## Overview
 
-Certificate Transparency (CT) logs are **public ledgers** that record every SSL/TLS certificate issued by a Certificate Authority. When a CA issues a cert, it gets logged — and those logs are searchable. For recon, this means you can find **every subdomain that has ever had a certificate issued for it** without brute-forcing or guessing.
+Certificate Transparency (CT) logs are public records that track every SSL/TLS certificate issued by a Certificate Authority (CA). When a CA issues a certificate, it is logged — and those logs are searchable. For recon, this means you can find every subdomain that has ever had a certificate without brute-forcing or guessing.
 
-**Why CT logs beat brute-forcing:**
-- Not limited by wordlist size or quality
-- Reveals **historical** subdomains (old/expired certs = potentially vulnerable hosts)
-- Finds subdomains you would never guess (e.g., `web17611.inlanefreight.htb`)
-- Completely **passive** — no interaction with the target
+CT logs beat brute-forcing for several reasons:
+- They are not limited by wordlist size or quality.
+- They reveal historical subdomains — old or expired certificates may point to vulnerable hosts.
+- They find subdomains you would never guess, such as `web17611.inlanefreight.htb`.
+- They are completely passive — no contact with the target.
 
 ---
 
@@ -29,7 +29,7 @@ Browse to:
 https://crt.sh/?q=%.target.com
 ```
 
-The `%` is a wildcard — returns all certs for the domain and its subdomains.
+The `%` is a wildcard. It returns all certificates for the domain and every subdomain.
 
 ---
 
@@ -40,12 +40,14 @@ The `%` is a wildcard — returns all certs for the domain and its subdomains.
 ```bash
 curl -s "https://crt.sh/?q=<domain>&output=json" | jq -r '.[] | .name_value' | sort -u
 ```
+> Queries crt.sh for all certificates issued to the domain and its subdomains. `output=json` returns machine-readable data. `jq -r '.[] | .name_value'` extracts the domain name from each certificate entry. `sort -u` removes duplicates. Replace `<domain>` with your target. No packets are sent to the target — this is entirely passive.
 
 ### Filter for Specific Subdomains
 
 ```bash
 curl -s "https://crt.sh/?q=facebook.com&output=json" | jq -r '.[] | select(.name_value | contains("dev")) | .name_value' | sort -u
 ```
+> Same command with an extra `select()` filter to show only certificate entries that contain "dev" in the name. Useful for narrowing results when the full output is very large. Replace "dev" with whatever naming pattern you are hunting for.
 
 ### Example Output
 
@@ -87,12 +89,12 @@ secure.dev.facebook.com
 
 ## Key Takeaways
 
-- CT logs are **passive recon** — no interaction with the target, no detection risk
-- `crt.sh` is free, no registration, works from browser or command line
-- The `curl + jq` pipeline lets you **filter and automate** CT log searches
-- CT logs find subdomains that **brute-forcing would miss** — they are a historical record, not a guess
-- Always check CT logs **before** brute-forcing — you may already have what you need
-- Old certificate subdomains = potentially **vulnerable hosts** with outdated configs
+- CT logs are passive recon. No interaction with the target, no detection risk.
+- crt.sh is free, requires no registration, and works from both the browser and command line.
+- The `curl + jq` pipeline lets you filter and automate CT log searches.
+- CT logs find subdomains that brute-forcing would miss — they are a historical record, not a guess.
+- Always check CT logs before brute-forcing. You may already have what you need.
+- Old certificate subdomains may point to vulnerable hosts running outdated software.
 
 ---
 

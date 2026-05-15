@@ -22,6 +22,7 @@ git clone https://github.com/s0md3v/XSStrike.git
 cd XSStrike && pip install -r requirements.txt
 python xsstrike.py -u "http://TARGET/index.php?task=test"
 ```
+> Downloads XSStrike, installs dependencies, then runs it against a URL. Replace `task=test` with the parameter you want to test. XSStrike auto-generates context-aware payloads and reports which ones succeeded.
 
 Output reports the vulnerable parameter, working payload, and confidence/efficiency scores.
 
@@ -38,12 +39,13 @@ ls ~/SecLists/Fuzzing/XSS/
 # human-friendly/  — annotated for manual Burp testing
 # Polyglots/        — multi-context single-string payloads
 ```
+> Lists the XSS payload directories on Kali. Use `robot-friendly/` with ffuf or Burp Intruder. Use `Polyglots/` when you do not know the injection context.
 
-Most payloads won't fire on a given target — they're written for specific contexts (after a quote, inside an attribute, around a filter). Manual brute-force is slow.
+Most payloads will not fire on a given target. They are written for specific contexts (after a quote, inside an attribute, around a filter). Manual brute-force is slow.
 
 ### Custom Python harness
 
-For high-value targets: write a script that sends a unique marker through each input + each header → diffs the rendered HTML → reports where the marker appears unescaped.
+For high-value targets: write a script that sends a unique marker through each input and each header, then diffs the rendered HTML, and reports where the marker appears unescaped.
 
 ```python
 import requests
@@ -55,6 +57,7 @@ for p in params:
     if marker in r.text:
         print(f"REFLECTS: {p}")
 ```
+> Loops over each parameter, substituting the unique marker for one parameter at a time. If the marker appears in the response, that parameter reflects input back to the page.
 
 ### Code review (most reliable)
 
@@ -93,6 +96,7 @@ Form has four inputs: `fullname`, `username`, `password`, `email`. The form does
      --data-urlencode "password=secret123" \
      --data-urlencode "email=<script>alert(1)</script>"
    ```
+> Submits the form with a deliberately invalid email value. The `--data-urlencode` flags encode special characters automatically. The `-G` flag sends everything as a GET request.
 3. **Error page reflects the email value verbatim:**
    ```html
    <center><h1>'<script>alert(1)</script>' is an invalid email!</h1></center>
@@ -114,4 +118,4 @@ Form has four inputs: `fullname`, `username`, `password`, `email`. The form does
 - Manual list-bashing is the slowest method — only useful when you have one tiny scope
 - Headers (`User-Agent`, `Referer`) are often-overlooked XSS sinks — test them with `-H "User-Agent: <script>alert(1)</script>"`
 - The client-side email regex on this lab blocks `<>` in the BROWSER — but the server still echoes the raw value back in the error. Client-side validation is never a security control.
-- When asked "what type of XSS?" — check if the payload persists across refresh (stored) vs. requires the URL params (reflected) vs. never touches server (DOM)
+- When asked "what type of XSS?" — check if the payload persists across refresh (stored), requires URL params (reflected), or never touches the server (DOM-based).

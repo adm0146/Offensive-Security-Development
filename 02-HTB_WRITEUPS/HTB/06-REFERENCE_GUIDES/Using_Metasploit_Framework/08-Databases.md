@@ -23,6 +23,7 @@ sudo msfdb init
 # 4. Launch msfconsole with database connected
 sudo msfdb run
 ```
+> Run in this order every time. `msfdb init` only needs to run once to create the database. After that, use `sudo msfdb run` to start PostgreSQL and launch msfconsole together.
 
 ### Troubleshooting
 
@@ -38,6 +39,7 @@ sudo msfdb run
 msf6 > db_status
 # [*] Connected to msf. Connection type: postgresql.
 ```
+> Run `db_status` as your first command inside msfconsole to confirm the database is connected. If it shows "no connection," restart PostgreSQL and run `msfdb init`.
 
 ---
 
@@ -88,6 +90,7 @@ msf6 > workspace -r OldName NewName
 # Delete ALL workspaces
 msf6 > workspace -D
 ```
+> `-a` creates and switches to a new workspace. Type the workspace name alone to switch to it. Always create a named workspace at the start of each engagement to keep scan data separate.
 
 ---
 
@@ -105,6 +108,7 @@ msf6 > db_import Target.xml
 msf6 > hosts
 msf6 > services
 ```
+> Use `db_import` to load results from a previous nmap scan. Run `hosts` and `services` after importing to confirm the data loaded correctly.
 
 ### Run Nmap Directly from msfconsole
 
@@ -112,6 +116,7 @@ msf6 > services
 # db_nmap auto-stores results in the database
 msf6 > db_nmap -sV -sS 10.10.10.8
 ```
+> `db_nmap` runs a real nmap scan and automatically stores results in the database. Accepts any nmap flag. Swap the IP or CIDR range for your target.
 
 ### Export
 
@@ -121,6 +126,7 @@ msf6 > db_export -f xml backup.xml
 
 # Export formats: xml, pwdump
 ```
+> `-f xml` exports everything (hosts, services, creds, loot, vulns) to an XML file. Use `pwdump` format to export only credentials in a cracker-ready format. Run before closing msfconsole.
 
 ---
 
@@ -153,6 +159,7 @@ msf6 > hosts -a 10.10.10.50
 # Add comment
 msf6 > hosts -m "Domain Controller" 10.10.10.50
 ```
+> `-c` filters which columns to show. `-R` is the most powerful flag — it sets RHOSTS to every host in the results, letting you run a module against all discovered hosts at once.
 
 Key columns: `address`, `arch`, `os_name`, `os_flavor`, `os_sp`, `purpose`, `info`, `comments`, `vuln_count`, `service_count`, `cred_count`
 
@@ -180,6 +187,7 @@ msf6 > services -r tcp
 # Export to CSV
 msf6 > services -o services.csv
 ```
+> Use `services -p 445 -R` to instantly set RHOSTS to all hosts with SMB open. Chain `-p` and `-R` together to target only hosts running a specific service.
 
 ### creds
 
@@ -213,6 +221,7 @@ msf6 > creds -o creds.hcat
 # Set RHOSTS from results
 msf6 > creds -R
 ```
+> `creds` shows all credentials captured by modules. Export to `.jtr` for John the Ripper or `.hcat` for Hashcat. Add credentials manually with `creds add` for use in password spray modules.
 
 ### loot
 
@@ -229,6 +238,7 @@ msf6 > loot -t password,hash
 # Delete loot for a host
 msf6 > loot -d 10.10.10.40
 ```
+> `loot` stores files and data collected from targets — hash dumps, /etc/shadow, config files, etc. Modules like `hashdump` auto-populate it. `-t` filters by loot type.
 
 ---
 
@@ -260,6 +270,7 @@ msf6 > loot
 # 7. Export before closing
 msf6 > db_export -f xml engagement_backup.xml
 ```
+> The full database-backed workflow. `services -p 445 -R` auto-populates RHOSTS with all SMB hosts, then the exploit runs against all of them. Always export before closing.
 
 ---
 

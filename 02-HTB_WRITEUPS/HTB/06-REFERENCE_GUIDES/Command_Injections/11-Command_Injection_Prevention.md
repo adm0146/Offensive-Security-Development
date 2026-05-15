@@ -19,7 +19,7 @@
 
 ## 1 — Avoid Shell Commands Entirely
 
-Whenever possible, use the language's **built-in equivalent** instead of shelling out.
+Whenever possible, use the language's built-in equivalent instead of calling a shell command.
 
 | Task | Bad (shell-out) | Good (built-in) |
 |------|-----------------|-----------------|
@@ -35,7 +35,7 @@ Whenever possible, use the language's **built-in equivalent** instead of shellin
 
 ## 2 — Use Safe Invocation APIs (argv arrays, no shell)
 
-If you MUST run a binary, pass arguments as an array — never as a single string the shell parses.
+If you must run a binary, pass arguments as an array. Never pass them as a single string that the shell will parse.
 
 ### Python
 ```python
@@ -45,6 +45,7 @@ subprocess.call(f"ls {user_dir}", shell=True)
 # GOOD — argv array, no shell
 subprocess.run(["ls", user_dir])
 ```
+> `shell=True` passes the whole string to `/bin/sh -c`, which parses it. An argv list (no `shell=True`) passes each element directly as a process argument — no shell, no injection.
 
 ### Node.js
 ```javascript
@@ -55,6 +56,7 @@ exec(`ls ${userDir}`)
 execFile('ls', [userDir])
 spawn('ls', [userDir])
 ```
+> `exec()` passes the string to a shell. `execFile()` and `spawn()` take an argument array and skip the shell entirely. Use `spawn` or `execFile` whenever possible.
 
 ### Java
 ```java
@@ -64,6 +66,7 @@ Runtime.getRuntime().exec("ls " + dir);
 // GOOD
 new ProcessBuilder("ls", dir).start();
 ```
+> `Runtime.exec(String)` tokenizes the string but still passes it through the runtime in a way that can be exploited. `ProcessBuilder` with individual arguments is the safe form.
 
 ### PHP
 ```php
@@ -76,6 +79,7 @@ pcntl_exec("/bin/ls", [$dir]);
 // Or use escapeshellarg as middle-ground:
 system("ls " . escapeshellarg($dir));
 ```
+> `pcntl_exec` takes an argv array and never invokes a shell. `escapeshellarg` wraps the argument in single quotes and escapes embedded quotes — safer than concatenation but still bypassable in edge cases.
 
 ### Ruby
 ```ruby
@@ -86,6 +90,7 @@ system("ls #{dir}")
 system("ls", dir)
 exec(["ls", dir])
 ```
+> Ruby's `system` and `exec` accept an array of arguments that bypasses shell interpretation. The interpolated string form is vulnerable to the same injection as all other languages.
 
 The principle: **argument vector passes intent (a list of strings) — string passes a script the shell will interpret**.
 
@@ -111,6 +116,7 @@ filter_var($url, FILTER_VALIDATE_URL)
 // Integer with range
 filter_var($n, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100]])
 ```
+> PHP's `filter_var` validates against built-in format rules. `FILTER_FLAG_IPV4` restricts to IPv4 only — no colons, no ranges, no injection characters. Return a 400 error and stop processing if validation fails.
 
 ### JavaScript / Node.js
 ```javascript
@@ -122,6 +128,7 @@ if (!ipRegex.test(ip)) { return res.status(400).send("Bad IP"); }
 const isIp = require('is-ip');
 if (!isIp.v4(ip)) { /* reject */ }
 ```
+> The regex anchors with `^` and `$` to match the full string — not just a substring. A partial match would still allow `127.0.0.1; whoami`. The `is-ip` library is a cleaner alternative to hand-rolling the regex.
 
 ### Python
 ```python
@@ -136,6 +143,7 @@ import re
 if not re.fullmatch(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$', user_input):
     abort(400)
 ```
+> Python's `ipaddress` module rejects anything that is not a valid IPv4 address. It is stricter than a regex and handles edge cases like leading zeros. `re.fullmatch` is safer than `re.match` because it requires the entire string to match.
 
 ### Whitelist principles
 - Use `^...$` anchors in regex (full match, not "contains")
@@ -161,6 +169,7 @@ system("ls " . $safe);
 // For full shell commands:
 $safe = escapeshellcmd($input);   // escapes shell metacharacters
 ```
+> `preg_replace` with a character whitelist strips everything except alphanumerics and dots — no semicolons, pipes, or spaces can survive. `escapeshellarg` wraps the value in single quotes so the shell treats it as one literal argument.
 
 ### JavaScript / Node.js
 ```javascript
@@ -171,6 +180,7 @@ ip = ip.replace(/[^A-Za-z0-9.]/g, '');
 import DOMPurify from 'dompurify';
 const clean = DOMPurify.sanitize(input);
 ```
+> The `g` flag replaces all occurrences, not just the first. Every character outside the allowed set is removed. This is a sanitizer — pair it with validation so you reject bad input before trying to clean it.
 
 ### Python
 ```python
@@ -182,6 +192,7 @@ ip = re.sub(r'[^A-Za-z0-9.]', '', ip)
 import shlex
 safe_arg = shlex.quote(user_input)
 ```
+> `re.sub` strips all characters not in the allowlist. `shlex.quote` wraps the argument in shell-safe quoting — use it as a last resort when argv arrays are not possible.
 
 > **`escapeshellcmd`/`escapeshellarg` are still bypassable in some shell contexts** (especially with nested commands, `$()` substitution, or non-shell-aware sinks). The CPTS module explicitly notes this. Argv arrays + validation > escaping.
 
@@ -200,6 +211,7 @@ safe_arg = shlex.quote(user_input)
 disable_functions = system,exec,shell_exec,passthru,popen,proc_open,pcntl_exec,popen
 open_basedir = /var/www/html/
 ```
+> `disable_functions` blocks listed PHP functions at the interpreter level — even if injection succeeds, the shell functions are unavailable. `open_basedir` confines PHP file access to the webroot so traversal attacks fail.
 
 ### Reject double-encoded requests
 Some WAFs decode the URL once; if the app decodes again, single-encoded payloads bypass. Configure nginx/Apache to reject `%25` sequences in suspicious contexts.
@@ -214,12 +226,14 @@ open_basedir = /var/www/html/   ; PHP
     Require all denied
 </Directory>
 ```
+> The `open_basedir` PHP setting and the Apache `Require all denied` directive work together to restrict what the server can read and serve. Both should be applied so that even a successful injection cannot access files outside the webroot.
 
 ### Drop privileges in subprocesses
 If you must shell out, do it as a less-privileged user:
 ```bash
 sudo -u nobody /usr/local/bin/safe-tool "$arg"
 ```
+> Runs the command as the `nobody` user, which has almost no permissions. Even if injection occurs, the attacker runs as a nearly powerless account. Quote `$arg` to prevent word splitting.
 
 ---
 
@@ -285,6 +299,7 @@ proc_close($proc);
 echo nl2br(htmlspecialchars($out));  // output-safe rendering
 ?>
 ```
+> This example applies all three defenses in order: validate the IP format, strip any non-numeric characters as a backup, then pass the IP as an argv array element so no shell ever parses it. The output is encoded with `htmlspecialchars` before being rendered to prevent XSS from any unexpected command output.
 
 ---
 

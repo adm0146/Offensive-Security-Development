@@ -17,14 +17,14 @@
 
 ## When to Use Each
 
-**`--parse-errors`** — first thing to add when sqlmap isn't finding injection. DBMS errors reveal the query structure and confirm the parameter is actually reaching SQL. Example output:
+**`--parse-errors`** — add this first when sqlmap finds nothing. Database Management System (DBMS) errors reveal the query structure and confirm the parameter is reaching SQL. Example output:
 ```
 [WARNING] parsed DBMS error message: 'SQLSTATE[42000]: Syntax error ... near '))"',),)(('
 ```
 
-**`-t /tmp/traffic.txt`** — captures the full HTTP conversation to disk. Use when you need to study exactly what payloads were sent, or replay a specific request manually.
+**`-t /tmp/traffic.txt`** — saves the full Hypertext Transfer Protocol (HTTP) conversation to disk. Use it when you need to study exactly what payloads were sent or replay a request manually.
 
-**`-v 6`** — streams requests/responses live. Useful for watching sqlmap probe in real time when `-t` output is too much to dig through after the fact. Verbosity levels:
+**`-v 6`** — streams requests and responses live. Use this when the saved `-t` file is too large to dig through later. Verbosity levels:
 ```
 0 = errors only
 1 = default (info + warnings)
@@ -35,7 +35,7 @@
 6 = full HTTP traffic (requests + responses)
 ```
 
-**`--proxy=http://127.0.0.1:8080`** — routes through Burp. Use when you want to intercept, modify, or replay sqlmap's exact requests. Also useful for capturing session data to build request files for `-r`.
+**`--proxy=http://127.0.0.1:8080`** — routes all traffic through Burp Suite. Use this when you want to intercept, modify, or replay sqlmap's exact requests. It is also useful for capturing session data to build request files for `-r`.
 
 ---
 

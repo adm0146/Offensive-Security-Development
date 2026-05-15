@@ -2,7 +2,7 @@
 
 ## Overview
 
-DNS translates domain names to IP addresses. For recon, DNS records reveal **subdomains, mail servers, hosting providers, and infrastructure** — all without touching the target directly.
+The Domain Name System (DNS) translates domain names into IP addresses. For recon, DNS records reveal subdomains, mail servers, hosting providers, and infrastructure — all without touching the target directly.
 
 ---
 
@@ -30,13 +30,13 @@ Your Computer → DNS Resolver → Root Server → TLD Server → Authoritative 
      └──────────────── IP Address Returned ─────────────────────┘
 ```
 
-Your machine checks local cache first → asks the resolver → resolver walks the hierarchy until an authoritative server returns the actual IP.
+Your machine checks its local cache first. If no result is found, it asks the resolver. The resolver walks the hierarchy — root server, then the Top-Level Domain (TLD) server, then the authoritative server — until it gets the actual IP address.
 
 ---
 
 ## The Hosts File — Local DNS Override
 
-Bypasses DNS entirely. You will use this constantly to access discovered VHosts and HTB targets.
+The hosts file bypasses DNS entirely. Your system checks it before making any DNS query. You will use this constantly to access discovered virtual hosts (VHosts) and HTB lab targets.
 
 | OS | Path |
 |---|---|
@@ -52,6 +52,7 @@ echo "10.129.17.237  inlanefreight.htb" | sudo tee -a /etc/hosts
 # Add a discovered VHost
 echo "10.129.17.237  dev.inlanefreight.htb" | sudo tee -a /etc/hosts
 ```
+> `tee -a` appends the line to `/etc/hosts` instead of overwriting it. The `sudo` is required because `/etc/hosts` is owned by root. Replace the IP and hostname for your target. Do this for every new subdomain you discover before using any tool against it.
 
 ### Format
 
@@ -78,11 +79,11 @@ echo "10.129.17.237  dev.inlanefreight.htb" | sudo tee -a /etc/hosts
 
 ## Key Takeaways
 
-- DNS records are a **goldmine** for mapping infrastructure — A records give IPs, MX gives mail servers, NS reveals hosting
-- Know the record types and **what each one tells you** about the target
-- The **hosts file** is your manual override — use it to access VHosts and lab targets
-- **TXT records** often leak security policies and services (SPF, DKIM, verification tokens)
-- Feed DNS findings into deeper enumeration — subdomains, zone transfers, port scans
+- DNS records are a goldmine for mapping infrastructure. A records give IPs, MX records give mail servers, and NS records reveal the hosting provider.
+- Know what each record type tells you about the target.
+- The hosts file is your manual DNS override. Use it to access VHosts and lab targets.
+- TXT records often leak security policies and services. Look for SPF, DKIM, and verification tokens.
+- Feed every DNS finding into deeper enumeration: subdomain brute-force, zone transfers, and port scans.
 
 ---
 

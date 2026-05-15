@@ -25,6 +25,7 @@ Find-DomainUserLocation
 .\SharpHound.exe -c All --zipfilename ILFREIGHT
 # → Upload zip to BloodHound GUI
 ```
+> The AD Module is built into Windows — no tool upload needed, so it is stealthy. `Get-ADUser -Filter {ServicePrincipalName -ne "$null"}` finds Kerberoastable accounts. PowerView gives deeper information. `Find-DomainUserLocation` shows where domain users are currently logged in. Snaffler crawls accessible shares looking for credentials. SharpHound collects data for BloodHound.
 
 **Tool location:** `C:\Tools\`
 
@@ -57,6 +58,7 @@ Get-ADGroup -Identity "Backup Operators"      # specific group info
 Get-ADGroupMember -Identity "Backup Operators" # group members
 Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName  # Kerberoastable
 ```
+> The built-in ActiveDirectory module is the stealthiest option on Windows. `Get-ADDomain` shows the domain's Security Identifier (SID), child domains, and Flexible Single Master Operations (FSMO) role holders. `Get-ADTrust` lists trust relationships. The last command finds all accounts with a Service Principal Name (SPN) set — those are Kerberoastable.
 
 **What to look for:**
 - `ChildDomains` → additional domains to pivot into
@@ -71,6 +73,7 @@ Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincip
 Import-Module .\PowerView.ps1
 # or: . .\PowerView.ps1
 ```
+> Dot-sourcing (`. .\PowerView.ps1`) loads the script into the current session scope. Either form works. Run from `C:\Tools`.
 
 | Command | Use |
 |---------|-----|
@@ -100,6 +103,7 @@ Import-Module .\PowerView.ps1
 .\SharpView.exe Get-DomainUser -Identity forend
 .\SharpView.exe Get-DomainGroupMember -Identity "Domain Admins" -Recurse
 ```
+> SharpView is a compiled C# version of PowerView. It uses the same function names and parameters. Use it when PowerShell Constrained Language Mode blocks the script-based PowerView.
 
 Same functions as PowerView — C# binary, works when constrained language mode blocks PS.
 
@@ -110,6 +114,7 @@ Same functions as PowerView — C# binary, works when constrained language mode 
 ```powershell
 .\Snaffler.exe -s -d inlanefreight.local -o snaffler.log -v data
 ```
+> `-s` enables share discovery, `-d` sets the domain to search, `-o` writes results to a log file, `-v data` shows the actual file content for interesting finds. Review `{Red}` entries first — those are highest priority.
 
 **Color coding:**
 - `{Red}` = high interest (keys, dumps, credentials) → investigate immediately
@@ -125,6 +130,7 @@ Same functions as PowerView — C# binary, works when constrained language mode 
 .\SharpHound.exe -c DCOnly --zipfilename ILFREIGHT_stealth   # DC-only (stealthy)
 .\SharpHound.exe -c All -d inlanefreight.local --zipfilename ILFREIGHT
 ```
+> `-c All` collects all data types. `-c DCOnly` only queries the DC — much less noisy, useful when you want to avoid touching every workstation. The zip file is ready to upload directly into the BloodHound GUI.
 
 Upload zip → BloodHound GUI → Upload Data
 

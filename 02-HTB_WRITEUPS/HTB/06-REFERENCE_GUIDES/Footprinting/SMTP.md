@@ -104,6 +104,7 @@ SMTP servers are only responsible for sending and forwarding emails.
 ```bash
 cat /etc/postfix/main.cf | grep -v "#" | sed -r "/^\s*$/d"
 ```
+> Reads the Postfix config and strips comment lines (`grep -v "#"`) and blank lines (`sed -r "/^\s*$/d"`). The key field to look for is `mynetworks` — if it contains `0.0.0.0/0`, the server is an open relay.
 
 ### Example Configuration Output
 
@@ -156,6 +157,7 @@ home_mailbox = /home/postfix
 ```bash
 telnet 10.129.14.128 25
 ```
+> Opens a raw Telnet connection to port 25. Once connected, you interact with the SMTP server directly using commands like `EHLO`, `VRFY`, `MAIL FROM`, and `RCPT TO`. Replace `10.129.14.128` with your target IP.
 
 ```
 Trying 10.129.14.128...
@@ -191,6 +193,7 @@ The **VRFY** command can enumerate existing users on the system.
 ```bash
 telnet 10.129.14.128 25
 ```
+> Connect to port 25, then type `VRFY username` to check if a user exists. A 252 response may mean the user exists OR just that the server won't say — unreliable. Use `smtp-user-enum` with RCPT mode for more reliable results. Replace `10.129.14.128` with your target IP.
 
 ```
 Trying 10.129.14.128...
@@ -226,6 +229,7 @@ To connect through a web proxy to SMTP server:
 ```
 CONNECT 10.129.14.128:25 HTTP/1.0
 ```
+> Raw HTTP CONNECT request sent to a web proxy to tunnel a TCP connection to the SMTP server. Swap `10.129.14.128:25` for your target host and port.
 
 ---
 
@@ -234,6 +238,7 @@ CONNECT 10.129.14.128:25 HTTP/1.0
 ```bash
 telnet 10.129.14.128 25
 ```
+> Manually sends an email via SMTP commands. Use `EHLO` to announce yourself, `MAIL FROM` to set the sender, `RCPT TO` to set the recipient, `DATA` to start the message body, and a single `.` on a line to end it. Useful for testing open relay or spoofing email sender addresses. Replace `10.129.14.128` with your target.
 
 ```
 Trying 10.129.14.128...
@@ -335,6 +340,7 @@ Default Nmap scripts include **smtp-commands** which uses EHLO to list all possi
 ```bash
 sudo nmap 10.129.14.128 -sC -sV -p25
 ```
+> Scans port 25 with version detection and default scripts. The `smtp-commands` NSE script automatically sends `EHLO` and lists all server capabilities — including whether `VRFY` is enabled. Replace `10.129.14.128` with your target IP.
 
 ```
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-09-27 17:56 CEST
@@ -357,6 +363,7 @@ Use **smtp-open-relay** NSE script to identify open relay servers using 16 diffe
 ```bash
 sudo nmap 10.129.14.128 -p25 --script smtp-open-relay -v
 ```
+> The `smtp-open-relay` NSE script runs 16 different tests to check if the SMTP server will relay mail for arbitrary senders. "16/16 tests" means it's a wide-open relay — you can send spoofed email from any address. Replace `10.129.14.128` with your target IP.
 
 ```
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-09-30 02:29 CEST

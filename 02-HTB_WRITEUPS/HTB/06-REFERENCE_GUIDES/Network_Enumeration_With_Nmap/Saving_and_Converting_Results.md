@@ -25,6 +25,8 @@ Nmap supports **3 primary output formats**, which can all be generated simultane
 nmap -sV -oN results.nmap 10.129.34.15
 ```
 
+> `-oN` saves results in normal human-readable text format. Replace `results.nmap` with a descriptive filename and `10.129.34.15` with your target IP.
+
 **Output Format:**
 ```
 # Nmap 7.98 scan initiated Mon Feb  9 15:16:49 2026 as: /usr/lib/nmap/nmap -sT -oA tcp_connect 10.129.34.15
@@ -57,6 +59,8 @@ PORT      STATE SERVICE
 nmap -sV -oG results.gnmap 10.129.34.15
 ```
 
+> `-oG` saves results in greppable columnar format. Each host and its ports appear on one line, making it easy to extract data with `grep` and `cut`.
+
 **Output Format:**
 ```
 # Nmap 7.98 scan initiated Mon Feb  9 15:16:49 2026 as: /usr/lib/nmap/nmap -sT -oA tcp_connect 10.129.34.15
@@ -73,6 +77,8 @@ Host: 10.129.34.15 ()	Status: Up (0.059s latency)
 grep "open" results.gnmap | cut -d: -f2
 ```
 
+> Extracts just the open port info from the greppable output file. Useful for building port lists to feed into follow-up scans.
+
 ---
 
 ### 3. XML Output (-oX)
@@ -84,6 +90,8 @@ grep "open" results.gnmap | cut -d: -f2
 ```bash
 nmap -sV -oX results.xml 10.129.34.15
 ```
+
+> `-oX` saves results as XML. This format is machine-parseable and can be converted to HTML with `xsltproc` or imported into tools like Metasploit.
 
 **Output Format:**
 ```xml
@@ -125,6 +133,8 @@ nmap -sV -oX results.xml 10.129.34.15
 nmap -sT -oA tcp_connect 10.129.34.15
 ```
 
+> `-oA tcp_connect` creates three files at once: `tcp_connect.nmap`, `tcp_connect.gnmap`, and `tcp_connect.xml`. Always use `-oA` as your default — you never know which format you will need later.
+
 **Results:** Creates three files automatically
 - `tcp_connect.nmap` - Normal output
 - `tcp_connect.gnmap` - Grepable output
@@ -155,6 +165,8 @@ HTML reports are:
 xsltproc <input.xml> -o <output.html>
 ```
 
+> `xsltproc` converts the Nmap XML output into an HTML report. Replace `<input.xml>` with your `.xml` file and `<output.html>` with your desired output filename.
+
 ### Conversion Example
 
 **Step 1:** Run Nmap scan and save XML output
@@ -162,15 +174,21 @@ xsltproc <input.xml> -o <output.html>
 nmap -sT -oX tcp_connect.xml 10.129.34.15
 ```
 
+> Saves scan results in XML format only. Use `-oA` if you want all three formats at once.
+
 **Step 2:** Convert XML to HTML
 ```bash
 xsltproc tcp_connect.xml -o tcp_connect.html
 ```
 
+> Converts the XML file to a styled HTML report using Nmap's built-in stylesheet.
+
 **Step 3:** Open in browser
 ```bash
 open tcp_connect.html
 ```
+
+> Opens the HTML report in your default browser. On Linux, use `xdg-open tcp_connect.html` instead of `open`.
 
 ### Real-World Example
 
@@ -179,6 +197,10 @@ open tcp_connect.html
 nmap -sT -oA tcp_connect 10.129.34.15
 xsltproc tcp_connect.xml -o tcp_connect.html
 ```
+
+> The standard two-command workflow: scan and immediately convert to HTML. Run these back to back after every scan.
+
+
 
 **Generated Files:**
 - `tcp_connect.nmap` - Text-based results
@@ -215,11 +237,15 @@ nmap -sV -oG results.gnmap 10.129.34.15
 grep "open" results.gnmap
 ```
 
+> Saves version detection results in greppable format, then immediately filters for open ports. Replace `10.129.34.15` with your target.
+
 ### Workflow 2: Comprehensive Scan + HTML Report (for clients)
 ```bash
 nmap -sV -sC -O -oA comprehensive_scan 10.129.34.15
 xsltproc comprehensive_scan.xml -o comprehensive_scan.html
 ```
+
+> Full recon scan saving all three formats, then converts to HTML. Use this when preparing client-ready documentation.
 
 ### Workflow 3: Service Detection + All Formats
 ```bash
@@ -229,6 +255,8 @@ nmap -sV --script=default -oA detailed_scan 10.129.34.15
 # - detailed_scan.gnmap (automated processing)
 # - detailed_scan.xml (HTML conversion)
 ```
+
+> Service version detection with default NSE scripts, saving all three formats at once. Replace `10.129.34.15` with your target.
 
 ---
 

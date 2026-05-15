@@ -97,6 +97,7 @@ The module uses **vhosts** to simulate a realistic environment — multiple apps
 IP=10.129.42.195
 printf "%s\t%s\n\n" "$IP" "app.inlanefreight.local dev.inlanefreight.local blog.inlanefreight.local" | sudo tee -a /etc/hosts
 ```
+> Maps the lab vhosts to the target IP in `/etc/hosts`; swap `IP` and the hostname list to match your target.
 
 `/etc/hosts` becomes:
 ```
@@ -117,6 +118,7 @@ sudo sed -i '/inlanefreight.local/d' /etc/hosts
 IP=<new_ip>
 echo "$IP   app.inlanefreight.local dev.inlanefreight.local blog.inlanefreight.local" | sudo tee -a /etc/hosts
 ```
+> Resets stale lab vhost entries then re-adds them for a fresh target; swap `<new_ip>` and the hostname list as needed.
 
 ---
 

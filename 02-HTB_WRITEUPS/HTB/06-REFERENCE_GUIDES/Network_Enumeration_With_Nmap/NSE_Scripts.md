@@ -59,10 +59,14 @@ Run the default safe scripts category automatically.
 sudo nmap <target> -sC
 ```
 
+> `-sC` runs all scripts in the "default" NSE category. These are safe, non-intrusive scripts. Replace `<target>` with your target IP.
+
 **Equivalent to:**
 ```bash
 sudo nmap <target> --script default
 ```
+
+> `--script default` is the long form of `-sC`. The two commands are identical.
 
 **What It Does:**
 - Runs all scripts in the "default" category
@@ -81,12 +85,16 @@ Run all scripts within a particular category.
 sudo nmap <target> --script <category>
 ```
 
+> Replace `<category>` with any NSE category name (for example, `discovery`, `vuln`, `auth`, `brute`). Replace `<target>` with your target IP.
+
 **Examples:**
 ```bash
 sudo nmap 10.129.2.28 --script discovery
 sudo nmap 10.129.2.28 --script vuln
 sudo nmap 10.129.2.28 --script safe
 ```
+
+> These three run entire script categories against `10.129.2.28`. `vuln` checks for known CVEs. `discovery` enumerates services. `safe` runs non-destructive checks.
 
 ---
 
@@ -99,10 +107,14 @@ Run only the named scripts you specify.
 sudo nmap <target> --script <script-name>,<script-name>,...
 ```
 
+> Specify individual script names separated by commas. Use `locate *.nse | grep <keyword>` to find scripts by name.
+
 **Example: SMTP Banner and Commands**
 ```bash
 sudo nmap 10.129.2.28 -p 25 --script banner,smtp-commands
 ```
+
+> Runs two scripts against Simple Mail Transfer Protocol (SMTP) port 25. `banner` grabs the service banner. `smtp-commands` lists supported SMTP commands — the VRFY command can be used to enumerate valid usernames.
 
 **Output:**
 ```
@@ -141,6 +153,8 @@ The aggressive option combines multiple scanning techniques into one comprehensi
 sudo nmap <target> -A
 ```
 
+> `-A` combines `-sV`, `-O`, `--traceroute`, and `-sC` in one flag. It is noisy and slow but gives the most complete picture of a target in a single command. Replace `<target>` with your target IP.
+
 **What -A Includes:**
 - `-sV` - Service version detection
 - `-O` - OS detection
@@ -153,6 +167,8 @@ sudo nmap <target> -A
 ```bash
 sudo nmap 10.129.2.28 -p 80 -A
 ```
+
+> Aggressive scan against port 80 (HTTP). Detects the web server version, runs default scripts (which grab the page title and HTTP headers), attempts OS detection, and runs a traceroute.
 
 **Output:**
 ```
@@ -207,12 +223,16 @@ The `vuln` category focuses on identifying known vulnerabilities affecting the t
 sudo nmap <target> -p <port> -sV --script vuln
 ```
 
+> Template: runs all `vuln` category scripts against the specified port. Pair with `-sV` so the scripts know which service version to check against. Replace `<target>` and `<port>` with your values.
+
 ### Vulnerability Assessment Example
 
 **Command:**
 ```bash
 sudo nmap 10.129.2.28 -p 80 -sV --script vuln
 ```
+
+> Checks port 80 for known CVEs. The `vulners` script cross-references the detected Apache version against public CVE databases and reports matching vulnerabilities with their CVSS scores.
 
 **Output:**
 ```
@@ -302,18 +322,27 @@ PORT   STATE SERVICE VERSION
 ```bash
 sudo nmap 10.129.2.28 -p 80 -A
 ```
+
+> Step 1: Aggressive scan to fingerprint the web server and application. Use this output to plan the next steps.
+
 Result: Identifies Apache 2.4.29 + WordPress 5.3.4
 
 **Step 2: Vulnerability Check**
 ```bash
 sudo nmap 10.129.2.28 -p 80 -sV --script vuln
 ```
+
+> Step 2: Vulnerability scan. The `vuln` category runs dozens of CVE-checking scripts and also runs `http-wordpress-users` to enumerate admin accounts.
+
 Result: Finds CVE-2019-0211, admin user, WordPress vulnerabilities
 
 **Step 3: Deep Discovery**
 ```bash
 sudo nmap 10.129.2.28 -p 80 --script discovery,http-enum
 ```
+
+> Step 3: Deep web enumeration. `http-enum` brute-forces common paths and files. Combining it with the `discovery` category gives the broadest coverage.
+
 Result: Maps all accessible resources and endpoints
 
 **Step 4: Exploitation Planning**
@@ -379,6 +408,8 @@ Target: 10.129.35.145 - A machine with multiple open services requiring systemat
 ```bash
 nmap -sV -sC 10.129.35.145
 ```
+
+> Runs version detection and all default scripts against the top 1000 ports. This is the standard first enumeration command on a new target.
 
 **Output:**
 ```
@@ -466,6 +497,8 @@ Nmap done: 1 IP address (1 host up) scanned in 171.11 seconds
 sudo nmap 10.129.35.145 -p 80 --script http-enum
 ```
 
+> `http-enum` tries hundreds of common web paths and reports which ones exist. Good for finding login pages, readme files, admin panels, and configuration files.
+
 **Output:**
 ```
 Starting Nmap 7.98 ( https://nmap.org ) at 2026-02-10 11:17 -0600
@@ -492,6 +525,8 @@ Nmap done: 1 IP address (1 http-enum port in 10.48 seconds
 ```bash
 curl http://10.129.35.145/robots.txt
 ```
+
+> Manually fetches the `robots.txt` file found by `http-enum`. Always read `robots.txt` — it often lists paths the site owner does not want crawled, which are exactly the paths you want to investigate.
 
 **Output:**
 ```

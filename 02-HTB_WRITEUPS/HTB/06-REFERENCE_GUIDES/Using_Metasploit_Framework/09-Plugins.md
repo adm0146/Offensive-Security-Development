@@ -17,6 +17,7 @@ Plugins extend msfconsole with third-party tool integrations, adding new command
 ```bash
 ls /usr/share/metasploit-framework/plugins
 ```
+> Lists all `.rb` plugin files available to load. Any file you copy here becomes available with `load <name>` (without the `.rb` extension).
 
 ---
 
@@ -31,6 +32,7 @@ msf6 > load nessus
 msf6 > load pentest
 # [*] Successfully loaded plugin: pentest
 ```
+> Load plugins by name (no `.rb` extension needed). Plugins must be loaded every session — they don't persist after msfconsole restarts.
 
 ### View Plugin Commands
 
@@ -41,6 +43,7 @@ msf6 > nessus_help
 # General help (shows all loaded plugin commands)
 msf6 > help
 ```
+> `<plugin>_help` shows commands for a specific plugin. After loading a plugin, all its commands appear in the general `help` output.
 
 ### Failed Load (plugin not found)
 
@@ -48,6 +51,7 @@ msf6 > help
 msf6 > load Plugin_That_Does_Not_Exist
 # [-] Failed to load plugin from /usr/share/metasploit-framework/plugins/Plugin_That_Does_Not_Exist.rb
 ```
+> If load fails, the plugin file doesn't exist in the plugins directory. Copy the `.rb` file there first, then retry.
 
 ---
 
@@ -66,6 +70,7 @@ sudo cp ./Metasploit-Plugins/pentest.rb /usr/share/metasploit-framework/plugins/
 msfconsole -q
 msf6 > load pentest
 ```
+> Clone the repo, copy the `.rb` file to the plugins directory, then load it by name. Replace the GitHub URL and filename for any other third-party plugin.
 
 > Plugins are `.rb` (Ruby) files. Just drop them in the plugins directory with proper permissions.
 

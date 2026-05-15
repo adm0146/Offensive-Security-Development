@@ -46,6 +46,7 @@ DNS servers work with three different types of configuration files:
 # View local DNS configuration
 cat /etc/bind/named.conf.local
 ```
+> Shows the zone definitions — which domains this server is authoritative for and where their zone files are stored. During a pentest on a DNS server, read this first to map the zone structure.
 
 ```
 //
@@ -74,6 +75,7 @@ zone "domain.com" {
 # View DNS options
 cat /etc/bind/named.conf.options
 ```
+> Shows the global BIND options — forwarding config, DNSSEC settings, and listening interfaces. Look for `allow-transfer`, `allow-query`, and `allow-recursion` entries that might be set too permissively.
 
 ```
 options {
@@ -114,6 +116,7 @@ options {
 # View logging configuration
 cat /etc/bind/named.conf.log
 ```
+> Shows what BIND logs and where. Log files may contain recent query history, zone transfer attempts, and error messages useful during post-exploitation on a DNS server.
 
 ```
 logging {
@@ -136,6 +139,7 @@ Zone files are text files that describe a DNS zone with the BIND file format. Th
 # View zone file
 cat /etc/bind/db.domain.com
 ```
+> The zone file contains all DNS records for the domain. If you gain read access to a DNS server, zone files at `/etc/bind/` expose the full host inventory — all A records, mail servers, and internal hostnames.
 
 ```
 ;
@@ -189,6 +193,7 @@ Reverse lookup zones map IP addresses back to hostnames using **PTR records**.
 # View reverse zone file
 cat /etc/bind/db.10.129.14
 ```
+> The reverse zone file maps IP addresses to hostnames using PTR records. Reading it during post-exploitation gives you the full IP-to-hostname mapping for the subnet — useful for identifying other targets.
 
 ```
 ;
@@ -260,6 +265,7 @@ DNS footprinting is performed by sending various queries to the server. The info
 ```bash
 dig [query_type] [domain] @[dns_server] [options]
 ```
+> General `dig` syntax template — replace `[query_type]` (e.g. `ns`, `axfr`, `any`), `[domain]` with the target domain, and `[dns_server]` with the DNS server IP to direct the query.
 
 ### Query Name Servers (NS Record)
 
@@ -268,6 +274,7 @@ Identify other DNS servers that may have different configurations or serve diffe
 ```bash
 dig ns inlanefreight.htb @10.129.14.128
 ```
+> Queries for Name Server (NS) records. The `@10.129.14.128` part directs the query to a specific DNS server. NS records tell you which servers are authoritative — query each one separately as they may have different zone data or be misconfigured differently. Replace the domain and IP with your target.
 
 **Example Output:**
 ```
@@ -302,6 +309,7 @@ Useful for identifying specific vulnerabilities based on the BIND version.
 ```bash
 dig CH TXT version.bind @10.129.120.85
 ```
+> `CH` (Chaos class) queries the special `version.bind` TXT record that BIND servers expose. This reveals the exact BIND version so you can search for known CVEs. Only works if the server admin hasn't disabled it. Replace `10.129.120.85` with your target DNS server IP.
 
 **Example Output:**
 ```
@@ -332,6 +340,7 @@ View all records the server is willing to disclose for a domain.
 ```bash
 dig any inlanefreight.htb @10.129.14.128
 ```
+> `ANY` requests all record types the server is willing to return. This is a fast way to see MX, TXT, NS, A, and SOA records in one query. Modern servers may limit `ANY` responses, so you may still need per-type queries. Replace the domain and server IP with your target.
 
 **Example Output:**
 ```
@@ -393,6 +402,7 @@ ns.inlanefreight.htb.   604800  IN      A       10.129.34.136
 ```bash
 dig axfr inlanefreight.htb @10.129.14.128
 ```
+> `axfr` requests a full Asynchronous Full Transfer Zone (AXFR) — a copy of the entire DNS zone. If successful, every hostname, IP, and record in the domain is returned. Always try this before brute-forcing. Replace the domain and server IP with your target.
 
 **Successful Zone Transfer Output:**
 ```
@@ -421,6 +431,7 @@ If `allow-transfer` is misconfigured, internal zones can also be extracted:
 ```bash
 dig axfr internal.inlanefreight.htb @10.129.14.128
 ```
+> Zone transfers work against each zone separately — `inlanefreight.htb` and `internal.inlanefreight.htb` are distinct zones. If the external zone transfer worked, always try internal zones too. Internal zones often expose domain controllers, VPN servers, and workstations. Replace the subdomain and server IP with your target.
 
 **Example Output (Internal Zone):**
 ```
@@ -467,6 +478,7 @@ for sub in $(cat /opt/useful/seclists/Discovery/DNS/subdomains-top1million-11000
     dig $sub.inlanefreight.htb @10.129.14.128 | grep -v ';\|SOA' | sed -r '/^\s*$/d' | grep $sub | tee -a subdomains.txt
 done
 ```
+> Loops through a wordlist and queries each word as a subdomain of `inlanefreight.htb`. The `grep -v ';\|SOA'` removes comment lines and SOA records. `sed` removes blank lines. Only lines containing the tested subdomain name are kept. `tee -a` appends found subdomains to a file while also printing them. Slow but thorough — use `dnsenum` for a faster automated version.
 
 **Command Breakdown:**
 | Part | Purpose |
@@ -497,6 +509,7 @@ DNSenum is a comprehensive tool that automates DNS enumeration including:
 ```bash
 dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt inlanefreight.htb
 ```
+> `dnsenum` automates all DNS enumeration steps: NS lookups, MX records, zone transfer attempts, and subdomain brute-forcing. `-p 0 -s 0` disables web scraping. `-o` saves results. The target domain goes last. Replace `10.129.14.128` with the DNS server IP and `inlanefreight.htb` with your target domain.
 
 **DNSenum Options:**
 | Option | Description |
@@ -575,6 +588,7 @@ dig CH TXT version.bind @dns_server    # DNS server version
 # Reverse lookup
 dig -x 10.129.14.5 @dns_server         # PTR record lookup
 ```
+> A complete `dig` reference. Replace `domain.com` with your target domain and `@dns_server` with the DNS server IP. Run these in order during enumeration: NS first (find all servers), then `any`, then `axfr` on every server found. `-x` does a reverse lookup to find the hostname for an IP.
 
 ### Enumeration Checklist
 
@@ -582,36 +596,43 @@ dig -x 10.129.14.5 @dns_server         # PTR record lookup
    ```bash
    nmap -sV -p 53 -sC target
    ```
+   > Scans port 53 with version detection and default scripts to confirm DNS is running and identify the server software. Replace `target` with the target IP.
 
 2. **Query NS Records**
    ```bash
    dig ns domain.com @dns_server
    ```
+   > Finds all name servers for the domain. Query each one independently — they may have different security configurations.
 
 3. **Check Server Version**
    ```bash
    dig CH TXT version.bind @dns_server
    ```
+   > Reveals the BIND version for CVE research. Doesn't work on all servers — depends on server configuration.
 
 4. **Attempt Zone Transfer**
    ```bash
    dig axfr domain.com @dns_server
    ```
+   > Tries to dump the full DNS zone. If it works, you get every hostname and IP in the domain for free.
 
 5. **Query All Records**
    ```bash
    dig any domain.com @dns_server
    ```
+   > Requests all record types at once — A, MX, TXT, NS, SOA. Faster than querying each type separately.
 
 6. **Brute Force Subdomains**
    ```bash
    dnsenum --dnsserver dns_ip --enum -f wordlist.txt domain.com
    ```
+   > Automated subdomain discovery using a wordlist. Use this when zone transfers are blocked.
 
 7. **Check Internal Zones**
    ```bash
    dig axfr internal.domain.com @dns_server
    ```
+   > Internal zones like `internal.domain.com` are separate from the public zone and often expose sensitive infrastructure. Always try AXFR on every discovered subdomain zone.
 
 ---
 
@@ -662,6 +683,7 @@ First, attempt a zone transfer to reveal all DNS records:
 ```bash
 dig axfr inlanefreight.htb @10.129.14.128
 ```
+> Zone transfer attempt against the target DNS server. If successful, returns every DNS record in the zone — all hostnames and IPs revealed in one shot. Note every A record as a potential scan target.
 
 **Example Response:**
 ```
@@ -700,6 +722,7 @@ From the zone transfer, note discovered subdomains:
 # Brute force subdomains OF dev.inlanefreight.htb
 dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt dev.inlanefreight.htb
 ```
+> Brute-forces sub-subdomains under `dev.inlanefreight.htb`. The domain to enumerate always goes last. Run this against every subdomain you discovered in the AXFR — each may have its own nested subdomains not in the parent zone file. Replace the DNS server IP and target subdomain as needed.
 
 **Command Breakdown:**
 | Option | Purpose |

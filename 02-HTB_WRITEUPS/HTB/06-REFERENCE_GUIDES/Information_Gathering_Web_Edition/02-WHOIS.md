@@ -2,7 +2,7 @@
 
 ## Overview
 
-WHOIS queries registration databases for domain ownership, contacts, name servers, and dates. It's **passive recon** — very low detection risk. Run it first on every engagement.
+WHOIS queries domain registration databases. It returns the owner's name, contact emails, name servers, and registration dates. It is passive recon — no packets go to the target. Run it first on every engagement.
 
 ---
 
@@ -11,18 +11,21 @@ WHOIS queries registration databases for domain ownership, contacts, name server
 ```bash
 sudo apt update && sudo apt install whois -y
 ```
+> Updates the package list and installs the `whois` client. Kali Linux usually has it pre-installed — run this only if the command is missing.
 
 ### Core Command
 
 ```bash
 whois <domain>
 ```
+> Queries the WHOIS database for the target domain. Replace `<domain>` with your target (e.g., `inlanefreight.com`). Output includes registrar, creation date, name servers, and contact info.
 
 ### Example
 
 ```bash
 whois inlanefreight.com
 ```
+> Runs WHOIS against the example target domain. The output below is what a real response looks like — key fields to scan are `Creation Date`, `Name Server`, and any contact emails.
 
 ```
 Domain Name: inlanefreight.com
@@ -73,11 +76,11 @@ Creation Date: 2019-08-05T22:43:09Z
 
 ## Key Takeaways
 
-- WHOIS is **passive recon** — run it early, no detection risk
-- Look for **email patterns**, **name servers**, and **creation dates** first
-- **Recently registered domains** with privacy services = suspicious
-- Name servers in WHOIS output → feed directly into `dig` queries for DNS enumeration
-- Use **WhoisFreaks** for historical WHOIS data to track ownership changes over time
+- WHOIS is passive recon. Run it early. There is no detection risk.
+- Look for email patterns, name servers, and creation dates first.
+- Domains registered recently with privacy services are suspicious.
+- Name servers from WHOIS output go directly into `dig` for DNS enumeration.
+- Use WhoisFreaks to see historical WHOIS data and track ownership changes over time.
 
 ---
 

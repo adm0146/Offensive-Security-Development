@@ -16,13 +16,13 @@ Visiting `?user=key` returns "This method is deprecated." — the parameter exis
 
 ## How GET Parameter Fuzzing Works
 
-Place `FUZZ` in the parameter name position of the query string:
+Put `FUZZ` where the parameter name goes in the query string (Uniform Resource Locator):
 
 ```
 http://admin.academy.htb:PORT/admin/admin.php?FUZZ=key
 ```
 
-ffuf iterates over every parameter name in the wordlist. A different response size = the server recognized and processed that parameter.
+ffuf tries every parameter name from the wordlist. If the response size changes, the server recognized that parameter.
 
 ---
 
@@ -43,6 +43,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
   -t 100
 # Returns: user
 ```
+> Step 1 measures the "no parameter" response size. Step 2 fuzzes GET parameter names and filters out that size — any different size means the server recognized the parameter. `burp-parameter-names.txt` has ~6.7k common parameter names.
 
 ---
 
@@ -51,8 +52,9 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
 ```bash
 ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt   # ~6.7k common param names
 ```
+> This is a path, not a command. Use it as the wordlist in `-w`. It was compiled from real Burp Suite captures and covers the most common parameter names seen in web apps.
 
-This is the go-to list for parameter fuzzing — compiled from real-world Burp Suite captures.
+This is the first list to try for parameter fuzzing. It was built from real Burp Suite captures and covers the most common parameter names in web apps.
 
 ---
 

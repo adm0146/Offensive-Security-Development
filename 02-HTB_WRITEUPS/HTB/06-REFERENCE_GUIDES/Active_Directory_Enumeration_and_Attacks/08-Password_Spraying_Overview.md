@@ -21,6 +21,7 @@ crackmapexec smb DC_IP -u valid_users.txt -p 'Welcome1' | grep +
 # 5. Validate hits
 nxc smb DC_IP -u HIT_USER -p 'Welcome1'
 ```
+> `--pass-pol` pulls the password policy so you know the lockout threshold. `kerbrute userenum` finds valid usernames without lockouts. `crackmapexec smb` with `| grep +` filters output to successful logins only. Always validate a hit before using those creds further.
 
 ---
 
@@ -46,6 +47,8 @@ Unknown policy → max 1-2 attempts total, wait 1+ hour between
 
 Safe formula: `threshold - 2 = max attempts per round`
 
+Password spraying uses one password against many accounts. Brute force tries many passwords against one account. Spraying stays under the lockout threshold because each account only sees one attempt per round.
+
 ---
 
 ## Common Spray Passwords
@@ -70,6 +73,7 @@ python3 linkedin2username.py -u EMAIL -p PASS -c "Company Name"
 # Document metadata (reveals AD username format)
 exiftool document.pdf     # check Author field
 ```
+> Three ways to build a username list without credentials. Kerbrute is stealthy. LinkedIn2username generates permutations from employee names (e.g. `first.last`, `flast`). `exiftool` reads the Author field from PDFs and Office docs — that field often contains an AD username.
 
 ---
 

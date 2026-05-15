@@ -17,6 +17,7 @@ mysql -u root -pPASSWORD -h TARGET_IP -P PORT
 # Skip SSL (needed for some HTB targets)
 mysql -u root -pPASSWORD -h TARGET_IP -P PORT --skip-ssl
 ```
+> Connects to a MySQL server. `-u` sets the username, `-p` prompts for the password (no space before value when inlining it), `-h` sets the remote host, `-P` sets the port (uppercase). Use `--skip-ssl` on HTB lab targets that don't support SSL.
 
 > Default MySQL port: **3306** (uppercase `-P` for port, lowercase `-p` for password)
 
@@ -31,6 +32,7 @@ SHOW TABLES;                  -- list tables in current database
 DESCRIBE tablename;           -- show columns and data types
 SHOW GRANTS;                  -- show current user's privileges
 ```
+> Run these right after connecting to map out a MySQL server. `SHOW GRANTS` tells you whether the current user has the `FILE` privilege. If yes, you can read and write files on the server.
 
 ---
 
@@ -49,6 +51,7 @@ CREATE TABLE logins (
     PRIMARY KEY (id)
 );
 ```
+> Example table creation showing common column constraints. Understanding this structure helps you write correct `SELECT` and `INSERT` payloads during injection. `AUTO_INCREMENT` means the `id` column is an integer that grows automatically — useful for targeting rows by ID.
 
 **Column constraints:**
 | Constraint | Purpose |
@@ -80,6 +83,7 @@ CREATE TABLE logins (
 ```bash
 mysql -u root -ppassword -h TARGET_IP -P TARGET_PORT --skip-ssl -e "SHOW DATABASES;"
 ```
+> Non-interactive MySQL query. `-e` runs the SQL statement and exits immediately without opening an interactive shell. Replace `password`, `TARGET_IP`, and `TARGET_PORT` with your target's values.
 
 **Why `-e`:** Runs a single query non-interactively and exits — no need to enter the MySQL shell.
 **Why `--skip-ssl`:** HTB targets often don't support SSL — skip it to avoid connection errors.

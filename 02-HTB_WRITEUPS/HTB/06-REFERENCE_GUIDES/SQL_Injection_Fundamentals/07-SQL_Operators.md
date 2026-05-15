@@ -21,7 +21,7 @@ SELECT * FROM logins WHERE username != 'john';
 SELECT COUNT(*) FROM titles WHERE emp_no > 10000 OR title NOT LIKE '%engineer%';
 ```
 
-> In MySQL, `1` = true, `0` = false. Any non-zero value is truthy.
+> In MySQL, `1` means true and `0` means false. Any non-zero value is treated as true.
 
 ---
 
@@ -42,6 +42,7 @@ SELECT * FROM logins WHERE username != 'tom' AND id > 3 - 2;
 -- Step 1: 3 - 2 = 1  (subtraction first)
 -- Step 2: username != 'tom' AND id > 1  (comparisons, then AND)
 ```
+> Demonstrates operator precedence. Arithmetic runs first, then comparisons, then `AND`. Understanding this matters when crafting injections — `OR 1=1` has lower precedence than the surrounding `AND` conditions, so it must be placed correctly to short-circuit the whole `WHERE` clause.
 
 > `AND` binds tighter than `OR` — `A OR B AND C` is evaluated as `A OR (B AND C)`. Use parentheses to force order when mixing them.
 
@@ -69,6 +70,7 @@ SELECT * FROM logins WHERE username != 'tom' AND id > 3 - 2;
 mysql -u root -ppassword -h TARGET_IP -P TARGET_PORT --skip-ssl \
   -e "USE employees; SELECT COUNT(*) FROM titles WHERE emp_no > 10000 OR title NOT LIKE '%engineer%';"
 ```
+> Counts matching rows using an `OR` condition. `COUNT(*)` returns a single number instead of all the rows. `NOT LIKE '%engineer%'` matches any title that does not contain "engineer" anywhere in the string. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **Result:**
 ```

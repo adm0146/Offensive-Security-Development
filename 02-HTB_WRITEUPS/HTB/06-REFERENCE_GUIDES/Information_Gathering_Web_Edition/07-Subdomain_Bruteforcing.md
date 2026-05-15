@@ -2,7 +2,7 @@
 
 ## Overview
 
-Subdomain brute-forcing systematically tests potential subdomain names from a wordlist against the target domain. Each word is prepended to the domain (e.g., `dev.target.com`) and a DNS query checks if it resolves to an IP.
+Subdomain brute-forcing tests potential subdomain names from a wordlist against the target domain. Each word is prepended to the domain (for example, `dev.target.com`) and a Domain Name System (DNS) query checks whether it resolves to an IP address.
 
 ---
 
@@ -28,6 +28,7 @@ Wordlist → Append each word to target domain → DNS lookup → Resolves? → 
 ```bash
 dnsenum --enum inlanefreight.com -f /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt -r
 ```
+> `--enum` enables full enumeration mode (NS records, MX records, brute-force). `-f` specifies the wordlist of potential subdomain names. `-r` enables recursive brute-forcing — when a subdomain like `dev` is found, it also tries every wordlist entry against `*.dev.inlanefreight.com`. Swap the domain and wordlist path for your target.
 
 ### Flags
 
@@ -94,11 +95,11 @@ done.
 
 ## Key Takeaways
 
-- **dnsenum** is the go-to brute-force tool — combines brute-forcing with zone transfers, Google scraping, and reverse lookups
-- **`-r` flag** enables recursive brute-forcing — finds subdomains of subdomains
-- **Wordlist choice matters** — start with top 20K, go deeper if needed
-- Watch for subdomains resolving to **internal IPs** — that is leaked infrastructure
-- **SecLists** (`/usr/share/seclists/Discovery/DNS/`) has all the wordlists you need
+- `dnsenum` is the go-to brute-force tool. It combines brute-forcing with zone transfers, Google scraping, and reverse lookups in one command.
+- The `-r` flag enables recursive brute-forcing — it finds subdomains of subdomains.
+- Wordlist choice matters. Start with the top 20K list and go deeper if needed.
+- Watch for subdomains that resolve to internal IP addresses (10.x, 172.16.x, 192.168.x) — those are leaked infrastructure.
+- SecLists at `/usr/share/seclists/Discovery/DNS/` has all the DNS wordlists you need.
 
 ---
 

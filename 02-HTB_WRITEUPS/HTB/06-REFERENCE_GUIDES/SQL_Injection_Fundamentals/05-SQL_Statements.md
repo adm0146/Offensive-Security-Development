@@ -15,7 +15,7 @@ INSERT INTO logins(username, password) VALUES('administrator', 'adm1n_p@ss');
 INSERT INTO logins(username, password) VALUES ('john', 'john123!'), ('tom', 'tom123!');
 ```
 
-> Skipping a `NOT NULL` column with no default = error.
+> Skipping a `NOT NULL` column that has no default value will cause an error.
 
 ---
 
@@ -41,7 +41,7 @@ DROP TABLE logins;       -- permanently deletes the table, no confirmation
 DROP DATABASE users;
 ```
 
-> **Irreversible** — no prompt, no undo.
+> `DROP` is **irreversible** — there is no confirmation prompt and no undo.
 
 ---
 
@@ -62,7 +62,7 @@ ALTER TABLE logins DROP newerColumn;                         -- remove column
 UPDATE logins SET password = 'change_password' WHERE id > 1;
 ```
 
-> Always use `WHERE` with `UPDATE` — without it, every row gets updated.
+> Always include a `WHERE` clause with `UPDATE`. Without it, every single row in the table gets changed.
 
 ---
 
@@ -74,6 +74,7 @@ UPDATE logins SET password = 'change_password' WHERE id > 1;
 mysql -u root -ppassword -h TARGET_IP -P TARGET_PORT --skip-ssl \
   -e "USE employees; SELECT * FROM departments WHERE dept_name = 'Development';"
 ```
+> Queries the `departments` table for a specific department name. `-e` runs the SQL and exits. Two statements are chained: `USE` selects the database, `SELECT` retrieves the matching row. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **Result:**
 ```

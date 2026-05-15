@@ -32,6 +32,7 @@ $page = $_GET['page'] ?? 'home';
 if (!isset($allowed[$page])) { http_response_code(404); exit; }
 include($allowed[$page]);
 ```
+> The whitelist maps user-supplied keys to server-controlled file paths. The user picks a key like `about`; the server decides what file to include. No path traversal is possible because the user never touches the file path directly.
 
 The whitelist is **server-controlled** — the user picks a key, never supplies the filename.
 
@@ -74,13 +75,15 @@ disable_functions = system,exec,shell_exec,passthru,popen,proc_open,pcntl_exec
 # Don't reveal PHP version
 expose_php = Off
 ```
+> These settings go in `php.ini`. `allow_url_include = Off` kills Remote File Inclusion (RFI) and PHP wrapper attacks. `open_basedir` confines PHP to the webroot so traversal out of it fails. `disable_functions` removes shell execution functions individually.
 
-After editing → `systemctl restart apache2` (or `php-fpm`).
+After editing, restart the web server: `systemctl restart apache2` (or `php-fpm`).
 
 ### Verify the changes
 ```bash
 php -i | grep -E '(allow_url_include|open_basedir|disable_functions)'
 ```
+> Dumps the active PHP configuration and filters for the three key security settings. Confirm each is set correctly after restarting the web server.
 
 ---
 
@@ -129,8 +132,9 @@ sudo cp /etc/modsecurity/modsecurity.conf-recommended /etc/modsecurity/modsecuri
 # After tuning false positives:
 # SecRuleEngine On
 ```
+> Installs ModSecurity and copies the recommended config. Start in `DetectionOnly` mode to log attacks without blocking. Switch to `On` only after tuning out false positives, or you risk breaking legitimate app requests.
 
-Permissive mode is critical — false positives in blocking mode break legitimate apps. Tune for at least 2 weeks before flipping to On.
+Permissive mode is critical. False positives in blocking mode break legitimate apps. Tune for at least two weeks before switching to `On`.
 
 ---
 
@@ -143,6 +147,7 @@ Permissive mode is critical — false positives in blocking mode break legitimat
 ```bash
 ssh htb-student@10.129.29.112 'php --ini; find /etc/php -name php.ini'
 ```
+> SSH into the target and run two commands: `php --ini` shows which config files PHP loaded, and `find` locates all `php.ini` files. The Apache-specific one at `/etc/php/7.4/apache2/php.ini` is what controls the web process.
 
 PHP shows two configs:
 - `/etc/php/7.4/cli/php.ini` — for CLI scripts
@@ -165,6 +170,7 @@ curl -s http://localhost/test.php
 sudo tail /var/log/apache2/error.log | grep system
 # → PHP Warning:  system() has been disabled for security reasons in /var/www/html/test.php on line 1
 ```
+> Updates the `disable_functions` line in `php.ini` using `sed`, restarts Apache, then writes a test script that calls `system()`. The error log confirms the function was disabled and reveals the exact warning message format.
 
 **Answer:** `security`
 

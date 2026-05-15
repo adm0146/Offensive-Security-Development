@@ -14,6 +14,8 @@
 5. Save everything  →  -oA so you never re-scan
 ```
 
+> This is the five-stage workflow. Follow it in order — do not jump straight to service scanning without first confirming live hosts and open ports.
+
 > **Forever rule:** Slow & accurate beats fast & wrong. `--min-rate 1000` is plenty on HTB; `--min-rate 5000+` drops packets.
 
 ---
@@ -36,6 +38,8 @@ sudo nmap -PE -PP -PM 10.129.2.0/24                         # ICMP echo/timestam
 sudo nmap -PR -sn 10.129.2.0/24
 ```
 
+> `-sn` skips port scanning and only checks which hosts are alive. `-iL` reads targets from a file. `-Pn` skips the ping check entirely — treat every host as alive. Replace `10.129.2.0/24` with your subnet or target IP.
+
 > `-Pn` is a default reflex on HTB. Skipping host discovery saves time and avoids false negatives.
 
 ---
@@ -48,6 +52,8 @@ sudo nmap -sS -p- --min-rate 1000 -Pn -n 10.129.2.28 -oA tcp_full
 sudo nmap -sS -F  -Pn 10.129.2.28                            # top 100 (quick)
 sudo nmap -sS --top-ports=1000 -Pn 10.129.2.28               # top 1000
 ```
+
+> `-sS` sends SYN packets without completing the handshake (stealth scan, requires root). `-p-` scans all 65535 ports. `--min-rate 1000` sets minimum send rate. `-F` scans only the top 100 ports for a quick result. Replace `10.129.2.28` with your target IP.
 
 | Flag | Meaning |
 |------|---------|
@@ -63,6 +69,8 @@ sudo nmap -sS --top-ports=1000 -Pn 10.129.2.28               # top 1000
 sudo nmap -sU --top-ports=100 --min-rate 1000 -Pn 10.129.2.28 -oA udp_top
 sudo nmap -sU -p 53,67,68,69,123,137,161,500,1900,5353 -sV 10.129.2.28
 ```
+
+> `-sU` runs a User Datagram Protocol (UDP) scan. `--top-ports=100` checks the 100 most common UDP ports. The second command targets specific high-value UDP ports including Domain Name System (DNS) port 53, Simple Network Management Protocol (SNMP) port 161, and Internet Key Exchange (IKE) port 500. Replace `10.129.2.28` with your target.
 
 > **NIXHARD lesson:** Switch to **UDP OpenVPN** before scanning UDP — TCP-over-TCP tunnels drop UDP probes (false negatives).
 > SNMP/161 invisible on TCP VPN; visible on UDP VPN.
@@ -90,6 +98,8 @@ sudo nmap -sCV -A -O -p22,80,445 10.129.2.28 -oA full
 # Aggressive (-A = -sC -sV -O --traceroute)
 sudo nmap -A -p- 10.129.2.28
 ```
+
+> `-sC` runs default Nmap Scripting Engine (NSE) scripts. `-sV` detects service versions. `-p<openports>` limits the scan to only the ports you already found open (faster and less noisy). `-A` combines version detection, script scanning, OS detection, and traceroute in one flag.
 
 Version intensity: `--version-intensity 0..9` (default 7, `--version-all` = 9, `--version-light` = 2).
 
@@ -122,6 +132,8 @@ sudo nmap --script "rdp-enum-encryption,rdp-vuln-ms12-020" -p 3389 TARGET
 sudo nmap --script smb-brute --script-args userdb=users.txt,passdb=pws.txt -p 445 TARGET
 ```
 
+> `--script` runs specific NSE scripts by name or category. Use `locate *.nse | xargs grep -l "keyword"` to find relevant scripts. `--script-args` passes parameters like credential lists. Replace `TARGET` with the target IP.
+
 NSE script categories: `auth, broadcast, brute, default, discovery, dos, exploit, external, fuzzer, intrusive, malware, safe, version, vuln`.
 
 ---
@@ -143,6 +155,8 @@ NSE script categories: `auth, broadcast, brute, default, discovery, dos, exploit
 # Realistic HTB scan
 sudo nmap -sS -p- --min-rate 1000 --max-retries 1 -Pn -n -T4 TARGET
 ```
+
+> Timing controls: `-T0` through `-T5` are preset profiles from slowest (paranoid) to fastest (insane). On HTB, `-T4` is the practical maximum. `--min-rate`, `--max-rate`, `--max-retries`, and `--scan-delay` give finer control than timing templates alone.
 
 > `-n` (no DNS) and `-Pn` (skip host discovery) cut 30%+ on HTB scans.
 
@@ -173,6 +187,8 @@ sudo nmap -sS -T1 --max-retries 1 --scan-delay 5s -D RND:10 -f --data-length 25 
 sudo nmap --packet-trace --reason -Pn -n -p 445 TARGET
 ```
 
+> `-D RND:10` generates 10 random decoy IP addresses to hide your real source. `-S` spoofs the source IP (pair with `-e` to specify the interface). `--source-port 53` makes packets look like DNS traffic — many firewalls allow this. `-f` fragments packets into 8-byte chunks. `--packet-trace` shows every packet sent and received. Replace `TARGET` with the target IP.
+
 ---
 
 ## Stage 7 — Saving & Converting Results
@@ -194,6 +210,8 @@ cat scan.gnmap | grep open | awk '{print $2}'                 # alive hosts
 grep -oP '\d+/open' scan.gnmap | sort -u                      # unique ports
 ```
 
+> `-oN` saves normal text output. `-oG` saves greppable format. `-oX` saves XML. `-oA basename` saves all three at once — use this by default. `xsltproc` converts XML output to an HTML report. Replace `scan` with your filename base.
+
 ---
 
 ## Stage 8 — High-value Recipes (memorize)
@@ -203,16 +221,22 @@ grep -oP '\d+/open' scan.gnmap | sort -u                      # unique ports
 sudo nmap -sS -p- --min-rate 1000 --max-retries 1 -Pn -n -oA full TARGET
 ```
 
+> The fastest reliable full port scan for HTB. Scans all 65535 ports with a stealth SYN scan. Saves all output formats via `-oA`. Replace `TARGET` with the target IP.
+
 ### "Then enrich the open ports"
 ```bash
 ports=$(grep -oP '\d+/open' full.gnmap | cut -d/ -f1 | tr '\n' ',' | sed 's/,$//')
 sudo nmap -sCV -p$ports -oA deep TARGET
 ```
 
+> Extracts open port numbers from the greppable output file (`full.gnmap`), then runs version detection and default scripts against only those ports. Much faster than re-scanning all 65535 ports. Run this immediately after the full port scan.
+
 ### "UDP top-100" (don't forget!)
 ```bash
 sudo nmap -sU --top-ports=100 --min-rate 1000 -Pn -n -oA udp TARGET
 ```
+
+> Always run a UDP scan — SNMP (161), DNS (53), and IPMI (623) are critical services that only appear on UDP. `--top-ports=100` checks the 100 most common UDP ports. Replace `TARGET` with the target IP.
 
 ### "Quick subnet sweep + service enum"
 ```bash
@@ -220,10 +244,14 @@ sudo nmap -sn 10.129.2.0/24 -oA sweep
 sudo nmap -sS -F -sV -iL <(grep -oP '\d+\.\d+\.\d+\.\d+' sweep.gnmap) -oA quick
 ```
 
+> First discovers all alive hosts in the subnet with `-sn`, then immediately runs a fast service scan against every live host. `grep -oP` extracts IP addresses from the sweep output and feeds them to the second scan via process substitution.
+
 ### "Vuln pass on every open port"
 ```bash
 sudo nmap --script vuln -p$ports -oA vulns TARGET
 ```
+
+> Runs all scripts in the `vuln` NSE category against every open port. This checks for known CVEs and misconfigurations. Run this after you have the full port list in `$ports`. Replace `TARGET` with the target IP.
 
 ---
 

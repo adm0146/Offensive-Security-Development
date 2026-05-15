@@ -2,7 +2,7 @@
 
 ## Overview
 
-Subdomains extend the main domain (`blog.example.com`, `dev.example.com`, `admin.example.com`). They expand the attack surface — dev environments, admin panels, and legacy apps are often running on subdomains with weaker security than the main site.
+Subdomains extend the main domain (for example, `blog.example.com`, `dev.example.com`, `admin.example.com`). They expand the attack surface. Development environments, admin panels, and legacy apps often run on subdomains with weaker security than the main site.
 
 ---
 
@@ -21,7 +21,7 @@ Subdomains extend the main domain (`blog.example.com`, `dev.example.com`, `admin
 
 ### 1. Active Enumeration — Direct Interaction
 
-You are querying the target DNS or brute-forcing names against it. **Detectable.**
+You are querying the target DNS or brute-forcing names against it. This is detectable.
 
 | Technique | Tool | Command |
 |---|---|---|
@@ -32,7 +32,7 @@ You are querying the target DNS or brute-forcing names against it. **Detectable.
 
 ### 2. Passive Enumeration — No Direct Contact
 
-External sources only. **Stealthy.**
+External sources only. No contact with the target — stealthy.
 
 | Source | How to Use It | What You Get |
 |---|---|---|
@@ -57,11 +57,11 @@ External sources only. **Stealthy.**
 
 ## Key Takeaways
 
-- Subdomains expand attack surface — **dev, staging, admin, and legacy apps** are prime targets
-- **Passive first** (crt.sh, Google dorks, DNSDumpster) → **active second** (brute-force with dnsenum/gobuster)
-- **CT logs** are a goldmine — SSL certificates list subdomains in the SAN field
-- **Zone transfers** are always worth trying — low effort, massive payoff if misconfigured
-- Every discovered subdomain is a new target to enumerate further
+- Subdomains expand the attack surface. Dev, staging, admin, and legacy apps are prime targets.
+- Use passive methods first (crt.sh, Google dorks, DNSDumpster), then active brute-force with dnsenum or gobuster.
+- Certificate Transparency (CT) logs are a goldmine. SSL certificates list subdomains in the Subject Alternative Name (SAN) field.
+- Zone transfers are always worth trying. Low effort, massive payoff if the server is misconfigured.
+- Every discovered subdomain is a new target to enumerate further.
 
 ---
 

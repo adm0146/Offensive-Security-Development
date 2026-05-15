@@ -24,6 +24,7 @@ Restart-Service WinRM   # kicks you out — reconnect with new config
 Enter-PSSession -ComputerName TARGET -Credential DOMAIN\user -ConfigurationName mysess
 # Now klist shows TGT — no double hop, PowerView works without -Credential
 ```
+> Diagnoses and fixes the double hop problem. Run `klist` first to check. Workaround 1 passes `-Credential $Cred` to every command — works anywhere. Workaround 2 registers a session that caches the Ticket Granting Ticket (TGT) — cleaner but requires a non-evil-winrm session to set up.
 
 ---
 
@@ -31,11 +32,11 @@ Enter-PSSession -ComputerName TARGET -Credential DOMAIN\user -ConfigurationName 
 
 **The scenario:** Attack Host → Host A (WinRM) → Host B (DC/file share)
 
-When you connect to Host A via WinRM/evil-winrm, Kerberos issues a **TGS ticket** for the WinRM service on Host A. Your **TGT is not forwarded** to Host A. When you try to reach Host B from Host A, there's no TGT in the session to prove your identity — access denied.
+When you connect to Host A via Windows Remote Management (WinRM) or evil-winrm, Kerberos issues a Ticket Granting Service (TGS) ticket for the WinRM service on Host A. Your Ticket Granting Ticket (TGT) is not forwarded to Host A. When you then try to reach Host B from inside Host A, there is no TGT in the session to prove your identity — access denied.
 
-**Contrast with SMB/PSExec:** Password-based auth stores the NTLM hash in memory. Hash gets reused automatically for second-hop connections — no double hop issue.
+**Contrast with SMB/PSExec:** Password-based auth stores the New Technology LAN Manager (NTLM) hash in memory. The hash is reused automatically for second-hop connections. There is no double hop issue.
 
-**Contrast with RDP:** Full interactive login caches the TGT in memory. `klist` shows 4+ tickets including `krbtgt/DOMAIN`. Second-hop connections work fine.
+**Contrast with RDP:** A full interactive login caches the TGT in memory. `klist` shows 4+ tickets including `krbtgt/DOMAIN`. Second-hop connections work fine.
 
 ```
 WinRM session  → klist shows:  1 ticket (HTTP/WinRM service only)  → double hop blocked
@@ -58,6 +59,7 @@ klist
 #   Server: krbtgt/INLANEFREIGHT.LOCAL
 #   Cache Flags: 0x1 -> PRIMARY
 ```
+> Lists all Kerberos tickets in the current session. If you only see an HTTP service ticket, the double hop problem is present. If you see `krbtgt/DOMAIN` with flag `0x1 -> PRIMARY`, your TGT is cached and second-hop connections will work.
 
 **Symptom when it hits you:**
 ```
@@ -82,6 +84,7 @@ $Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\back
 Get-DomainUser -spn -Credential $Cred | select samaccountname
 Get-DomainObjectACL -ResolveGUIDs -Identity * -Credential $Cred | ? {$_.SecurityIdentifier -eq $sid}
 ```
+> Workaround 1: manually inject credentials into each PowerView call using `-Credential $Cred`. Replace the username and password. This is tedious but works reliably from any WinRM session including evil-winrm.
 - Creates a credential object in memory that you manually pass with each request
 - Forces Kerberos to authenticate to the DC using those creds on each call
 - Tedious but works reliably from any WinRM session including evil-winrm
@@ -112,6 +115,7 @@ klist
 # Step 5 — PowerView works without -Credential now
 Get-DomainUser -spn | select samaccountname
 ```
+> Workaround 2: registers a named session configuration that caches the TGT. Must be run from a Windows machine with GUI access — not from evil-winrm. `Restart-Service WinRM` will disconnect you; reconnect with `-ConfigurationName backupadmsess` to get a session with a real TGT.
 - `Register-PSSessionConfiguration` creates a session endpoint that impersonates the specified user
 - The local machine forwards credentials on behalf of the user — TGT gets cached on the remote host
 - Eliminates double hop for the entire session — no per-command credential flag needed
@@ -129,9 +133,9 @@ Get-DomainUser -spn | select samaccountname
 
 ---
 
-## Why RDP Doesn't Have This Problem
+## Why RDP Does Not Have This Problem
 
-RDP = interactive logon. Windows caches the full TGT in LSASS memory. Every outbound connection from that session can use the cached TGT to request new TGS tickets for other resources. This is why `klist` shows 4 tickets after RDP vs 1 after WinRM.
+Remote Desktop Protocol (RDP) uses a full interactive logon. Windows caches the complete TGT in Local Security Authority Subsystem Service (LSASS) memory. Every outbound connection in that session can use the cached TGT to request new TGS tickets for other resources. This is why `klist` shows 4 tickets after an RDP session but only 1 after a WinRM session.
 
 ---
 

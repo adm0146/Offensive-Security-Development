@@ -6,7 +6,7 @@
 
 ## Relational Databases (RDBMS)
 
-Use **tables, rows, columns, and keys**. Tables are linked via relationships (schema).
+A Relational Database Management System (RDBMS) stores data in **tables** made of rows and columns. Tables are linked to each other through keys.
 
 **Example structure:**
 ```
@@ -16,9 +16,9 @@ id | username         id | user_id | date    | content
 2  | jsmith           2  | 2       | 01-2024 | World...
 ```
 
-- `posts.user_id` links to `users.id` — no need to duplicate user data in every post row
-- The set of relationships between tables = the **schema**
-- Common: **MySQL**, MSSQL, PostgreSQL, Oracle, SQLite
+- `posts.user_id` links to `users.id` — no need to repeat user data in every post row
+- The full set of table relationships is called the **schema**
+- Common examples: **MySQL**, MSSQL, PostgreSQL, Oracle, SQLite
 
 > **This module focuses entirely on MySQL/RDBMS SQLi.**
 
@@ -26,7 +26,7 @@ id | username         id | user_id | date    | content
 
 ## Non-Relational Databases (NoSQL)
 
-No tables, no fixed schema, no SQL. Store data as key-value pairs, documents, wide-columns, or graphs.
+NoSQL databases have no tables, no fixed schema, and no SQL (Structured Query Language). They store data as key-value pairs, documents, wide columns, or graphs.
 
 | Model | Example DB | Data Format |
 |-------|-----------|-------------|

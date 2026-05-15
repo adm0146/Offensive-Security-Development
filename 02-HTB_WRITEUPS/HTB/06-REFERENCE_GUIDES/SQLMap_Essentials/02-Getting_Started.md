@@ -10,6 +10,7 @@
 sqlmap -h     # basic help — covers 95% of use cases
 sqlmap -hh    # advanced help — all options
 ```
+> Shows the help page. `-h` covers the flags used in 95% of scans. `-hh` shows the full option list including advanced tuning flags. Run these first when looking up an unfamiliar flag.
 
 ---
 
@@ -18,11 +19,12 @@ sqlmap -hh    # advanced help — all options
 ```bash
 sqlmap -u "http://TARGET/vuln.php?id=1" --batch
 ```
+> Most basic sqlmap scan. Replace `TARGET` and the path with your target's URL. `-u` sets the target; `--batch` skips all prompts so the scan runs unattended. sqlmap will test every parameter it finds in the URL.
 
 - `-u` — target URL with injectable parameter in the query string
 - `--batch` — auto-accept all prompts (uses defaults); essential for non-interactive use
 
-SQLMap probes each parameter it finds. For `id=1` it will test Boolean-blind, Error-based, UNION, Stacked, Time-based in sequence and report all that work.
+SQLMap tests each parameter it finds. For `id=1` it tries Boolean-blind, Error-based, UNION, Stacked, and Time-based injection in sequence. It reports every type that works.
 
 ---
 

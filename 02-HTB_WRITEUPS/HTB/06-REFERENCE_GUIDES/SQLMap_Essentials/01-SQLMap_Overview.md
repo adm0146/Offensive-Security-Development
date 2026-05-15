@@ -6,7 +6,7 @@
 
 ## What is SQLMap
 
-Open-source penetration testing tool that automates detection and exploitation of SQL injection flaws. Written in Python.
+SQLMap is an open-source penetration testing tool that automatically finds and exploits SQL Injection (SQLi) flaws. It is written in Python and comes pre-installed on Kali Linux.
 
 ```bash
 # Install
@@ -14,6 +14,7 @@ sudo apt install sqlmap          # Kali — already installed
 git clone https://github.com/sqlmapproject/sqlmap.git   # latest from source
 python3 sqlmap.py --version
 ```
+> sqlmap is pre-installed on Kali. The git clone gives you the latest version from source if you need it. Run `--version` to confirm the installed version.
 
 ---
 

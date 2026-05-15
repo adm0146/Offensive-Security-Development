@@ -26,6 +26,7 @@
 ```bash
 echo "10.129.X.X inlanefreight.htb www.inlanefreight.htb dev.inlanefreight.htb" | sudo tee -a /etc/hosts
 ```
+> Adds the target hostname to your local DNS override file. `.htb` domains do not resolve publicly. Add every new subdomain here before hitting it with any tool.
 Every new subdomain you discover → add it before curl/crawler can hit it.
 
 ---
@@ -48,6 +49,7 @@ dig AXFR @ns1.inlanefreight.htb dev.inlanefreight.htb  # also child zones
 host -t mx inlanefreight.htb
 nslookup -type=any inlanefreight.htb TARGET
 ```
+> `whois` pulls registrar, creation date, and name servers — all passive recon. `dig AXFR` attempts a zone transfer — it costs one command and dumps every DNS record if the server allows it. `@TARGET` directs the query to the lab's own name server, not the public resolver.
 
 ### Subdomain brute (DNS)
 ```bash
@@ -56,11 +58,13 @@ dnsenum --enum inlanefreight.htb -f subdomains.txt
 fierce --domain inlanefreight.htb
 amass enum -passive -d inlanefreight.com
 ```
+> Each tool prepends wordlist entries to the domain and checks if they resolve. `-t 30` sets thread count for speed. `--passive` on amass avoids direct queries to the target — uses third-party sources only. Swap the domain and wordlist path for each engagement.
 
 ### Certificate Transparency (passive subdomain harvest)
 ```bash
 curl -s "https://crt.sh/?q=%25.inlanefreight.com&output=json" | jq -r '.[].name_value' | sort -u
 ```
+> Queries the crt.sh certificate transparency database for all SSL/TLS certificates issued to subdomains of the target. `%25.` is URL-encoded `*.` (wildcard). `jq` extracts the name field; `sort -u` removes duplicates. No packets sent to the target — entirely passive.
 
 ---
 
@@ -105,6 +109,7 @@ nuclei -u http://target -t technologies/
 # WAF
 wafw00f http://target
 ```
+> `curl -I` sends a HEAD request and prints response headers — look for `Server:` and `X-Powered-By:`. `whatweb -a 3` uses aggression level 3 for deeper fingerprinting. `wafw00f` detects Web Application Firewalls by sending known probe requests. Swap `http://target` for your actual IP or hostname.
 
 ---
 
@@ -119,6 +124,7 @@ curl -s http://target/.git/HEAD                       # source code leak!
 curl -s http://target/.env
 curl -s http://target/.DS_Store
 ```
+> Check all of these on every target — they cost nothing and frequently leak paths, keys, and admin directories. `.git/HEAD` returning content means the source code repo is exposed. `.env` often contains database passwords and API keys in plaintext.
 
 > **Skills Assessment Q3:** `/robots.txt` `Disallow: /admin_h1dd3n` → API key in plaintext.
 
@@ -131,6 +137,7 @@ curl -s http://target/.DS_Store
 /.well-known/change-password
 /.well-known/host-meta
 ```
+> These are standardized paths — RFC-defined locations apps are supposed to publish metadata. Hit them all with curl. `openid-configuration` reveals OAuth/SSO endpoints. `assetlinks.json` / `apple-app-site-association` reveal associated mobile apps and their deep-link paths.
 
 ---
 
@@ -156,6 +163,7 @@ cat results.json | jq -r '.urls[]' | sort -u
 wget --recursive --no-clobber --no-parent --level=3 -P /tmp/mirror http://target
 grep -rE "password|api[_-]?key|secret|token" /tmp/mirror | head
 ```
+> `-d 3` sets crawl depth to 3 levels. `-jc` on katana parses JavaScript for hidden endpoints. `--no-parent` on wget prevents crawling above the start URL. ReconSpider writes structured JSON — use `jq` to pull emails and HTML comments separately. `.comments[]` is where developers accidentally leave API keys and credentials.
 
 ### What to grep crawl output for
 ```
@@ -165,6 +173,7 @@ api[-_]?key|apikey|access[-_]?token|secret
 TODO|FIXME|XXX           # dev notes
 http://(192|10|172)\.    # internal URLs
 ```
+> Pipe crawl output through `grep -rE` with these patterns to find credentials and internal references. Change the email domain for each target. `http://(192|10|172)\.` finds references to private RFC-1918 IP ranges — these reveal internal infrastructure URLs.
 
 ---
 
@@ -178,6 +187,7 @@ feroxbuster -u http://target -w raft-medium-words.txt -x php,html -d 3
 # JS endpoint discovery
 katana -u http://target -jc -d 3 | grep -iE '\.js$' | sort -u | xargs -I{} curl -s {} | grep -oE '["'\''](/[a-zA-Z0-9_/.-]+)["'\'']'
 ```
+> `-x` appends file extensions to every wordlist entry. `-mc` whitelists HTTP response codes to show; `-fc 404` drops 404s. `-d 3` on feroxbuster enables recursive directory discovery to depth 3. The JS pipeline fetches every `.js` file found by katana and extracts quoted path strings — reveals API endpoints hidden in frontend code.
 
 ---
 
@@ -192,6 +202,7 @@ gau inlanefreight.com
 # Find params from wayback
 cat wayback.txt | grep '?' | unfurl keys | sort -u
 ```
+> The CDX API returns all archived URLs for the domain from the Wayback Machine — purely passive, no contact with the target. `waybackurls` and `gau` wrap this into cleaner output. Piping through `unfurl keys` extracts just the query parameter names — these reveal what inputs the app used to accept, even if removed from the live site.
 
 ### Google dorks (cheat list)
 ```
@@ -203,6 +214,7 @@ site:inlanefreight.com ext:env | ext:sql | ext:bak | ext:old
 intitle:"index of /" site:inlanefreight.com
 "@inlanefreight.com" -site:inlanefreight.com           # employee emails
 ```
+> Google dorks use special search operators to find sensitive files indexed by Google. `site:` restricts results to one domain. `filetype:` / `ext:` filters by file extension. `-www` excludes the main site to surface subdomains. The last dork finds employee email addresses mentioned on other sites — useful for phishing and username lists.
 
 ### GitHub OSINT
 ```bash
@@ -210,6 +222,7 @@ github-search -u inlanefreight                         # repos
 gitleaks detect --source . -v                          # secrets in repo
 trufflehog github --repo https://github.com/x/y
 ```
+> `gitleaks` scans a local repo clone for hardcoded secrets (API keys, passwords, tokens) using regex patterns. `trufflehog` does the same against a remote GitHub repo without cloning first. Run these after finding any company GitHub org — developers frequently commit credentials accidentally.
 
 ---
 

@@ -28,6 +28,7 @@ DNS (UDP/53, TCP/53 for large responses & zone transfers) is the internet's addr
 nmap -p53 -Pn -sV -sC <target>
 # 53/tcp open  domain  ISC BIND 9.11.3-1ubuntu1.2 (Ubuntu Linux)
 ```
+> `-Pn` skips ping (DNS servers often block ICMP). `-sC` runs default NSE scripts that probe DNS recursion, version, and caching behavior. Replace `<target>` with the target IP.
 
 Default scripts (`-sC`) probe `dns-nsid`, `dns-recursion`, `dns-cache-snoop`, etc. A version banner like *ISC BIND 9.11.3* is also a vulnerability lookup hint (e.g., CVE-2020-8617, CVE-2021-25216).
 
@@ -39,6 +40,7 @@ dig +short NS <domain> @<ip>           # name servers
 dig +short MX <domain> @<ip>           # mail servers (third-party leak)
 dig +short ANY <domain> @<ip>          # may be refused on modern resolvers
 ```
+> Replace `<ip>` and `<domain>` with your target's values. The `version.bind` query only works if the server allows CHAOS class queries — many production servers disable it.
 
 ---
 
@@ -51,6 +53,7 @@ A **DNS zone** is the slice of the namespace that a server is authoritative for.
 ```bash
 dig AXFR @ns1.inlanefreight.htb inlanefreight.htb
 ```
+> `@ns1.inlanefreight.htb` specifies the DNS server to query. `AXFR` requests a full zone transfer. Replace the nameserver and domain with your target's values. A successful dump lists every DNS record in the zone.
 
 Successful transfer (truncated):
 
@@ -70,6 +73,7 @@ A refused transfer returns `; Transfer failed.` — try every NS in the `NS` RRs
 ```bash
 fierce --domain zonetransfer.me
 ```
+> Automates NS discovery and AXFR in one step. Replace `zonetransfer.me` with your target domain. Use `zonetransfer.me` as a practice target — it allows transfers by design.
 
 `fierce` resolves NS records, attempts AXFR against each, and falls back to wildcard / brute-force enumeration. The public `zonetransfer.me` (Robin Wood / digi.ninja) is a safe practice target.
 
@@ -79,6 +83,7 @@ fierce --domain zonetransfer.me
 host -l <domain> <ns>                  # quick check
 dnsrecon -d <domain> -t axfr           # AXFR + script-style enum
 ```
+> `host -l` is the quickest one-liner for zone transfer. `dnsrecon -t axfr` tries all nameservers automatically. Replace `<domain>` and `<ns>` with your target's values.
 
 ---
 
@@ -91,6 +96,7 @@ Before hunting takeovers, enumerate the surface. Two flavors: **passive** (OSINT
 ```bash
 subfinder -d inlanefreight.com -v
 ```
+> `-v` shows verbose progress including which sources are queried. Replace the domain with your target. No traffic goes to the target — purely passive OSINT.
 
 Pulls from CT logs, AlienVault OTX, DNSDumpster, BufferOver, VirusTotal, etc. No packets to the target — safe for stealth recon.
 
@@ -100,6 +106,7 @@ Useful flags:
 subfinder -d <domain> -all -recursive -o subs.txt
 subfinder -dL domains.txt -silent | httpx -silent
 ```
+> `-all` uses all available sources. `-recursive` finds subdomains of discovered subdomains. `-o` saves results for later use. The second command pipes results directly to `httpx` to find live web services.
 
 ### Active — `subbrute`
 
@@ -111,12 +118,14 @@ cd subbrute
 echo "ns1.inlanefreight.com" > resolvers.txt
 ./subbrute.py inlanefreight.com -s names.txt -r resolvers.txt
 ```
+> `-s` is the wordlist of subdomain names, `-r` is a list of DNS resolvers to use. Add the internal nameserver to `resolvers.txt` for air-gapped environments. Replace the domain with your target.
 
 `subbrute` accepts custom resolvers, which is essential when you only have access to an internal DNS server. Faster modern alternatives: `puredns`, `shuffledns`, `massdns`.
 
 ```bash
 puredns bruteforce names.txt <domain> -r resolvers.txt
 ```
+> Faster alternative to subbrute. `-r` points to a resolvers file. Replace `<domain>` and the wordlist path with your target's values.
 
 ### Quick CNAME triage
 
@@ -127,6 +136,7 @@ for s in $(cat subs.txt); do
   echo -n "$s -> "; dig +short CNAME "$s"
 done
 ```
+> Loops through all discovered subdomains and prints their CNAME targets. Any result pointing to a third-party service (S3, GitHub Pages, Heroku) is a potential takeover candidate.
 
 Or:
 
@@ -134,6 +144,7 @@ Or:
 host support.inlanefreight.com
 # support.inlanefreight.com is an alias for inlanefreight.s3.amazonaws.com
 ```
+> `host` is a quick one-liner for CNAME lookups. An S3 alias with `NoSuchBucket` means the bucket is unclaimed and takeover-able.
 
 ---
 
@@ -171,6 +182,7 @@ host support.inlanefreight.com
 curl -s https://support.inlanefreight.com
 # <Error><Code>NoSuchBucket</Code><Message>The specified bucket 'inlanefreight' does not exist.</Message>...
 ```
+> `NoSuchBucket` confirms the S3 bucket is unclaimed. The CNAME points to your registered bucket once you create it with the same name and region.
 
 Exploitation: register an S3 bucket named `inlanefreight` in the same region indicated by the alias, enable static website hosting, and host arbitrary content. The victim's CNAME now resolves to attacker-controlled storage.
 
@@ -181,6 +193,7 @@ subjack  -w subs.txt -t 50 -ssl -c fingerprints.json -v
 nuclei   -t http/takeovers/ -l subs.txt
 dnstake  -d <domain>
 ```
+> `subjack` matches HTTP responses against known takeover fingerprints. `nuclei` uses templates to detect vulnerable services. `-t 50` sets parallel threads. Replace `<domain>` and `subs.txt` with your target's values.
 
 ---
 
@@ -199,6 +212,7 @@ Edit `/etc/ettercap/etter.dns`:
 inlanefreight.com      A   192.168.225.110
 *.inlanefreight.com    A   192.168.225.110
 ```
+> Maps the target domain (and all subdomains via wildcard) to your attacker IP. Replace `192.168.225.110` with your IP and `inlanefreight.com` with the domain you want to spoof.
 
 Then:
 
@@ -226,6 +240,7 @@ sudo bettercap -iface eth0
 > arp.spoof on
 > dns.spoof on
 ```
+> `-iface` sets the network interface. Replace `arp.spoof.targets` with the victim IP. Set `dns.spoof.address` to your attacker IP. Enable `arp.spoof` first — DNS spoofing requires MITM position.
 
 Combine with `http.proxy` / `https.proxy` + a fake portal (e.g., `evilginx2`, `setoolkit`) to capture credentials.
 
@@ -276,6 +291,7 @@ nmap -p53 -Pn -sV -sC 10.129.89.173
 dig CH TXT version.bind @10.129.89.173 +short
 # "9.16.1-Ubuntu"
 ```
+> Replace `10.129.89.173` with your target IP. The CHAOS class version query only works if the server doesn't block it — but it's worth trying.
 
 ### 2. Get apex records (AXFR refused)
 
@@ -286,6 +302,7 @@ dig @10.129.89.173 inlanefreight.htb NS +short
 dig AXFR @10.129.89.173 inlanefreight.htb
 # ; Transfer failed.
 ```
+> Always try AXFR on the apex zone first. "Transfer failed" means the ACL is locked down — but child zones may have looser rules.
 
 The apex denies AXFR — pivot to subdomain enumeration.
 
@@ -299,6 +316,7 @@ gobuster dns --domain inlanefreight.htb \
   -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt \
   -t 30 --no-color
 ```
+> `--resolver` forces gobuster to use the target's DNS server rather than your system resolver. `-t 30` — do NOT go higher against lab DNS servers; flooding causes `i/o timeout` false negatives. Replace domain, resolver IP, and wordlist path with your values.
 
 ```
 ns.inlanefreight.htb       ::ffff:10.129.89.173
@@ -316,6 +334,7 @@ for s in hr it corp dev qa stg prod legacy; do
 done
 # hr -> ns.inlanefreight.htb.
 ```
+> Manually check common department/function names for NS records. A result means that subdomain has its own DNS delegation — try AXFR on it. Replace the nameserver IP and domain with your target's values.
 
 `hr.inlanefreight.htb` has its own `NS` record — that's a **child zone**, and child zones often have their own ACLs.
 
@@ -324,6 +343,7 @@ done
 ```bash
 dig AXFR @10.129.89.173 hr.inlanefreight.htb
 ```
+> AXFR the child zone using the same nameserver. The child zone may have a more permissive `allow-transfer` rule than the parent. Replace the IP and zone name with your target's values.
 
 ```
 hr.inlanefreight.htb.    604800 IN SOA  inlanefreight.htb. root.inlanefreight.htb. 2 ...
@@ -366,6 +386,7 @@ for s in $(awk '{print $1}' /tmp/subs.out | grep "$DOMAIN$"); do
   [ -n "$ns" ] && { echo "[+] Child zone: $s ($ns)"; dig AXFR @$TARGET $s; }
 done
 ```
+> Set `TARGET` and `DOMAIN` at the top and paste the whole block. Step 3 automatically identifies any subdomain with its own NS delegation and attempts AXFR on it — the key step that catches delegated child zones.
 
 ---
 

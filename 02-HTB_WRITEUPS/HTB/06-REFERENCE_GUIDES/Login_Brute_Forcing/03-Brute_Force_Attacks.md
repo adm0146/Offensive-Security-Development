@@ -15,7 +15,7 @@ Possible Combinations = Character Set Size ^ Password Length
 | Added complexity | 8 | a-z + A-Z (52) | 53,459,728,531,456 |
 | Maximum complexity | 12 | all printable ASCII (94) | 475,920,493,781,698,549,504 |
 
-**Key takeaway:** Every extra character or character type multiplies the search space exponentially — small changes in password design make brute forcing impractical.
+**Key takeaway:** Every extra character or character type multiplies the number of possibilities. Small changes in password design make brute forcing impractical.
 
 ---
 
@@ -34,7 +34,7 @@ Possible Combinations = Character Set Size ^ Password Length
 
 **Objective:** Brute-force a random 4-digit PIN via a GET endpoint (`/pin?pin=XXXX`) to retrieve the flag.
 
-**Why this works:** A 4-digit PIN has only 10,000 possible values (0000–9999). Even at 1 request/sec, it's cracked in under 3 hours. In practice the script runs in seconds.
+**Why this works:** A 4-digit PIN only has 10,000 possible values (0000–9999). At 1 request per second that takes under 3 hours. With 50 threads the script finishes in seconds.
 
 ---
 
@@ -44,12 +44,14 @@ Possible Combinations = Character Set Size ^ Password Length
 # Save the script
 nano pin-solver.py
 ```
+> Opens the nano text editor to create the script file. Replace `nano` with your preferred editor.
 
 Edit the two variables at the top to match your target:
 ```python
 ip = "TARGET_IP"
 port = TARGET_PORT
 ```
+> Change these two lines before running the script. Replace with your target's IP address and port number.
 
 ---
 
@@ -82,6 +84,7 @@ with ThreadPoolExecutor(max_workers=50) as executor:
             executor.shutdown(wait=False, cancel_futures=True)
             break
 ```
+> Tries all 10,000 possible 4-digit PINs (0000–9999) using 50 concurrent threads. `f"{pin:04d}"` pads numbers like `7` to `"0007"`. The script stops as soon as one thread finds the flag. Reuse this template for any numeric brute-force — just change the URL, parameter name, and success condition.
 
 **What each part does:**
 | Part | Purpose |
@@ -101,6 +104,7 @@ with ThreadPoolExecutor(max_workers=50) as executor:
 ```bash
 python3 pin-solver.py
 ```
+> Runs the PIN brute-force script. Expect output in seconds — 50 threads testing 10,000 PINs is very fast over a local network.
 
 **Expected output:**
 ```

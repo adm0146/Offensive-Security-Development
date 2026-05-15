@@ -71,6 +71,7 @@ Extracts credentials from live traffic or packet captures.
 # Against a live interface
 ./Pcredz -i eth0 -t -v
 ```
+> `-f` reads from a pcap file; `-i` captures live from an interface. `-t` timestamps each finding; `-v` verbose output. Results are also written to `CredentialDump-Session.log` in the current directory.
 
 ### Example Output
 
@@ -102,6 +103,7 @@ FTP Pass: qw...
 ```bash
 tshark -r demo.pcapng -z io,phs -q
 ```
+> Reads the pcap file and prints a protocol hierarchy statistics table (`-z io,phs`). `-q` suppresses per-packet output. Use this to quickly see which protocols are present before drilling down.
 
 Key protocols found: `http`, `ftp`, `ftp-data`, `snmp`, `urlencoded-form`
 
@@ -116,6 +118,7 @@ tshark -r demo.pcapng -Y "tcp.dstport==80||tcp.srcport==80" -T fields -e tcp.str
 # Follow stream 76 (the payment POST)
 tshark -r demo.pcapng -q -z "follow,tcp,ascii,76"
 ```
+> First command finds all TCP stream IDs on port 80. Second command reconstructs a full conversation from stream 76. The stream number comes from the first command's output. Use `ascii` mode for readable text content.
 
 POST body:
 ```
@@ -129,6 +132,7 @@ card_name=Joshua+M+Benito&card_number=5156+8829+4478+9834&exp_date=12%2F30&cvv=9
 ```bash
 tshark -r demo.pcapng -Y snmp -T fields -e snmp.community | sort -u
 ```
+> Filters for SNMP packets and extracts the community string field. `-T fields -e` prints just the specified field. `sort -u` deduplicates. Community strings in SNMP v1/v2 function as cleartext passwords for device management.
 
 > **Answer:** `s3cr3tSNMPC0mmun1ty`
 
@@ -137,6 +141,7 @@ tshark -r demo.pcapng -Y snmp -T fields -e snmp.community | sort -u
 ```bash
 tshark -r demo.pcapng -Y ftp
 ```
+> Filters all FTP control channel packets. FTP sends credentials in plaintext — `USER` and `PASS` commands appear directly in the packet data. FTP data (file content) is on a separate connection; use `-Y ftp-data` to see transferred files.
 
 ```
 Request: USER leah

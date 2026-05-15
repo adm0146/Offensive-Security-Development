@@ -10,24 +10,36 @@
 ```bash
 sudo nmap 10.129.2.0/24 -sn -oA network_scan
 ```
+
+> `-sn` disables port scanning so only host discovery probes run. `-oA network_scan` saves results in all three formats. Replace `10.129.2.0/24` with your target subnet.
+
 Discovers all active hosts on a network subnet using ping sweep (ICMP echo requests).
 
 **Scan IP List**
 ```bash
 sudo nmap -sn -oA ip_list_scan -iL hosts.txt
 ```
+
+> `-iL hosts.txt` reads target IPs from a file. Replace `hosts.txt` with your actual file path.
+
 Scans multiple targets from a file list and identifies which hosts are online.
 
 **Scan Multiple Individual IPs**
 ```bash
 sudo nmap -sn -oA individual_ips 10.129.2.18-20
 ```
+
+> The `18-20` range notation scans IPs .18, .19, and .20 in one command.
+
 Discovers active hosts in a specific range using consecutive IP notation for quick reconnaissance.
 
 **Scan Single IP**
 ```bash
 sudo nmap 10.129.2.18 -sn -oA single_host_scan
 ```
+
+> Quick alive check before running a full port scan. Replace `10.129.2.18` with your target IP.
+
 Determines if a single target host is alive before conducting deeper port and service scans.
 
 ---
@@ -38,48 +50,72 @@ Determines if a single target host is alive before conducting deeper port and se
 ```bash
 sudo nmap 10.129.2.28 -sS -oA quick_port_scan
 ```
+
+> `-sS` is the stealth SYN scan (requires root). By default it scans the top 1000 most common TCP ports. Replace `10.129.2.28` with your target IP.
+
 Scans the 1000 most common TCP ports using SYN scan (stealth method) for fast reconnaissance.
 
 **Fast Port Scan (Top 100)**
 ```bash
 sudo nmap 10.129.2.28 -F -oA fast_scan
 ```
+
+> `-F` is the "fast" flag — scans only the top 100 most common ports instead of 1000. Use this for a quick first look.
+
 Scans only the top 100 most common ports for rapid target assessment.
 
 **Top N Ports**
 ```bash
 sudo nmap 10.129.2.28 --top-ports=20 -oA top20_ports
 ```
+
+> `--top-ports=N` scans the N most commonly used ports according to Nmap's frequency database. Change `20` to any number. Useful when you want more than 100 but less than 1000 ports.
+
 Scans the N most frequently used ports from Nmap database (customize number as needed).
 
 **All Ports Scan**
 ```bash
 sudo nmap 10.129.2.28 -p- -oA all_ports
 ```
+
+> `-p-` is shorthand for `-p 1-65535`. This scans every possible TCP port. It is slow but ensures you do not miss anything.
+
 Scans all 65,535 TCP ports for comprehensive target mapping (slow but thorough).
 
 **Specific Port Range**
 ```bash
 sudo nmap 10.129.2.28 -p 20-25,80,443,3306 -oA custom_ports
 ```
+
+> Combine port ranges and individual ports with commas. Replace the port list with the services you want to check.
+
 Scans custom port selection combining ranges and individual ports for targeted reconnaissance.
 
 **TCP Connect Scan (Non-root)**
 ```bash
 sudo nmap 10.129.2.28 -sT -oA tcp_connect
 ```
+
+> `-sT` performs a full TCP Connect scan (completes the three-way handshake). Use this when you are running as a non-root user since `-sS` requires root. It is slower and more easily logged.
+
 Performs full TCP three-way handshake for accurate port detection (completes connection, easily logged).
 
 **TCP SYN Scan (Default - Root)**
 ```bash
 sudo nmap 10.129.2.28 -sS -oA syn_scan
 ```
+
+> `-sS` sends a SYN packet and does not complete the handshake. This is stealthier than `-sT` and is the default scan type when running as root.
+
 Half-open SYN scan that doesn't complete handshake (stealthier, faster, requires root privileges).
 
 **UDP Port Scan**
 ```bash
 sudo nmap 10.129.2.28 -sU -F -oA udp_scan
 ```
+
+> `-sU` runs a User Datagram Protocol (UDP) scan. `-F` limits it to the top 100 ports for speed. UDP scans are slow — expect 1–2 minutes for 100 ports.
+
 Scans UDP ports for stateless protocols (DNS, SNMP, DHCP); much slower than TCP scanning.
 
 ---
@@ -90,18 +126,27 @@ Scans UDP ports for stateless protocols (DNS, SNMP, DHCP); much slower than TCP 
 ```bash
 sudo nmap 10.129.2.28 -sV -oA service_detection
 ```
+
+> `-sV` probes each open port to identify the running service and its version. This information is critical for searching CVEs. Replace `10.129.2.28` with your target.
+
 Identifies service names, versions, and configurations on open ports using probe matching.
 
 **Detailed Service Scan**
 ```bash
 sudo nmap 10.129.2.28 -sV -sC -oA detailed_scan
 ```
+
+> `-sC` runs the default Nmap Scripting Engine (NSE) scripts alongside version detection. This combination gives richer output than `-sV` alone — it grabs banners, checks for misconfigs, and runs safe enumeration scripts.
+
 Combines service detection with default NSE scripts for deeper service enumeration and vulnerability checks.
 
 **Service Detection on Specific Port**
 ```bash
 sudo nmap 10.129.2.28 -p 445 -sV -oA smb_detection
 ```
+
+> Targets a single port for version detection. Replace `445` with any port of interest and `10.129.2.28` with your target IP.
+
 Detects and fingerprints service version on a specific port (useful for targeted service identification).
 
 ---
@@ -112,18 +157,27 @@ Detects and fingerprints service version on a specific port (useful for targeted
 ```bash
 sudo nmap 10.129.2.28 -sn -Pn -n --disable-arp-ping --packet-trace -oA packet_trace_host
 ```
+
+> `--packet-trace` prints every packet sent and received to the screen. Use this to debug why a host appears down or why a port shows an unexpected state.
+
 Shows every packet sent and received during host discovery (reveals ARP vs ICMP behavior).
 
 **Packet Trace - Port Scan**
 ```bash
 sudo nmap 10.129.2.28 -p 445 -Pn -n --disable-arp-ping --packet-trace --reason -oA packet_trace_port
 ```
+
+> `--reason` adds a column showing why Nmap assigned a port its state (for example, "syn-ack" for open or "reset" for closed). Combine with `--packet-trace` to see the full picture.
+
 Displays detailed packet exchange during port scan with reason explanations (SYN/RST analysis).
 
 **Packet Trace - Service Detection**
 ```bash
 sudo nmap 10.129.2.28 -p 445 -sV -Pn -n --disable-arp-ping --packet-trace -oA packet_trace_service
 ```
+
+> Combines service version detection with full packet tracing. Useful for understanding what probes Nmap sends when fingerprinting a service.
+
 Shows probes sent and responses received during service version detection and fingerprinting.
 
 ---
@@ -142,10 +196,15 @@ Shows probes sent and responses received during service version detection and fi
 -vv              # Very verbose output
 ```
 
+> These modifiers can be appended to any scan command. `-Pn` and `-n` are the most commonly needed on HTB — they skip host discovery and DNS lookups to speed up scans.
+
 **Example with All Options:**
 ```bash
 sudo nmap 10.129.2.28 -p 445 -sV -Pn -n --disable-arp-ping --packet-trace --reason -oA comprehensive_scan
 ```
+
+> The most verbose single-port scan command. It shows version info, every packet exchanged, and the reason for the port state. Use this to deeply analyze one specific port. Replace `445` and `10.129.2.28` with your target.
+
 Complete scan showing packet details, service versions, reasons for port states, and saved results.
 
 ---
@@ -214,6 +273,8 @@ Control which ports Nmap scans using these options:
 sudo nmap 10.129.2.28 --top-ports=10
 ```
 
+> Scans only the 10 most frequently seen TCP ports in Nmap's frequency database. Fast but limited coverage. Good for an instant first check.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -236,6 +297,8 @@ To see exactly what Nmap sends and receives, use packet tracing and disable ICMP
 ```bash
 sudo nmap 10.129.2.28 -p 21 --packet-trace -Pn -n --disable-arp-ping
 ```
+
+> Shows exactly what Nmap sends and receives when scanning port 21 (File Transfer Protocol). Useful for understanding the raw packet exchange. Replace `21` with any port you want to analyze.
 
 **Options Explained:**
 | Option | Purpose |
@@ -333,6 +396,9 @@ RCVD (0.0573s) TCP 10.129.2.28:21 > 10.10.14.2:63090 RA ttl=64 id=0 iplen=40 seq
 ```bash
 sudo nmap 10.129.2.28 --top-ports=20
 ```
+
+> Scans the 20 most common ports. Takes a few seconds. Good as a very first look before committing to a longer scan.
+
 - Fast reconnaissance of most likely services
 - Takes seconds to complete
 - Identifies web servers, SSH, databases
@@ -342,6 +408,9 @@ sudo nmap 10.129.2.28 --top-ports=20
 ```bash
 sudo nmap 10.129.2.28 --top-ports=100
 ```
+
+> Scans the top 100 ports. A good balance between speed and coverage. Run this as a quick assessment before committing to a full `-p-` scan.
+
 - Scans 100 most common ports
 - Takes 1-2 minutes
 - Better coverage of services
@@ -351,6 +420,9 @@ sudo nmap 10.129.2.28 --top-ports=100
 ```bash
 sudo nmap 10.129.2.28 -p-
 ```
+
+> Scans all 65,535 TCP ports. This is the most thorough option but can take many minutes. Use `-Pn` and `--min-rate 1000` to speed it up on HTB.
+
 - Scans all 65,535 TCP ports
 - Takes 5-15 minutes (depends on network)
 - No stone left unturned
@@ -360,6 +432,9 @@ sudo nmap 10.129.2.28 -p-
 ```bash
 sudo nmap 10.129.2.28 -F
 ```
+
+> `-F` is equivalent to `--top-ports=100`. Use it as a quick first scan before running a full `-p-` scan.
+
 - Scans top 100 ports (faster version of --top-ports=100)
 - Quick check before deeper scan
 
@@ -420,6 +495,8 @@ The TCP Connect Scan uses the **complete three-way handshake** to determine port
 sudo nmap 10.129.2.28 -p 443 --packet-trace --disable-arp-ping -Pn -n --reason -sT
 ```
 
+> Runs a full TCP Connect scan against port 443. The `--reason` flag will show "syn-ack" when the port is open. Replace `10.129.2.28` with your target IP.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -466,6 +543,8 @@ When packets are dropped:
 sudo nmap 10.129.2.28 -p 139 --packet-trace -n --disable-arp-ping -Pn
 ```
 
+> When a firewall silently drops packets, the port shows as filtered and the scan takes ~2 seconds per attempt due to retries. `--packet-trace` will show Nmap sending SYN packets with no RCVD responses.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -492,6 +571,8 @@ sudo nmap 10.129.2.28 -p 139 --packet-trace -n --disable-arp-ping -Pn
 ```bash
 sudo nmap 10.129.2.28 -p 445 --packet-trace -n --disable-arp-ping -Pn
 ```
+
+> When a firewall actively rejects packets it sends back an Internet Control Message Protocol (ICMP) "Port Unreachable" error (type 3, code 3). The scan completes quickly (~0.05s) unlike silent filtering which retries.
 
 **Sample Output:**
 ```
@@ -600,6 +681,8 @@ UDP is a **stateless protocol** that doesn't require a three-way handshake like 
 sudo nmap 10.129.2.28 -F -sU
 ```
 
+> Scans the top 100 UDP ports. Expect this to take 1–2 minutes. UDP scans are much slower than TCP because each port requires a timeout before moving on.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -629,6 +712,8 @@ Nmap done: 1 IP address (1 host up) scanned in 98.07 seconds.
 ```bash
 sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 137 --reason
 ```
+
+> UDP scan against port 137 (Network Basic Input/Output System Name Service). When the service responds to the UDP probe, `--reason` will show `udp-response`.
 
 **Options Explained:**
 | Option | Purpose |
@@ -668,6 +753,8 @@ PORT    STATE SERVICE    REASON
 sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 100 --reason
 ```
 
+> Scans an unknown UDP port. When no service is listening, the host sends back an ICMP "Port Unreachable" error and the port is marked closed.
+
 **Packet Trace:**
 ```
 SENT (0.0445s) UDP 10.10.14.2:63825 > 10.129.2.28:100 ttl=57 id=29925 iplen=28
@@ -694,6 +781,8 @@ PORT    STATE  SERVICE REASON
 ```bash
 sudo nmap 10.129.2.28 -sU -Pn -n --disable-arp-ping --packet-trace -p 138 --reason
 ```
+
+> When no response comes back at all, the port is marked `open|filtered` — Nmap cannot tell if a service is listening silently or a firewall is dropping packets.
 
 **Packet Trace:**
 ```
@@ -764,6 +853,8 @@ The `-sV` option performs **service version detection** on open ports. It sends 
 ```bash
 sudo nmap 10.129.2.28 -Pn -n --disable-arp-ping --packet-trace -p 445 --reason -sV
 ```
+
+> Service version detection on port 445 (Server Message Block). Nmap first connects, then sends protocol-specific probes (NULL, then SMBProgNeg) and matches the response against its signature database.
 
 **Options Explained:**
 | Option | Purpose |
@@ -849,6 +940,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 sudo nmap 10.129.2.28 -p- -sV -sC -O
 ```
 
+> Full reconnaissance in one command: scans all 65,535 ports, detects service versions, runs default NSE scripts, and attempts OS fingerprinting. Use this after a fast scan confirms the host is interesting. Replace `10.129.2.28` with your target.
+
 **Options:**
 | Option | Purpose |
 |--------|---------|
@@ -885,6 +978,8 @@ sudo nmap 10.129.2.28 -p- -sV -sC -O
 nmap -sT -oA tcp_connect 10.129.34.15
 ```
 
+> Full TCP Connect scan saving all output formats. Run as a non-root user or when you need confirmed connections. Replace `10.129.34.15` with your target IP.
+
 **Output:**
 ```
 # Nmap 7.98 scan initiated Mon Feb  9 15:16:49 2026 as: /usr/lib/nmap/nmap -sT -oA tcp_connect 10.129.34.15
@@ -912,6 +1007,8 @@ PORT      STATE SERVICE
 ```bash
 nmap --privileged -sT -Pn -sV -oA host_discovery 10.129.34.15
 ```
+
+> `--privileged` tells Nmap to use privileged operations even if it does not detect root. `-sV` adds version detection to the connect scan. Note the massive time difference compared to a scan without `-sV` (155s vs 1.6s).
 
 **Output:**
 ```

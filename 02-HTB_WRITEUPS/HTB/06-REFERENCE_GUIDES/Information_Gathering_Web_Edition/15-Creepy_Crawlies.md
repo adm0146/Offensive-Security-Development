@@ -23,6 +23,7 @@
 ```bash
 pip3 install scrapy
 ```
+> Installs the Scrapy web crawling framework via pip3. ReconSpider depends on it. If you get a PEP 668 error on Kali, add `--break-system-packages` to override.
 
 ### Download and Run ReconSpider
 
@@ -34,8 +35,9 @@ unzip ReconSpider.zip
 # Run against target
 python3 ReconSpider.py http://TARGET
 ```
+> Downloads and extracts ReconSpider from HTB Academy, then runs it against the target URL. Replace `http://TARGET` with your target. Output is written to `results.json` in the current directory. Parse that file with `jq` to extract emails, comments, links, and more.
 
-Output saves to `results.json`.
+Output is saved to `results.json` in the current directory.
 
 ---
 
@@ -91,6 +93,7 @@ jq -r '.comments[]' results.json
 # Count findings per category
 jq 'to_entries[] | {key: .key, count: (.value | length)}' results.json
 ```
+> Each `jq -r '.KEY[]'` command extracts all values from one array in `results.json`. `-r` strips the surrounding quotes from string output. The last command counts how many items were found in each category — useful for quickly spotting where the data is dense. Start with `.comments[]` and `.emails[]` first.
 
 ---
 
@@ -109,12 +112,12 @@ jq 'to_entries[] | {key: .key, count: (.value | length)}' results.json
 
 ## Key Takeaways
 
-- **ReconSpider** gives you structured JSON output from a single command
-- **Emails** are immediate value — phishing targets and username patterns
-- **JS files** often contain hardcoded API endpoints and secrets
-- **HTML comments** are dev leftovers — debug info, internal paths, TODO notes
-- **External files** have metadata — run `exiftool` on every PDF you find
-- **Always get permission** before crawling — respect server resources and scope
+- ReconSpider produces structured JSON output from a single command.
+- Emails are immediate value — they are phishing targets and reveal username patterns.
+- JavaScript (JS) files often contain hardcoded API endpoints and secrets.
+- HTML comments are developer leftovers. Check them for debug info, internal paths, and TODO notes.
+- External files have metadata — run `exiftool` on every PDF you find.
+- Always get permission before crawling. Respect server resources and stay within scope.
 
 ---
 
@@ -122,18 +125,19 @@ jq 'to_entries[] | {key: .key, count: (.value | length)}' results.json
 
 ### Problem: PEP 668 Blocking pip Install
 
-Kali's newer Python (3.13+) enforces PEP 668 — won't allow system-wide `pip install`:
+Kali's newer Python (3.13+) enforces PEP 668 and blocks system-wide `pip install`:
 
 ```bash
 pip3 install scrapy
 # ERROR: externally-managed-environment
 ```
 
-**Fix** — on a pentesting VM, override is fine:
+On a pentesting VM, the override is safe:
 
 ```bash
 pip3 install scrapy --break-system-packages
 ```
+> Overrides the PEP 668 externally-managed-environment restriction on newer Kali Python installations. This is safe to use on a dedicated pentesting VM.
 
 ### Running ReconSpider
 
@@ -142,6 +146,7 @@ wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/Recon
 unzip ReconSpider.zip
 /usr/bin/python3 ReconSpider.py http://inlanefreight.com
 ```
+> Uses the full path `/usr/bin/python3` to avoid virtual environment conflicts. Run this from the directory where you extracted ReconSpider.
 
 ### Parsing the Output
 
@@ -149,12 +154,13 @@ unzip ReconSpider.zip
 sudo apt install jq -y
 cat results.json | jq .
 ```
+> Installs `jq` if missing, then pretty-prints the entire `results.json` file. Use this to see all extracted data at once before drilling into specific keys.
 
 ### Key Findings
 
-**16 emails** discovered — including CEO email (`jeremy-ceo@inlanefreight.com`), support addresses, and individual employees.
+16 emails were discovered — including the CEO email (`jeremy-ceo@inlanefreight.com`), support addresses, and individual employees.
 
-**HTML comments leaked critical info:**
+HTML comments leaked critical information:
 
 ```
 <!-- TO-DO: change the location of future reports to inlanefreight-comp133.s3.amazonaws.htb -->
@@ -162,7 +168,7 @@ cat results.json | jq .
 ```
 
 - S3 bucket name exposed: `inlanefreight-comp133.s3.amazonaws.htb`
-- Dev notes left in production — internal email changes visible
+- Developer notes left in production code — internal email changes visible to anyone who reads the source
 
 **Answer:** `inlanefreight-comp133.s3.amazonaws.htb`
 

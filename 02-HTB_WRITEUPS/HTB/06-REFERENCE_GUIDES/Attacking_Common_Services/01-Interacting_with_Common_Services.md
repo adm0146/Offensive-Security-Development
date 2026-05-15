@@ -39,21 +39,25 @@ Press `[WINKEY] + [R]` and enter the UNC path:
 ```cmd
 dir \\192.168.220.129\Finance\
 ```
+> Lists files in the remote SMB share using a UNC path. Replace the IP and share name with your target.
 
 #### Map share to drive letter
 ```cmd
 net use n: \\192.168.220.129\Finance
 ```
+> Maps the share to drive letter `N:` for easier browsing. Change `n:` to any free drive letter.
 
 #### Map share with credentials
 ```cmd
 net use n: \\192.168.220.129\Finance /user:plaintext Password123
 ```
+> `/user:` specifies the username, followed by the password. Replace with valid credentials. After mapping, use `n:` like a local drive.
 
 #### Count all files in share
 ```cmd
 dir n: /a-d /s /b | find /c ":\"
 ```
+> `/a-d` lists files only (no directories), `/s` recurses subdirectories, `/b` outputs bare filenames. `find /c` counts matching lines. Useful to know the scope before searching.
 
 | Flag | Meaning |
 |------|---------|
@@ -70,6 +74,7 @@ dir n:\*password* /s /b
 dir n:\*users* /s /b
 dir n:\*key* /s /b
 ```
+> Wildcards (`*cred*`) match any filename containing the keyword. `/s` recurses all subdirectories. Run all of these — credential files may have unexpected names.
 
 #### Search file extensions (source code hunting)
 ```cmd
@@ -77,12 +82,14 @@ dir n:\*.cs /s /b
 dir n:\*.php /s /b
 dir n:\*.config /s /b
 ```
+> Searches for source code files by extension. Config files often contain hardcoded credentials. Add more extensions as needed (`.xml`, `.ini`, `.yaml`).
 
 #### Search file contents with findstr
 ```cmd
 findstr /s /i cred n:\*.*
 findstr /s /i password n:\*.*
 ```
+> `/s` recurses subdirectories, `/i` is case-insensitive. Searches inside all files for credential strings. Slower than filename search but finds embedded passwords.
 
 | `findstr` Flag | Meaning |
 |----------------|---------|
@@ -97,11 +104,13 @@ findstr /s /i password n:\*.*
 ```powershell
 Get-ChildItem \\192.168.220.129\Finance\
 ```
+> PowerShell equivalent of `dir`. Use a UNC path directly. Alias `gci` works too.
 
 #### Map share to drive (no creds)
 ```powershell
 New-PSDrive -Name "N" -Root "\\192.168.220.129\Finance" -PSProvider "FileSystem"
 ```
+> Creates a mapped drive `N:` accessible in the current PowerShell session. Replace the IP and share name with your target.
 
 #### Map share with credentials (PSCredential object)
 ```powershell
@@ -111,24 +120,28 @@ $secpassword = ConvertTo-SecureString $password -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential $username, $secpassword
 New-PSDrive -Name "N" -Root "\\192.168.220.129\Finance" -PSProvider "FileSystem" -Credential $cred
 ```
+> PowerShell requires credentials as a `PSCredential` object — you can't just pass plaintext. `ConvertTo-SecureString -AsPlainText -Force` converts a plain string to the required type.
 
 #### Count all files
 ```powershell
 N:
 (Get-ChildItem -File -Recurse | Measure-Object).Count
 ```
+> Change to the `N:` drive first, then run the count. `-File` filters out directories, `-Recurse` searches all subdirectories. `.Count` extracts the number from the `Measure-Object` output.
 
 #### Search filenames containing pattern
 ```powershell
 Get-ChildItem -Recurse -Path N:\ -Include *cred* -File
 Get-ChildItem -Recurse -Path N:\ -Include *password* -File
 ```
+> `-Include` filters by filename pattern. Change the wildcard to target different keywords.
 
 #### Search file contents (like grep)
 ```powershell
 Get-ChildItem -Recurse -Path N:\ | Select-String "cred" -List
 Get-ChildItem -Recurse -Path N:\ | Select-String "password" -List
 ```
+> Pipes all files to `Select-String` which searches inside each file. `-List` shows only the first match per file (faster). Equivalent to Linux `grep -r`.
 
 | PowerShell Cmdlet | CMD Equivalent |
 |-------------------|----------------|
@@ -144,17 +157,20 @@ Get-ChildItem -Recurse -Path N:\ | Select-String "password" -List
 ```bash
 sudo apt install cifs-utils
 ```
+> Required to mount SMB/CIFS shares on Linux. Only needs to be installed once.
 
 ### Mount SMB share (inline credentials)
 ```bash
 sudo mkdir /mnt/Finance
 sudo mount -t cifs -o username=plaintext,password=Password123,domain=. //192.168.220.129/Finance /mnt/Finance
 ```
+> `-t cifs` specifies the SMB filesystem type. `-o` passes mount options including credentials. Replace the IP, share name, username, and password with your target's values. `domain=.` means local authentication (no domain).
 
 ### Mount SMB share (credential file)
 ```bash
 mount -t cifs //192.168.220.129/Finance /mnt/Finance -o credentials=/path/credentialfile
 ```
+> Avoids putting credentials on the command line (visible in `ps`). Create the credential file with `username=`, `password=`, and `domain=` lines. Replace the path with the actual credential file location.
 
 **Credential file format:**
 ```
@@ -162,6 +178,7 @@ username=plaintext
 password=Password123
 domain=.
 ```
+> Each field goes on its own line. Set `domain=.` for local accounts or enter the domain name for domain accounts. Pass the file path to `-o credentials=`.
 
 ### Search once mounted
 
@@ -170,12 +187,14 @@ domain=.
 find /mnt/Finance/ -name *cred*
 find /mnt/Finance/ -name *password*
 ```
+> Searches for files whose names contain the keyword. Replace `/mnt/Finance/` with your mount point and adjust the pattern as needed.
 
 #### Search file contents
 ```bash
 grep -rn /mnt/Finance/ -ie cred
 grep -rn /mnt/Finance/ -ie password
 ```
+> `-r` recurses directories, `-n` shows line numbers, `-i` is case-insensitive, `-e` specifies the search pattern. Searches inside every file under the mount point.
 
 | `grep` Flag | Meaning |
 |-------------|---------|
@@ -200,6 +219,7 @@ sudo apt-get install evolution
 # If sandbox error on launch:
 export WEBKIT_FORCE_SANDBOX=0 && evolution
 ```
+> Install Evolution once, then launch it. If it crashes with a sandbox error, set `WEBKIT_FORCE_SANDBOX=0` first. Configure it to connect to the target SMTP/IMAP/POP3 server for email enumeration.
 
 **Connection tips:**
 - Use domain name or IP for mail server
@@ -234,11 +254,13 @@ export WEBKIT_FORCE_SANDBOX=0 && evolution
 ```bash
 sqsh -S 10.129.20.13 -U username -P Password123
 ```
+> `-S` is the server address, `-U` is username, `-P` is password. After connecting, type SQL queries and end with `go` to execute. Replace the IP and credentials with your target's.
 
 #### Windows (sqlcmd)
 ```cmd
 sqlcmd -S 10.129.20.13 -U username -P Password123
 ```
+> Windows-native MSSQL client. Same flags as `sqsh`. Run queries and use `GO` to execute. Replace the server IP and credentials with your target's.
 
 ---
 
@@ -248,11 +270,13 @@ sqlcmd -S 10.129.20.13 -U username -P Password123
 ```bash
 mysql -u username -pPassword123 -h 10.129.20.13
 ```
+> `-u` is the username, `-p` followed directly by the password (no space), `-h` is the remote host. Replace all three values with your target's. Omit the password after `-p` to be prompted securely.
 
 #### Windows
 ```cmd
 mysql.exe -u username -pPassword123 -h 10.129.20.13
 ```
+> Same syntax as Linux. No space between `-p` and the password. Run from a Windows host with MySQL client tools installed.
 
 > Note: No space between `-p` and the password.
 
@@ -269,6 +293,7 @@ sudo dpkg -i dbeaver-<version>.deb
 # Launch
 dbeaver &
 ```
+> Replace `<version>` with the actual version number from the downloaded `.deb` file. `&` launches it in the background so the terminal stays free.
 
 Download: [https://github.com/dbeaver/dbeaver/releases](https://github.com/dbeaver/dbeaver/releases)
 

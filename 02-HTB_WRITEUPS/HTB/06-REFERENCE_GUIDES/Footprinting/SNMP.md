@@ -121,6 +121,7 @@ The default configuration defines basic settings including IP addresses, ports, 
 ```bash
 cat /etc/snmp/snmpd.conf | grep -v "#" | sed -r '/^\s*$/d'
 ```
+> Reads the SNMP daemon config with comments and blank lines removed. Look for `rocommunity` and `rwcommunity` lines — they show the community strings and which IPs are allowed. `rwuser noauth` is especially dangerous (write access with no auth).
 
 ```
 sysLocation    Sitting on the Dock of the Bay
@@ -164,6 +165,7 @@ rouser authPrivUser authpriv -V systemonly
 ```bash
 snmpwalk -v2c -c public 10.129.14.128
 ```
+> `-v2c` specifies SNMPv2c and `-c public` uses the `public` community string (the default). Dumps the entire accessible Management Information Base (MIB) tree. Replace `public` with the community string you found and `10.129.14.128` with your target IP.
 
 ```
 iso.3.6.1.2.1.1.1.0 = STRING: "Linux htb 5.11.0-34-generic #36~20.04.1-Ubuntu SMP Fri Aug 27 08:06:32 UTC 2021 x86_64"
@@ -192,10 +194,12 @@ iso.3.6.1.2.1.25.6.3.1.2.1246 = STRING: "python3-apt_2.0.0ubuntu0.20.04.6_amd64"
 ```bash
 sudo apt install onesixtyone
 ```
+> Installs the `onesixtyone` community string brute-forcer. Already installed on this system.
 
 ```bash
 onesixtyone -c /opt/useful/seclists/Discovery/SNMP/snmp.txt 10.129.14.128
 ```
+> `-c` specifies the community string wordlist. `onesixtyone` sends UDP probes quickly and reports which strings got a valid response. On this system use `~/SecLists/Discovery/SNMP/common-snmp-community-strings.txt`. Replace `10.129.14.128` with your target IP.
 
 ```
 Scanning 1 hosts, 3220 communities
@@ -215,16 +219,19 @@ Scanning 1 hosts, 3220 communities
 ```bash
 sudo apt install braa
 ```
+> Installs `braa`, a fast SNMP OID brute-forcer. Use it to enumerate a specific OID subtree quickly.
 
 **Syntax:**
 ```bash
 braa <community string>@<IP>:.1.3.6.*
 ```
+> `braa` syntax puts the community string before `@`, then the IP, then the OID pattern. The `.1.3.6.*` wildcard walks the standard SNMP tree.
 
 **Example:**
 ```bash
 braa public@10.129.14.128:.1.3.6.*
 ```
+> Walks the entire `.1.3.6` OID subtree using the `public` community string. Faster than `snmpwalk` for large MIBs. Replace `public` with the correct community string and `10.129.14.128` with your target IP.
 
 ```
 10.129.14.128:20ms:.1.3.6.1.2.1.1.1.0:Linux htb 5.11.0-34-generic #36~20.04.1-Ubuntu SMP Fri Aug 27 08:06:32 UTC 2021 x86_64
@@ -274,6 +281,7 @@ rocommunity public 0.0.0.0/0      # allow public community from anywhere
 
 sudo systemctl restart snmpd
 ```
+> Lab setup commands — installs SNMP and configures it as insecure (world-readable) for testing. Do not run these on a production system.
 
 ### Enumeration Commands
 
@@ -290,6 +298,7 @@ snmp-check 10.37.129.4 -c public | grep -iE "apache|nginx|ssh|ftp|root|sudo|pyth
 # Find user information
 snmp-check 10.37.129.4 -c public | grep -A2 "user"
 ```
+> `snmp-check` produces cleaner, categorized output than `snmpwalk`. The `grep -iE` filter narrows the massive output to just services and credentials you care about. Replace `10.37.129.4` with your target IP and `public` with the valid community string.
 
 ### Key Findings
 

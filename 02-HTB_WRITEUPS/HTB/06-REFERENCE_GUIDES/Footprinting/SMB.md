@@ -191,6 +191,7 @@ Config file: `/etc/samba/smb.conf`
 # View active settings (exclude comments)
 cat /etc/samba/smb.conf | grep -v "#\|\;"
 ```
+> Filters out comment lines (starting with `#`) and semicolons (`\;`) from the Samba config to show only active directives. The same pattern works on any config file to cut through noise.
 
 ### Example Configuration
 
@@ -295,6 +296,7 @@ cat /etc/samba/smb.conf | grep -v "#\|\;"
 ```bash
 sudo systemctl restart smbd
 ```
+> Restarts the Samba daemon after config changes. Run this on the server side when testing configuration changes during a lab setup.
 
 ---
 
@@ -304,6 +306,7 @@ sudo systemctl restart smbd
 ```bash
 smbclient -N -L //10.129.14.128
 ```
+> `-N` uses a null session (no password) and `-L` lists all available shares. This is your first check — if null sessions work, you can enumerate shares anonymously. Replace `10.129.14.128` with your target IP.
 
 | Flag | Description |
 |------|-------------|
@@ -328,6 +331,7 @@ SMB1 disabled -- no workgroup available
 ```bash
 smbclient //10.129.14.128/notes
 ```
+> Connects to the `notes` share interactively. You'll get an `smb: \>` prompt where you can run FTP-like commands (`ls`, `get`, `put`). Press Enter at the password prompt to try anonymous access. Replace the IP and share name with your target.
 
 **Example Session:**
 ```
@@ -432,6 +436,7 @@ No locked files
 ```bash
 sudo nmap 10.129.14.128 -sV -sC -p139,445
 ```
+> Scans only SMB ports 139 and 445 with version detection and default scripts. The `smb2-security-mode` script output tells you whether SMB signing is required — if not, you may be able to relay authentication. Replace `10.129.14.128` with your target IP.
 
 **Example Output:**
 ```
@@ -464,6 +469,7 @@ rpcclient -U "" 10.129.14.128
 Enter WORKGROUP\'s password:
 rpcclient $>
 ```
+> `-U ""` sets an empty username for a null session. Press Enter at the password prompt. Once connected, you get an `rpcclient $>` prompt where you can run Remote Procedure Call (RPC) queries. Replace `10.129.14.128` with your target IP.
 
 ### RPC Queries
 
@@ -611,6 +617,7 @@ rpcclient $> querygroup 0x201
 ```bash
 for i in $(seq 500 1100);do rpcclient -N -U "" 10.129.14.128 -c "queryuser 0x$(printf '%x\n' $i)" | grep "User Name\|user_rid\|group_rid" && echo "";done
 ```
+> Brute-forces Relative Identifiers (RIDs) from 500 to 1100 to discover users when `enumdomusers` is blocked. `printf '%x\n'` converts the decimal counter to hex. The `grep` filters down to just user name and RID lines. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -631,6 +638,7 @@ User Name   :   cry0l1t3
 ```bash
 samrdump.py 10.129.14.128
 ```
+> `samrdump.py` enumerates users via the Security Account Manager (SAM) Remote Protocol. It does the same RID brute-force automatically and presents results cleanly. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -673,6 +681,7 @@ cry0l1t3 (1001)/ScriptPath:
 ```bash
 smbmap -H 10.129.14.128
 ```
+> `-H` specifies the target host. SMBMap lists every share and shows your exact permissions (READ, WRITE, or NO ACCESS) in one line per share. Much faster than manually connecting to each share. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -697,6 +706,7 @@ smbmap -H 10.129.14.128
 ```bash
 crackmapexec smb 10.129.14.128 --shares -u '' -p ''
 ```
+> Uses a null session (`-u '' -p ''`) to list shares and display permissions. CrackMapExec (CME) clearly labels `READ,WRITE` access in the output. Note: on this system use `nxc` instead of `crackmapexec`. Replace `10.129.14.128` with your target IP.
 
 **Output:**
 ```
@@ -726,11 +736,13 @@ git clone https://github.com/cddmp/enum4linux-ng.git
 cd enum4linux-ng
 pip3 install -r requirements.txt
 ```
+> Clones and installs the `enum4linux-ng` successor to the original `enum4linux`. Run this once to set it up.
 
 ### Run Full Enumeration
 ```bash
 ./enum4linux-ng.py 10.129.14.128 -A
 ```
+> `-A` runs all enumeration checks at once: null session test, share listing, user enumeration, OS info, password policy, and NetBIOS names. The most comprehensive single-command SMB recon tool. Replace `10.129.14.128` with your target IP.
 
 ### Example Output (Key Sections)
 

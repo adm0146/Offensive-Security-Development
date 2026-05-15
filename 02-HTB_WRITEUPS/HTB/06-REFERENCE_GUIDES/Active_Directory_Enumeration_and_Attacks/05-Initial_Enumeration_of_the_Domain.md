@@ -18,6 +18,7 @@ sudo nmap -v -A -iL hosts.txt -oA host-enum
 # STEP 4 — Username enumeration (no creds needed)
 kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o valid_users.txt
 ```
+> `tcpdump` saves wire traffic for offline review. Responder `-A` is passive — it only watches, never poisons. `fping` pings a whole subnet and prints only live hosts. `nmap -A` runs OS detection and scripts; `-iL` reads the host list from a file; `-oA` saves all output formats at once. `kerbrute userenum` tests usernames against Kerberos to find valid accounts without triggering lockouts.
 
 ---
 
@@ -39,6 +40,7 @@ kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o vali
 sudo tcpdump -i ens224                      # live view
 sudo tcpdump -i ens224 -w capture.pcap      # save for Wireshark analysis
 ```
+> The first command shows traffic in real time. The second saves a `.pcap` file you can open in Wireshark later. Change `ens224` to match your actual interface name.
 
 **What to look for:**
 - ARP requests/replies → live IPs on local broadcast domain
@@ -50,6 +52,7 @@ sudo tcpdump -i ens224 -w capture.pcap      # save for Wireshark analysis
 ```bash
 sudo responder -I ens224 -A    # passive only — no poisoning
 ```
+> `-A` puts Responder in analyze-only mode. It reads broadcast name requests and logs hostnames and IPs — it never responds or poisons. Safe to run on authorized tests.
 
 Surfaces hosts making broadcast name resolution requests. Note every hostname and IP.
 
@@ -63,6 +66,7 @@ Surfaces hosts making broadcast name resolution requests. Note every hostname an
 fping -asgq 172.16.5.0/23
 # -a = alive hosts only | -s = stats | -g = generate from CIDR | -q = quiet
 ```
+> Pings every IP in the subnet. `-a` prints only the ones that replied. `-g` expands the CIDR into individual IPs. Redirect output to `hosts.txt` and feed it into Nmap.
 
 Outputs clean IP list → save to `hosts.txt` → feed into Nmap.
 
@@ -71,6 +75,7 @@ Outputs clean IP list → save to `hosts.txt` → feed into Nmap.
 ```bash
 sudo nmap -v -A -iL hosts.txt -oA host-enum
 ```
+> `-A` enables OS detection, version scanning, and default scripts. `-iL` reads hosts from a file. `-oA` writes `.nmap`, `.xml`, and `.gnmap` output files — use all three formats for later reference.
 
 **DC identification — look for this port combo:**
 ```
@@ -98,6 +103,7 @@ SMB signing: not required            → relay attack candidate
 ```bash
 kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o valid_users.txt
 ```
+> Tests each username in the wordlist against Kerberos. Valid usernames get a different response than invalid ones. `-d` is the domain, `--dc` points to the Domain Controller (DC), `-o` saves confirmed valid usernames.
 
 **Why Kerbrute is stealthy:** Uses Kerberos pre-auth — failed attempts do NOT generate Event ID 4625. Does generate 4768 only if Kerberos audit is enabled.
 
@@ -107,14 +113,14 @@ kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o vali
 
 ## SYSTEM Access — Why It Matters
 
-`NT AUTHORITY\SYSTEM` on any domain-joined host ≈ domain user. Can enumerate all of AD.
+`NT AUTHORITY\SYSTEM` on any domain-joined host is roughly equal to a domain user. It can enumerate all of Active Directory (AD).
 
 **Ways to get SYSTEM:**
 - Remote exploits: EternalBlue (MS17-010), MS08-067
 - Service abuse: SeImpersonate → Juicy Potato (not Server 2019)
-- Local privesc escalation
+- Local privilege escalation
 
-**What SYSTEM gives you:** BloodHound collection, Kerberoasting, Inveigh hash capture, token impersonation, ACL attacks.
+**What SYSTEM gives you:** BloodHound collection, Kerberoasting, Inveigh hash capture, token impersonation, and Access Control List (ACL) attacks.
 
 ---
 
@@ -124,6 +130,7 @@ kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o vali
 kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
 # Result: 56 valid usernames from 48,705 tested in ~11 seconds
 ```
+> Same command as above, run without `-o` to see output on screen. 56 valid usernames found from nearly 49,000 tested — takes about 11 seconds.
 
 ---
 

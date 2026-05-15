@@ -4,36 +4,39 @@
 
 ## Anti-CSRF Token Bypass
 
-If the form contains a CSRF/XSRF token, every request needs a fresh value. `--csrf-token` tells sqlmap to parse the response and extract the next token automatically.
+Some forms include a Cross-Site Request Forgery (CSRF) token. Every request needs a fresh token value or the server rejects it. `--csrf-token` tells sqlmap to read the current token from the response and include the new value in each next request.
 
 ```bash
 sqlmap -u "TARGET" \
   --data="id=1&t0ken=ABC123..." \
   --csrf-token="t0ken"
 ```
+> Handles CSRF token renewal automatically. sqlmap reads the current token from the response, extracts the new value, and includes it in each subsequent request. Replace `TARGET`, the data body, and the token field name (`t0ken`) with your target's values.
 
-If the token parameter name contains `csrf`, `xsrf`, or `token`, sqlmap will auto-prompt. Custom names (like `t0ken` in the lab) need explicit `--csrf-token`.
+If the token parameter name contains the words `csrf`, `xsrf`, or `token`, sqlmap detects it automatically. Custom names like `t0ken` are not detected. You must specify them with `--csrf-token`.
 
 ---
 
 ## Unique-Value (Nonce) Bypass
 
-App requires a unique value per request (e.g., `uid=2933249978`). `--randomize` generates a fresh random value matching the original's format/length each request.
+Some apps require a unique value on every request, such as `uid=2933249978`. If the same value is sent twice, the server rejects it. `--randomize` generates a new random value on each request. The new value matches the original's format and length.
 
 ```bash
 sqlmap -u "TARGET/?id=1&uid=2933249978" --randomize=uid
 ```
+> Generates a new random value for `uid` on every request, matching the format of the original value. Use this when an app rejects repeat values or requires a unique parameter. Replace `TARGET` and the parameter name/value with your target's values.
 
 ---
 
 ## Calculated Parameter Bypass
 
-App requires one parameter to be a function of another (e.g., `h=md5(id)`). `--eval` runs Python code before each request to compute the dependent value.
+Some apps require one parameter to be computed from another. For example, `h=md5(id)` means the `h` value must be the MD5 hash of whatever `id` is. `--eval` runs Python code before each request to compute the dependent value automatically.
 
 ```bash
 sqlmap -u "TARGET/?id=1&h=c4ca4238a0b923820dcc509a6f75849b" \
   --eval="import hashlib; h=hashlib.md5(str(id).encode()).hexdigest()"
 ```
+> Computes a dependent parameter before each request using Python. The `--eval` code runs once per request with the current values of other parameters available as variables. Replace the hash algorithm and computation with whatever your target requires.
 
 ---
 
@@ -50,11 +53,12 @@ sqlmap -u "TARGET/?id=1&h=c4ca4238a0b923820dcc509a6f75849b" \
 
 ## WAF / IDS Detection
 
-sqlmap auto-probes for WAFs at the start (sends a malicious payload to a non-existent parameter). If detected, it identifies the WAF using identYwaf signatures (80+ products).
+sqlmap automatically probes for Web Application Firewalls (WAFs) at the start of a scan. It sends a malicious payload to a non-existent parameter and checks how the server responds. If a WAF is detected, sqlmap identifies the product using identYwaf signatures, which cover 80+ WAF products.
 
 ```bash
 sqlmap -u "TARGET" --skip-waf   # disable detection for stealth
 ```
+> Disables sqlmap's automatic WAF detection probe. Use this when you don't want sqlmap to send a noisy detection request at the start of the scan, or when the probe triggers an IP block. Replace `TARGET` with your target's URL.
 
 > ModSecurity returns 406 on the WAF probe. Cloudflare, AWS WAF, Imperva have distinct fingerprints.
 
@@ -62,23 +66,25 @@ sqlmap -u "TARGET" --skip-waf   # disable detection for stealth
 
 ## User-Agent Bypass
 
-Default sqlmap UA (`sqlmap/1.x.x (http://sqlmap.org)`) is blocked by most WAFs.
+sqlmap sends a default User-Agent (UA) string of `sqlmap/1.x.x (http://sqlmap.org)`. Most WAFs block this string immediately.
 
 ```bash
 sqlmap -u "TARGET" --random-agent   # rotates browser UA strings
 sqlmap -u "TARGET" --mobile         # mimics smartphone UA
 ```
+> Replaces sqlmap's default User-Agent with a real browser string. `--random-agent` picks a random UA from a built-in list on each request. `--mobile` specifically mimics a mobile browser. Use one of these on every scan — sqlmap's default UA is blocked by most WAFs.
 
 ---
 
 ## Tamper Scripts
 
-Python scripts that modify the payload right before it's sent. Chain with commas:
+Tamper scripts are Python scripts that modify payloads right before they are sent. Chain multiple scripts together with commas:
 
 ```bash
 sqlmap -u "TARGET" --tamper=between,randomcase
 sqlmap --list-tampers   # show all available scripts
 ```
+> Applies tamper scripts that modify payloads before sending to bypass WAF rules. Chain multiple scripts with commas. `--list-tampers` prints all available scripts with brief descriptions. Replace `TARGET` with your target's URL.
 
 Most useful tampers (CPTS-relevant):
 
@@ -106,6 +112,7 @@ sqlmap -u "TARGET" --data="id=1" --chunked
 # HTTP Parameter Pollution — ASP-style concatenation across duplicate params
 # (no flag, just craft request: ?id=1&id=UNION&id=SELECT&...)
 ```
+> Two additional bypass methods. `--chunked` splits the POST body using `Transfer-Encoding: chunked`, spreading SQL keywords across chunk boundaries to evade signature matching. HTTP Parameter Pollution has no sqlmap flag — craft it manually in the request file passed with `-r req.txt`.
 
 ---
 

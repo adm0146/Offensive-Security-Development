@@ -15,6 +15,7 @@ Generates candidates from the victim's **username, home directory, and GECOS fie
 ```bash
 john --single passwd
 ```
+> Runs JtR's single crack mode on the file `passwd`. JtR reads username and GECOS fields from the file to generate and test candidates automatically.
 
 **Example input file** (`passwd`):
 ```
@@ -46,6 +47,7 @@ john --wordlist=rockyou.txt --rules hash_file
 # Multiple wordlists
 john --wordlist=list1.txt,list2.txt hash_file
 ```
+> `--wordlist` feeds a password list to JtR one line at a time. `--rules` applies mangling rules (capitalize, append numbers, etc.) to each word. Comma-separate multiple wordlists to try them all in sequence.
 
 | Attribute | Detail |
 |-----------|--------|
@@ -61,6 +63,7 @@ Generates candidates using a **statistical model (Markov chains)** — smarter t
 # Default incremental
 john --incremental hash_file
 ```
+> Runs Markov-chain brute-force. JtR uses character frequency statistics to try probable combinations before unlikely ones. Slow for long passwords — use when wordlist mode fails.
 
 | Attribute | Detail |
 |-----------|--------|
@@ -74,6 +77,7 @@ john --incremental hash_file
 ```bash
 grep '# Incremental modes' -A 100 /etc/john/john.conf
 ```
+> Shows all incremental mode definitions in JtR's config. `-A 100` prints 100 lines after the match. Use this to find available character sets and their names.
 
 | Mode | Character Set | Max Length |
 |------|--------------|------------|
@@ -91,6 +95,7 @@ When the hash format is unknown, use **hashID** with the `-j` flag for JtR forma
 ```bash
 hashid -j 193069ceb0461e1d40d216e32c79c704
 ```
+> Identifies hash type and prints the JtR format flag with `-j`. Replace the hash string with the target hash. The output tells you what to pass to `--format=`.
 
 | Resource | Purpose |
 |----------|---------|
@@ -107,6 +112,7 @@ john --format=raw-md5 hash_file
 john --format=nt hash_file
 john --format=sha512crypt hash_file
 ```
+> Forces JtR to treat the hash as a specific format instead of guessing. Use `nt` for Windows NTLM hashes from SAM/NTDS, `sha512crypt` for Linux `/etc/shadow` `$6$` hashes.
 
 ### Common JtR Formats (Quick Reference)
 
@@ -135,6 +141,7 @@ Convert password-protected files to JtR-compatible hashes, then crack normally.
 <tool> <protected_file> > file.hash
 john --wordlist=rockyou.txt file.hash
 ```
+> Two-step pattern: run the `*2john` tool to extract a crackable hash from the protected file, redirect it to a `.hash` file, then crack that file with JtR normally.
 
 ### Common `*2john` Tools
 
@@ -160,6 +167,7 @@ john --wordlist=rockyou.txt file.hash
 # Find all available *2john tools
 locate *2john*
 ```
+> Searches the file index for all `*2john` conversion scripts on the system. Run `updatedb` first if results seem outdated.
 
 ---
 
@@ -179,6 +187,7 @@ echo 'r0lf:$6$ues25dIanlctrWxg$nZHVz2z4kCy1760Ee28M1xtHdGoy0C2cYzZ8l2sVa1kIa8K9g
 # Run single crack mode
 john --single passwd
 ```
+> Saves the full passwd-format line to a file, then runs single crack mode. JtR uses the username `r0lf` and real name `Rolf Sebastian` from the GECOS field to generate candidates.
 
 **Answer: `NAITSABES`** — "SEBASTIAN" reversed. JtR derived it from the GECOS field `Rolf Sebastian` using string reversal rules.
 
@@ -193,6 +202,7 @@ echo '193069ceb0461e1d40d216e32c79c704' > ripemd_hash
 # Crack with wordlist mode + explicit format
 john --format=ripemd-128 --wordlist=/usr/share/wordlists/rockyou.txt ripemd_hash
 ```
+> Saves a bare hash to a file and cracks it with an explicit format. Use `--format=` whenever JtR auto-detects the wrong type. Swap `ripemd-128` for any format from `john --list=formats`.
 
 **Answer: `50cent`** — Found in rockyou.txt. Key lesson: use `--format=` when hashid returns ambiguous results and you know the format from context.
 

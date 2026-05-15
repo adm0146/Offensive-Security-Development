@@ -19,6 +19,7 @@ ldapsearch -H ldap://172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | g
 # From Windows
 net accounts
 ```
+> `--pass-pol` with nxc is fastest when you already have credentials. The `rpcclient` NULL session (`-U "" -N`) attempts to connect without a username or password — works on misconfigured DCs. `enum4linux-ng` with `-oA` saves JSON output for later reference. The `ldapsearch` command greps for `pwdHistoryLength` and shows the surrounding policy fields.
 
 ---
 
@@ -42,6 +43,7 @@ net accounts
 ```bash
 nxc smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
 ```
+> Fastest method. Requires valid domain credentials. Returns lockout threshold, duration, minimum length, and complexity requirements.
 
 ---
 
@@ -59,6 +61,7 @@ enum4linux -P 172.16.5.5
 enum4linux-ng -P 172.16.5.5 -oA output
 cat output.json
 ```
+> A NULL session (`-U "" -N`) connects to SMB without any credentials. Type `getdompwinfo` inside rpcclient to read the password policy. `enum4linux-ng` is the preferred updated version — `-oA` saves clean JSON and YAML output.
 
 ---
 
@@ -67,6 +70,7 @@ cat output.json
 ```bash
 ldapsearch -H ldap://172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
 ```
+> `-x` uses simple authentication (anonymous). `-s sub` searches the whole subtree. The `grep` finds the first occurrence of `pwdHistoryLength` and shows 10 lines before it, which includes the other policy fields.
 
 Key fields: `minPwdLength`, `lockoutThreshold`, `lockoutDuration`, `pwdProperties`
 
@@ -77,11 +81,13 @@ Key fields: `minPwdLength`, `lockoutThreshold`, `lockoutDuration`, `pwdPropertie
 ```cmd
 net accounts
 ```
+> Built-in Windows command. Shows password policy for the local machine or domain. No tools needed.
 
 ```powershell
 Import-Module .\PowerView.ps1
 Get-DomainPolicy
 ```
+> PowerView's `Get-DomainPolicy` returns the full domain password policy including fine-grained policies if they exist.
 
 **Windows error codes during spraying:**
 | Error | Meaning |

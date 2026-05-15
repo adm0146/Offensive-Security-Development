@@ -6,12 +6,12 @@
 
 ## What Is a Hybrid Attack?
 
-Combines dictionary and brute force — start with a wordlist, then apply mutations (append numbers, symbols, increment years) to each word.
+A hybrid attack combines a dictionary and brute force. Start with a wordlist, then apply mutations to each word — append numbers, add symbols, increment the year.
 
-**Exploits the most common password change behavior:**
+**It exploits the most common password change pattern:**
 - `Summer2023` → `Summer2023!` → `Summer2024` → `Summer2024!`
 
-Users think they're complying with policy. They're still predictable.
+Users think they're following the password policy. They're still predictable.
 
 ---
 
@@ -56,6 +56,7 @@ grep -E '[0-9]' darkweb2017-lowercase.txt > darkweb2017-number.txt
 wc -l darkweb2017-number.txt
 # Result: 89 passwords (down from 10,000)
 ```
+> Each step pipes its output file into the next grep. Every filter removes more candidates. Starting with 10,000 passwords and adding four rules leaves only 89 — your attack runs 112 times faster and wastes no attempts on non-compliant passwords.
 
 **What each command does:**
 | Command | Regex | Filters for |
@@ -72,6 +73,7 @@ wc -l darkweb2017-number.txt
 ```bash
 grep -E '^.{8,}$' darkweb2017_top-10000.txt | grep -E '[A-Z]' | grep -E '[a-z]' | grep -E '[0-9]' > policy-compliant.txt
 ```
+> The same four filters in a single pipeline. Use this one-liner for speed. The multi-step version above is easier to debug if the output looks wrong.
 
 **When to use this:** Whenever you know the target's password policy. Filtering 10,000 → 89 means your attack runs ~112x faster and avoids wasting attempts on non-compliant passwords.
 
@@ -79,15 +81,15 @@ grep -E '^.{8,}$' darkweb2017_top-10000.txt | grep -E '[A-Z]' | grep -E '[a-z]' 
 
 ## Credential Stuffing
 
-Uses *known leaked credentials* from one breach to attack other services, banking on password reuse.
+Credential stuffing uses leaked username and password pairs from one breach to attack other services. It banks on people reusing the same password everywhere.
 
 **Attack flow:**
-1. Obtain breach dump (username:password pairs)
-2. Identify target services (email, banking, social media)
+1. Get a breach dump (username:password pairs)
+2. Pick target services (email, banking, social media)
 3. Automate login attempts against each service
-4. Successful match = unauthorized access
+4. A successful match = unauthorized access
 
-**Why it works:** Most users reuse passwords across accounts. One breach compromises everything.
+**Why it works:** Most people reuse passwords. One breach can unlock many accounts.
 
 **Tools:** `nxc`, `hydra`, custom scripts — all support credential list formats.
 

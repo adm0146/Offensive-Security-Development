@@ -2,7 +2,7 @@
 
 ## Overview
 
-`dig` (Domain Information Groper) is the primary tool for querying DNS records. Flexible, detailed output, supports all record types. This is your go-to for DNS recon.
+`dig` (Domain Information Groper) is the main tool for querying Domain Name System (DNS) records. It is flexible, gives detailed output, and supports all record types. Use it as your primary DNS recon tool.
 
 ---
 
@@ -35,6 +35,7 @@
 ```bash
 dig google.com
 ```
+> Queries the default DNS resolver for the A record of `google.com`. The output below shows the full response structure — each section is labelled in the table that follows.
 
 ```
 ; <<>> DiG 9.18.24-0ubuntu0.22.04.1-Ubuntu <<>> google.com
@@ -75,13 +76,14 @@ Skip all the noise — just get the answer:
 ```bash
 dig +short hackthebox.com
 ```
+> `+short` strips all the header and metadata sections and prints only the answer value — just the IP address in this case. Use it when you only need the result, not the full analysis.
 
 ```
 104.18.20.126
 104.18.21.126
 ```
 
-Use `+short` when you just need the IP or value. Use the full output when you need to analyse flags, TTL, or the responding server.
+Use `+short` when you only need the IP address or value. Use the full output when you need to check flags, time-to-live (TTL), or which server responded.
 
 ---
 
@@ -102,12 +104,12 @@ Use `+short` when you just need the IP or value. Use the full output when you ne
 
 ## Key Takeaways
 
-- **`dig` is your primary DNS tool** — learn the command syntax, it is used constantly
-- **`+short`** for quick answers, full output for analysis
-- **`@<server>`** to query specific name servers (especially the target own NS)
-- **`ANY`** queries are often blocked — query specific record types instead
-- **`-x`** for reverse lookups (IP → hostname)
-- Automated tools (`dnsenum`, `dnsrecon`, `theHarvester`) scale beyond what manual `dig` can do
+- `dig` is your primary DNS tool. Learn its syntax — you will use it constantly.
+- Use `+short` for quick answers. Use full output when you need to analyze flags, TTL, or the responding server.
+- Use `@<server>` to query a specific name server, especially the target's own NS.
+- `ANY` queries are often blocked. Query each record type individually instead.
+- Use `-x` for reverse lookups — translates an IP address back into a hostname.
+- Automated tools like `dnsenum`, `dnsrecon`, and `theHarvester` scale beyond what manual `dig` can do. Use both approaches.
 
 ---
 

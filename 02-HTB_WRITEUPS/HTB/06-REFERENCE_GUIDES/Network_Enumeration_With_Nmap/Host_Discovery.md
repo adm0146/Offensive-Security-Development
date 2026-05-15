@@ -22,6 +22,8 @@ When conducting internal penetration tests for entire networks, the first step i
 sudo nmap 10.129.2.0/24 -sn -oA tnet | grep for | cut -d" " -f5
 ```
 
+> `-sn` disables port scanning so only host discovery runs. `-oA tnet` saves results in all three output formats. The `grep for | cut` pipeline extracts just the IP addresses from the output. Replace `10.129.2.0/24` with your target subnet.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -42,6 +44,8 @@ sudo nmap 10.129.2.0/24 -sn -oA tnet | grep for | cut -d" " -f5
 ```bash
 sudo nmap -sn -oA tnet -iL hosts.lst | grep for | cut -d" " -f5
 ```
+
+> `-iL hosts.lst` reads target IP addresses from a file, one per line. Useful when you have a list of specific targets rather than a whole subnet. Replace `hosts.lst` with your actual file path.
 
 **Options Explained:**
 | Option | Purpose |
@@ -67,10 +71,14 @@ sudo nmap -sn -oA tnet -iL hosts.lst | grep for | cut -d" " -f5
 sudo nmap -sn -oA tnet 10.129.2.18 10.129.2.19 10.129.2.20 | grep for | cut -d" " -f5
 ```
 
+> Specify multiple IP addresses separated by spaces to scan them individually. This is useful for non-consecutive targets. Replace the IPs with your actual targets.
+
 **For Consecutive IPs - Use Range Notation:**
 ```bash
 sudo nmap -sn -oA tnet 10.129.2.18-20 | grep for | cut -d" " -f5
 ```
+
+> The `18-20` range notation is shorthand for 10.129.2.18, 10.129.2.19, and 10.129.2.20. Use range notation whenever targets are consecutive to save typing.
 
 **Advantages:**
 - Precise targeting of specific hosts
@@ -87,6 +95,8 @@ sudo nmap -sn -oA tnet 10.129.2.18-20 | grep for | cut -d" " -f5
 ```bash
 sudo nmap 10.129.2.18 -sn -oA host
 ```
+
+> Checks if a single host is alive before running a full port scan. `-sn` skips all port scanning and only sends discovery probes. Replace `10.129.2.18` with your target IP.
 
 **Options Explained:**
 | Option | Purpose |
@@ -110,6 +120,8 @@ sudo nmap 10.129.2.18 -sn -oA host
 sudo nmap 10.129.2.18 -sn -oA host -PE --packet-trace
 ```
 
+> `-PE` forces Nmap to use Internet Control Message Protocol (ICMP) Echo requests instead of Address Resolution Protocol (ARP). `--packet-trace` prints every packet Nmap sends and receives — useful for debugging when you are not sure which discovery method ran.
+
 **Options Explained:**
 | Option | Purpose |
 |--------|---------|
@@ -128,6 +140,8 @@ sudo nmap 10.129.2.18 -sn -oA host -PE --packet-trace
 ```bash
 sudo nmap 10.129.2.18 -sn -oA host -PE --reason
 ```
+
+> `--reason` adds a column to the output explaining why Nmap classified a host as up or down (for example, "echo-reply" or "arp-response"). Helps you understand exactly how Nmap reached its conclusion.
 
 **Options Explained:**
 | Option | Purpose |
@@ -149,6 +163,8 @@ sudo nmap 10.129.2.18 -sn -oA host -PE --reason
 ```bash
 sudo nmap 10.129.2.18 -sn -oA host -PE --packet-trace --disable-arp-ping
 ```
+
+> `--disable-arp-ping` prevents Nmap from using ARP on local networks so only ICMP probes go out. Use this when you specifically need to test ICMP reachability or when ARP would bypass a firewall rule you want to test.
 
 **Options Explained:**
 | Option | Purpose |
@@ -188,6 +204,8 @@ sudo nmap 10.129.2.18 -sn -oA host -PE --packet-trace --disable-arp-ping
             # - tnet.gnmap (greppable format for filtering)
 ```
 
+> `-oA` is the "save everything" flag. It creates three files from one scan: a human-readable `.nmap` file, a machine-parseable `.xml` file, and a `.gnmap` file you can grep. Replace `tnet` with a descriptive name for your scan.
+
 ### Naming Convention & Custom Filenames
 
 **Important:** You can name the output files whatever you want! Use descriptive names to avoid accidentally overwriting previous scans.
@@ -204,6 +222,8 @@ sudo nmap 10.129.2.18 -sV -oA detailed_service_scan_target1
 # Creates: detailed_service_scan_target1.nmap, detailed_service_scan_target1.xml, detailed_service_scan_target1.gnmap
 ```
 
+> Use descriptive filenames so you can identify each scan later. Include the target and scan type in the name. Never use generic names like `scan` or `output` that could be overwritten.
+
 **Best Practice:**
 - Use descriptive filenames that include:
   - Target identifier (IP, subnet, or hostname)
@@ -218,6 +238,8 @@ Extract only IPs from greppable output:
 nmap -sn -oA tnet 10.129.2.0/24
 cat tnet.gnmap | grep "Status: Up" | cut -d' ' -f2
 ```
+
+> After running the scan, use `grep "Status: Up"` on the `.gnmap` file to extract only the alive host IPs. Feed this list into your next scan with `-iL`.
 
 Convert XML for further analysis:
 ```bash

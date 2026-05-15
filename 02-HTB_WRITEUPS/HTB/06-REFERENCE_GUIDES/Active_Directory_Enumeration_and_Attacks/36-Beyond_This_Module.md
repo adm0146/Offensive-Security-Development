@@ -8,10 +8,10 @@
 ## What Comes Next
 
 The skills from this module feed directly into:
-- **Cross-domain trust attacks** — abusing forest/external trusts to pivot between AD environments
-- **Persistence techniques** — Golden Tickets, Silver Tickets, skeleton keys, AdminSDHolder abuse
-- **C2 within a domain** — long-engagement assessments that need stealth and dwell time
-- **Cloud pivoting** — AD foundations apply directly to Azure AD (Entra ID), hybrid environments, and SSO attacks
+- **Cross-domain trust attacks** — abusing forest and external trusts to pivot between Active Directory (AD) environments.
+- **Persistence techniques** — Golden Tickets, Silver Tickets, skeleton keys, and AdminSDHolder abuse.
+- **Command and Control (C2) within a domain** — long-engagement assessments that need stealth and extended dwell time.
+- **Cloud pivoting** — AD foundations apply directly to Azure AD (Entra ID), hybrid environments, and Single Sign-On (SSO) attacks.
 
 ---
 
@@ -40,7 +40,7 @@ Work through these roughly in order of difficulty:
 | **Blackfield** | AS-REP Roasting, Backup Operators → NTDS dump |
 | **Monteverde** | Azure AD Connect, MSSQL, password reuse |
 
-**Tip:** If you're stuck on any box, watch the IppSec video for it first. IppSec's site (ippsec.rocks) lets you search by technique — search "kerberoast" or "BloodHound" and get a list of relevant boxes.
+**Tip:** If you are stuck on any box, watch the IppSec video for it first. IppSec's site (ippsec.rocks) lets you search by technique — search "kerberoast" or "BloodHound" and get a list of relevant boxes.
 
 ---
 
@@ -81,17 +81,17 @@ Work through these roughly in order of difficulty:
 
 ## MITRE ATT&CK Reference
 
-For any technique learned in this module, look it up in MITRE ATT&CK:
+For any technique in this module, look it up in the MITRE Adversarial Tactics, Techniques, and Common Knowledge (ATT&CK) framework:
 - `TA0006` = Credential Access (Kerberoasting, AS-REP Roasting, DCSync, LSASS dump)
 - `T1558` = Steal or Forge Kerberos Tickets
 - `T1558.003` = Kerberoasting
 - `T1558.004` = AS-REP Roasting
 - `T1003.006` = DCSync
 - `T1110.003` = Password Spraying
-- `T1557.001` = LLMNR/NBT-NS Poisoning
+- `T1557.001` = Link-Local Multicast Name Resolution (LLMNR) / NetBIOS Name Service (NBT-NS) Poisoning
 - `T1134.002` = Token Impersonation (SeImpersonatePrivilege / PrintSpoofer)
 
-Each entry includes: how defenders detect it, what logs it generates, and which tools are commonly used.
+Each entry tells you: how defenders detect it, what logs it produces, and which tools are commonly used.
 
 ---
 

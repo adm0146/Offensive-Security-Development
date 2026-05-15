@@ -6,7 +6,7 @@
 
 ## What XSS Is
 
-A vulnerability where user input is rendered as HTML/JavaScript without proper sanitization. The browser executes the injected JS as if it came from the trusted page.
+Cross-Site Scripting (XSS) is a vulnerability where user input is rendered as HTML/JavaScript without proper sanitization. The browser executes the injected JavaScript as if it came from the trusted page.
 
 **Key distinction from SQLi:** XSS runs in the **victim's browser**, not on the server. The server is just the delivery mechanism.
 
@@ -18,7 +18,7 @@ Server stores/reflects unsanitized input  →  Victim browser renders it  →  J
 
 ## Impact
 
-XSS runs inside the browser sandbox, scoped to the vulnerable site's origin (Same-Origin Policy). Within that scope it can:
+XSS runs inside the browser sandbox, scoped to the vulnerable site's origin (Same-Origin Policy, or SOP). Within that scope it can:
 
 - Steal cookies / session tokens → account takeover
 - Force authenticated API calls (change password, transfer funds, etc.)
@@ -51,13 +51,13 @@ XSS runs inside the browser sandbox, scoped to the vulnerable site's origin (Sam
 | **DOM-based** | Processed entirely client-side; never reaches server | Per-request | `location.hash` written into `innerHTML` by JS |
 
 **Severity ranking:** Stored > Reflected > DOM-based
-(Stored hits every viewer; reflected/DOM requires sending a crafted link to victims.)
+Stored XSS hits every viewer automatically. Reflected and DOM-based XSS require tricking a victim into clicking a crafted link.
 
 ---
 
 ## Exam Notes
 
 - XSS = code injection in the browser, not the server
-- SOP (Same-Origin Policy) limits XSS to the vulnerable site's origin — but that's enough to fully compromise a user's session there
+- The Same-Origin Policy (SOP) limits XSS to the vulnerable site's origin — but that's enough to fully compromise a user's session there
 - Memorize the 3 types — questions almost always ask which type applies to a given scenario
 - "Reduce risk" wording matters: XSS is rarely "accepted" because the probability is so high

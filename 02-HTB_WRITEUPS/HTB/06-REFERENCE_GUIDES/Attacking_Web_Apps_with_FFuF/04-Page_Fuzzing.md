@@ -16,7 +16,7 @@ Flag was at `/blog/home.php`.
 
 ## Step 1 — Extension Fuzzing
 
-Figure out what file type the server uses before fuzzing for page names.
+Find out what file type the server uses before you fuzz for page names. Scanning for `.php` pages on a `.jsp` server wastes every request.
 
 ```bash
 ffuf -w /usr/share/seclists/Discovery/Web-Content/web-extensions.txt \
@@ -27,6 +27,7 @@ ffuf -w /usr/share/seclists/Discovery/Web-Content/web-extensions.txt \
 # Test against index because every site has some form of index file
 # Result: .php = 200 OK → site uses PHP
 ```
+> Tests `index.php`, `index.asp`, `index.aspx`, and many more in one run. The wordlist includes the dot, so place `FUZZ` right after `index`. Run this before any page fuzzing so you know which extension to search for.
 
 **Common extension → server mapping:**
 | Extension | Server Type |
@@ -50,6 +51,7 @@ ffuf -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt \
 #         size 0 = page exists but has no content → skip it
 # Result: home.php → 200, size > 0 → has content → visit it
 ```
+> `FUZZ.php` appends `.php` to every wordlist word. Swap `.php` for whatever extension the server uses. `-fs 0` removes blank pages that exist but return empty bodies.
 
 ---
 
@@ -65,6 +67,7 @@ ffuf -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt \
   -u http://TARGET/DIRECTORY/FUZZ.EXTENSION \
   -ic -mc 200,403 -fs 0
 ```
+> The two-step pattern for any directory: first find the server's file extension, then brute-force page names with that extension. Replace `DIRECTORY` with the path you're targeting and `EXTENSION` with your step-1 result.
 
 ---
 
@@ -76,8 +79,9 @@ ffuf -w /usr/share/dirbuster/wordlists/directory-list-2.3-small.txt \
 -fl LINES  # filter by line count
 -fc CODE   # filter by status code (e.g., -fc 404 to hide 404s)
 ```
+> Use one of these flags to eliminate noise. Run a test request first to find the size/word-count of a known-bad response, then filter on that value.
 
-**When to use `-fs`:** After your first scan, check what size the "miss" responses are. If all 404s return 983 bytes, add `-fs 983` to hide them all and only see real hits.
+**When to use `-fs`:** Run a quick scan first. Look at what size the "not found" responses are. If all misses return 983 bytes, add `-fs 983` to hide them. Only real hits will show up.
 
 ---
 

@@ -32,6 +32,7 @@ ffuf -w ~/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ \
   -fs 985 -t 100 -s
 # Found: archive, test, faculty
 ```
+> Curl the fake vhost to get the baseline 985-byte size, then ffuf filters it out. `-s` suppresses the progress bar for cleaner output. The three vhosts that survive the filter are the real ones.
 
 ### Step 2 — Extension Fuzzing (on each vhost)
 
@@ -46,6 +47,7 @@ done
 # archive/test: .php, .phps
 # faculty:      .php, .phps, .php7
 ```
+> Runs extension fuzzing against all three vhosts in a loop. Each vhost gets its own extension check. Faculty returns an extra extension (`.php7`) that the others don't have — this matters when you fuzz pages next.
 
 ### Step 3 — Recursive Page Fuzzing
 
@@ -71,8 +73,9 @@ ffuf -w ~/SecLists/Discovery/Web-Content/common.txt:FUZZ \
   -v -ic -t 100
 # Found: /courses/ directory → /courses/linux-security.php7
 ```
+> The nested loop measures the "not found" size for every vhost/extension combination. Then ffuf fuzzes faculty recursively with all three extensions. `-e .php,.phps,.php7` multiplies the request count by four — use `common.txt` to keep it fast.
 
-**Use `common.txt` not `directory-list-2.3-small.txt`** — the small list × 4 extensions × recursion = hours of scanning. common.txt finishes in minutes.
+**Use `common.txt`, not `directory-list-2.3-small.txt`.** The small list times 4 extensions times recursion equals hours of scanning. `common.txt` finishes in minutes.
 
 ### Step 4 — Parameter Fuzzing (POST)
 
@@ -93,10 +96,11 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
   -fs 774 -t 100 -s
 # Found: user, username
 ```
+> POST parameter fuzzing against the discovered page. The curl step measures the baseline 774-byte response. ffuf then finds two parameters (`user` and `username`) that produce different sizes — both are accepted by the server.
 
 ### Step 5 — Value Fuzzing
 
-**Critical lesson:** Don't assume numeric IDs. Check what the parameter name implies — `username` = try a names wordlist.
+**Critical lesson:** Don't assume numeric IDs. Look at the parameter name. `username` means try a names wordlist, not `seq 1 1000`.
 
 ```bash
 # Check what size "invalid" values return
@@ -124,6 +128,7 @@ curl -s \
   "http://TARGET_IP:PORT/courses/linux-security.php7"
 # HTB{w3b_fuzz1n6_m4573r}
 ```
+> Two noise sizes exist here: 774 (no parameter) and 781 (invalid username). Filter both with `-fs 774,781` so only the real username hit survives. The `names.txt` wordlist is the right choice because the parameter is named `username`, not `id`. Follow up with curl to get the actual flag content.
 
 ---
 

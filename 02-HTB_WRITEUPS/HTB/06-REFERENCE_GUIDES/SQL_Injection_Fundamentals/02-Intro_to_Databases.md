@@ -6,7 +6,7 @@
 
 ## What is a DBMS?
 
-A Database Management System (DBMS) hosts, manages, and provides access to databases. Web apps use them to store everything — user credentials, content, files, settings.
+A Database Management System (DBMS) is software that stores, organizes, and provides access to data. Web apps use a DBMS to store everything — user credentials, content, files, and settings.
 
 **Types of DBMS:**
 | Type | Examples | Use Case |
@@ -39,9 +39,9 @@ A Database Management System (DBMS) hosts, manages, and provides access to datab
 ```
 
 **Why this matters for SQLi:**
-- Tier 2 takes user input and constructs SQL queries
-- If Tier 2 doesn't sanitize input, the user controls part of the query sent to Tier 3
-- The DBMS just executes whatever query it receives — it doesn't know if it's malicious
+- Tier 2 takes user input and builds SQL queries from it
+- If Tier 2 does not clean the input, the user can control part of the query that reaches Tier 3
+- The DBMS runs whatever query it receives — it cannot tell whether the query is malicious or legitimate
 
 ---
 

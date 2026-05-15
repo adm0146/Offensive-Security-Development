@@ -6,7 +6,7 @@
 
 ## Defense Layers
 
-Every XSS bug has a **source** (user input) and a **sink** (where it's rendered). Defense applies controls at both, on both ends of the stack.
+Every XSS (Cross-Site Scripting) bug has a **source** (user input) and a **sink** (where it is rendered). Defense applies controls at both ends of the stack.
 
 ```
 Browser (Front-end)              Server (Back-end)
@@ -32,6 +32,7 @@ function validateEmail(email) {
     return re.test(email);
 }
 ```
+> A basic email format check. Returns `true` if the input matches the pattern, `false` otherwise. Always pair front-end validation with the same check on the server side.
 
 ### Input Sanitization with DOMPurify
 ```html
@@ -40,7 +41,9 @@ function validateEmail(email) {
 const clean = DOMPurify.sanitize(userInput);
 </script>
 ```
-DOMPurify strips/escapes anything that could execute — `<script>`, event handlers, `javascript:` URIs, etc. **Industry standard for client-side sanitization.**
+> Loads DOMPurify and sanitizes a string before placing it in the DOM. DOMPurify strips anything that could execute — `<script>` tags, event handlers, `javascript:` URIs, and more. It is the industry standard for client-side sanitization.
+
+DOMPurify is the industry standard for client-side sanitization.
 
 ### Never put user input into
 
@@ -79,6 +82,7 @@ if (filter_var($_GET['email'], FILTER_VALIDATE_EMAIL)) {
     // reject
 }
 ```
+> Uses PHP's built-in `filter_var` to validate email format. Returns `false` if the input does not match a valid email pattern. Swap the filter constant for `FILTER_VALIDATE_IP`, `FILTER_VALIDATE_URL`, etc. as needed.
 
 **Node.js:** Same regex pattern as front-end.
 
@@ -87,30 +91,34 @@ if (filter_var($_GET['email'], FILTER_VALIDATE_EMAIL)) {
 ```php
 $safe = addslashes($_GET['input']);   // escape special chars
 ```
+> Adds backslashes before special characters. Useful as a basic safety net, but not a complete defense on its own. Prefer `htmlspecialchars` or `htmlentities` for HTML output.
 
 **Node.js:**
 ```javascript
 import DOMPurify from 'dompurify';
 const clean = DOMPurify.sanitize(dirty);
 ```
+> Sanitizes a string using DOMPurify on the server side (via Node). Strips all executable HTML before storing or rendering.
 
 ### Output Encoding (the most reliable defense)
 
-Encode special characters → HTML entities. The browser displays them as text, never parses them as HTML.
+Encode special characters as HTML entities. The browser shows them as text and never parses them as HTML.
 
 **PHP:**
 ```php
 echo htmlspecialchars($_GET['input']);   // < → &lt;
 echo htmlentities($_GET['input']);        // broader char set
 ```
+> `htmlspecialchars` converts `<`, `>`, `"`, `'`, and `&` to their HTML entity equivalents. `htmlentities` covers a broader set of characters. Use these on every output that includes user data.
 
 **Node.js:**
 ```javascript
 import { encode } from 'html-entities';
 encode('<');   // '&lt;'
 ```
+> Encodes characters to HTML entities in Node.js. The browser renders `&lt;` as the less-than sign rather than treating it as a tag.
 
-> **Encode at output, not at input** — encoded data in the DB causes problems if you ever need to use it elsewhere (CLI, mobile app). Sanitize on output, contextually.
+> **Encode at output, not at input.** Encoded data stored in the database causes problems when used in other contexts (CLI, mobile apps). Sanitize at the point of rendering instead.
 
 ---
 
@@ -123,16 +131,19 @@ X-Content-Type-Options: nosniff                       # prevent MIME-sniffing-ba
 X-Frame-Options: DENY                                 # prevent clickjacking
 Strict-Transport-Security: max-age=31536000           # force HTTPS
 ```
+> These headers are set by the server on every response. The Content Security Policy (CSP) header is the most important. A strict CSP with `script-src 'self'` blocks nearly all injected `<script>` payloads even if the XSS exists.
 
-**CSP is the single highest-impact XSS hardening header.** A strict CSP (`script-src 'self'`, no `unsafe-inline`, no `unsafe-eval`) blocks ~all injected `<script>` payloads.
+**CSP is the single highest-impact XSS hardening header.** A strict CSP (`script-src 'self'`, no `unsafe-inline`, no `unsafe-eval`) blocks nearly all injected `<script>` payloads.
 
 ### Cookie Flags
 ```
 Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Strict
 ```
-- `HttpOnly` — JS can't read it → defeats `document.cookie` exfil
+> Three critical flags on every session cookie. `HttpOnly` prevents JavaScript from reading the cookie, which stops `document.cookie` theft. `Secure` ensures the cookie only travels over HTTPS. `SameSite=Strict` prevents the browser from sending the cookie on cross-site requests, defeating Cross-Site Request Forgery (CSRF).
+
+- `HttpOnly` — JavaScript cannot read it — defeats `document.cookie` exfiltration
 - `Secure` — HTTPS-only transmission
-- `SameSite=Strict` — not sent on cross-site requests → defeats CSRF + XSS-based CSRF
+- `SameSite=Strict` — not sent on cross-site requests — defeats CSRF and XSS-based CSRF
 
 ### Other Layers
 - **HTTPS everywhere** — prevents MITM injection

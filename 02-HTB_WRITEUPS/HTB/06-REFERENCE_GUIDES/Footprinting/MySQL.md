@@ -75,12 +75,14 @@
 ```bash
 sudo apt install mysql-server -y
 ```
+> Installs MySQL server for lab setup purposes.
 
 ### View Configuration
 
 ```bash
 cat /etc/mysql/mysql.conf.d/mysqld.cnf | grep -v "#" | sed -r '/^\s*$/d'
 ```
+> Reads the MySQL config with comments and blank lines stripped. Look for `bind-address` (should be `127.0.0.1`, not `0.0.0.0`), `password` entries in plaintext, and `secure_file_priv` settings.
 
 ```
 [client]
@@ -134,6 +136,7 @@ symbolic-links=0
 ```bash
 sudo nmap 10.129.14.128 -sV -sC -p3306 --script mysql*
 ```
+> Runs all MySQL NSE scripts against port 3306. `mysql-empty-password` checks for passwordless root. `mysql-enum` enumerates valid usernames. `mysql-info` shows version and authentication plugin. Replace `10.129.14.128` with your target IP.
 
 ```
 Starting Nmap 7.80 ( https://nmap.org ) at 2021-09-21 00:53 CEST
@@ -183,6 +186,7 @@ Nmap done: 1 IP address (1 host up) scanned in 11.21 seconds
 ```bash
 mysql -u root -h 10.129.14.132
 ```
+> Tests a passwordless `root` connection to the remote MySQL server — many default installs allow it. Swap `10.129.14.132` for your target IP and `root` for the username to test.
 
 ```
 ERROR 1045 (28000): Access denied for user 'root'@'10.129.14.1' (using password: NO)
@@ -193,6 +197,7 @@ ERROR 1045 (28000): Access denied for user 'root'@'10.129.14.1' (using password:
 ```bash
 mysql -u root -pP4SSw0rd -h 10.129.14.128
 ```
+> Connects to the remote MySQL server with a known password (note: no space after `-p`). Swap `P4SSw0rd` for the password, `root` for the user, and `10.129.14.128` for your target IP.
 
 > ⚠️ **Note:** No space between `-p` flag and password!
 
@@ -228,6 +233,7 @@ MySQL [(none)]>
 ```sql
 show databases;
 ```
+> Run inside the MySQL prompt to list every database on the server — your first move after connecting. No arguments to change.
 
 ```
 +--------------------+
@@ -246,6 +252,7 @@ show databases;
 use mysql;
 show tables;
 ```
+> Selects the `mysql` system database then lists its tables (contains the `user` table with account hashes). Swap `mysql` for any database name from `show databases;`.
 
 ```
 +------------------------------------------------------+
@@ -264,6 +271,7 @@ show tables;
 use sys;
 select host, unique_users from host_summary;
 ```
+> Queries the `sys` schema's `host_summary` view to see which client hosts and how many distinct users have connected — useful for spotting other in-scope hosts. No values need changing.
 
 ```
 +-------------+--------------+
@@ -333,6 +341,7 @@ sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
 
 sudo systemctl restart mysql
 ```
+> Lab-only: installs MySQL, creates an insecure passwordless `root'@'%'` account, rebinds the server to all interfaces, and restarts it to build a vulnerable practice target. Run on a throwaway lab VM, never a real host.
 
 ### Enumeration from Kali
 
@@ -346,6 +355,7 @@ sudo mysqladmin flush-hosts  # run on target
 # Connect - MySQL 8 requires --skip-ssl due to TLS enforcement
 mysql -u root -h 10.37.129.4 --skip-ssl
 ```
+> Nmap-scans the target's MySQL port, unblocks the host if the brute script tripped connection limits (`flush-hosts` runs on the target), then connects as `root` with `--skip-ssl` to bypass MySQL 8 TLS enforcement. Swap `10.37.129.4` for your target IP.
 
 ### Key MySQL Commands Used
 
@@ -356,6 +366,7 @@ show tables;
 select host, user, authentication_string from user;
 select * from information_schema.tables limit 10;
 ```
+> Core post-connection recon: lists databases, switches to `mysql`, dumps the `user` table (usernames + password hashes for offline cracking), and samples the global table list. Run as-is once connected.
 
 ### Key Findings
 

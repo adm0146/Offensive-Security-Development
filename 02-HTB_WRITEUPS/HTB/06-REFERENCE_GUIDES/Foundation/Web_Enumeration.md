@@ -114,11 +114,13 @@ Web applications are among the highest value targets in penetration testing:
 ```bash
 nmap -sV -p 80,443 TARGET_IP
 ```
+> Checks ports 80 and 443 for HTTP/HTTPS services with version detection. Swap TARGET_IP for your target; add more ports (e.g., `-p 80,443,8080,8443`) if the target uses non-standard ports.
 
 ### Service Detection
 ```bash
 nmap -sV -p- TARGET_IP  # Full port scan to find web services on non-standard ports
 ```
+> Scans all 65535 ports with service version detection — catches web apps on non-standard ports. Slow on HTB; add `-T4` to speed it up.
 
 ---
 
@@ -170,6 +172,7 @@ nmap -sV -p- TARGET_IP  # Full port scan to find web services on non-standard po
 ```bash
 curl -I https://TARGET_IP/
 ```
+> Sends an HTTP HEAD request and prints only response headers — reveals server type, version, and security headers without downloading the full page body.
 
 **Flags:**
 - `-I` = Head request (headers only, no body)
@@ -180,6 +183,7 @@ curl -I https://TARGET_IP/
 ```bash
 curl -IL https://www.inlanefreight.com
 ```
+> `-I` fetches headers only, `-L` follows redirects automatically. Useful when the target redirects HTTP to HTTPS — shows the final server headers after all hops.
 
 **Interpretation of Headers:**
 - `Server:` = Web server type and version (Apache, Nginx, IIS)
@@ -224,11 +228,13 @@ curl -IL https://www.inlanefreight.com
 ```bash
 whatweb TARGET_IP
 ```
+> Fingerprints the web stack in one line — identifies CMS, framework, server, and versions. Replace TARGET_IP with the target; add `:PORT` if needed (e.g., `whatweb 10.10.10.5:8080`).
 
 **Advanced WhatWeb (No Error Spam):**
 ```bash
 whatweb --noerrors TARGET_IP
 ```
+> Same as above but suppresses connection-error messages, making output cleaner when scanning multiple targets or unreliable hosts.
 
 **Flags:**
 - `--noerrors` = Suppress error messages, cleaner output
@@ -278,6 +284,7 @@ Identified technologies can be searched for known CVEs
 curl -v https://TARGET_IP/ 2>&1 | grep "subject:"
 openssl s_client -connect TARGET_IP:443
 ```
+> `curl -v` dumps the full TLS handshake; `grep "subject:"` pulls out the certificate CN and SANs. `openssl s_client` gives the full cert chain — look for Subject Alternative Names to discover hidden subdomains.
 
 ---
 
@@ -310,6 +317,7 @@ Disallow: /uploads/temp/       # Temporary uploads
 curl http://TARGET_IP/robots.txt
 curl -I http://TARGET_IP/robots.txt  # Check if exists
 ```
+> First command fetches and prints the file; second does a HEAD-only check to confirm it exists (200 = yes, 404 = no). Every Disallow entry is a path worth visiting directly.
 
 **Exploitation:**
 - Visit directories listed in Disallow
@@ -385,6 +393,7 @@ curl http://TARGET_IP/ > source.html
 grep -i "password\|password\|token\|api" source.html
 grep -i "admin\|internal\|debug" source.html
 ```
+> Downloads the page source to a local file, then greps for credential and debug artifacts. Swap TARGET_IP and port as needed; add `-L` to follow redirects if the page returns a 301/302.
 
 ---
 
@@ -403,6 +412,7 @@ grep -i "admin\|internal\|debug" source.html
 ```bash
 gobuster dir -u http://TARGET_IP/ -w /usr/share/secLists/Discovery/Web-Content/common.txt
 ```
+> Brute-forces directories against the target using the common.txt wordlist. Swap the URL for `http://TARGET_IP:PORT/` if on a non-standard port; use `~/SecLists/...` for your local copy.
 
 **Flags:**
 - `dir` = Directory brute-forcing mode
@@ -419,6 +429,7 @@ gobuster dir -u http://TARGET_IP/ -w /usr/share/secLists/Discovery/Web-Content/c
 ```bash
 gobuster dns -d inlanefreight.com -w /usr/share/SecLists/Discovery/DNS/namelist.txt
 ```
+> Brute-forces subdomains against the target domain. Replace `inlanefreight.com` with the target domain; swap in `subdomains-top1million-5000.txt` for faster initial runs.
 
 **Flags:**
 - `dns` = DNS brute-forcing mode
@@ -439,11 +450,13 @@ Step 1: Clone SecLists repository
 ```bash
 git clone https://github.com/danielmiessler/SecLists
 ```
+> Clones the full SecLists repo to the current directory. On this system SecLists is already at ~/SecLists — skip this step.
 
 Step 2: Install via apt (on Kali Linux)
 ```bash
 sudo apt install secLists -y
 ```
+> Installs SecLists system-wide to /usr/share/seclists/. Already installed on this system.
 
 **Default SecLists Locations After Install:**
 - `/usr/share/secLists/Discovery/DNS/` - DNS wordlists
@@ -459,11 +472,13 @@ sudo apt install secLists -y
 ```bash
 gobuster dir -u http://TARGET/ -w /SecLists/Discovery/Web-Content/common.txt
 ```
+> This fails because `/SecLists` looks for a directory at filesystem root. Do not annotate — this is an intentional negative example.
 
 **CORRECT (use tilde for home directory):**
 ```bash
 gobuster dir -u http://TARGET/ -w ~/SecLists/Discovery/Web-Content/common.txt
 ```
+> `~` expands to your home directory path. Always use `~/SecLists/` when referencing your local SecLists copy.
 
 **Why:** The `~` expands to your home directory path. Without it, the system looks in the root directory `/` not your home. Always use `~/` when referencing files in your home directory!
 
@@ -554,6 +569,7 @@ nmap -sV -sS -p 43833 94.237.51.160
 # - Web Server: Apache httpd 2.4.41 (Ubuntu)
 # - Service is actively responding
 ```
+> `-sS` is a stealth SYN scan (needs root), `-sV` detects service versions, `-p 43833` targets only the lab port. Replace the IP and port for your own instance.
 
 **Step 2: Banner Grabbing & HTTP Response**
 ```bash
@@ -564,6 +580,7 @@ curl -IL http://94.237.51.160:43833/
 # - HTTP Status Code: 200 OK (application is responding)
 # - [Add server headers, framework info, version numbers discovered]
 ```
+> `-I` = headers only, `-L` = follow redirects. Replace the IP:port with your target instance to pull server headers and confirm the app is alive.
 
 **Step 3: Technology Detection**
 ```bash
@@ -579,6 +596,7 @@ whatweb 94.237.51.160:43833
 # - Server Location: Finland
 # - Technology Stack: Apache web server, no CMS detected yet
 ```
+> WhatWeb auto-detects the port from the `IP:PORT` format — no need for a `-u` flag. Replace with your target's IP and port.
 
 ### Phase 2: Directory & Subdomain Enumeration
 
@@ -597,6 +615,7 @@ gobuster dir -u http://94.237.51.160:43833/ -w ~/SecLists/Discovery/Web-Content/
 #
 # Key Discovery: WordPress installation detected via redirect!
 ```
+> `dir` mode brute-forces paths; `-u` sets the base URL; `-w` sets the wordlist. Swap the IP:port for your instance; swap common.txt for raft-medium-directories.txt for deeper coverage.
 
 **Step 2: Robots.txt Analysis**
 ```bash
@@ -612,6 +631,7 @@ curl http://94.237.51.160:43833/robots.txt
 # Status: Developers tried to hide this from search engines
 # Risk Level: CRITICAL - Admin authentication bypass potential
 ```
+> Fetches robots.txt and prints its contents. Every Disallow path is a high-value target — visit them directly in the browser or with curl.
 
 **Step 3: WordPress Investigation**
 ```bash
@@ -639,6 +659,7 @@ curl http://94.237.51.160:43833/wordpress
 # Risk Level: CRITICAL - Remote Code Execution Possible
 # Attack Vector: Setup wizard can be exploited for RCE
 ```
+> `-IL` follows redirects and prints headers only. The second curl (no flags) fetches the actual body — useful for spotting minimal/empty responses that indicate install mode.
 
 ### Phase 3: Certificate & Source Code Analysis
 

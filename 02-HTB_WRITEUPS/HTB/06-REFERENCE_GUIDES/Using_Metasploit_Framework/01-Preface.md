@@ -2,7 +2,7 @@
 
 ## Overview
 
-Before diving into Metasploit technically, this section addresses the **philosophical debate** around automated tools in penetration testing — when they help, when they hinder, and the discipline required to use them effectively.
+Before diving into Metasploit, this section covers a debate about automated tools in penetration testing — when they help, when they hurt, and how to use them well.
 
 ---
 

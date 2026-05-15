@@ -38,23 +38,7 @@ Even with password policies in place, users follow predictable patterns — capi
 ```bash
 cat custom.rule
 ```
-```
-:
-c
-so0
-c so0
-sa@
-c sa@
-c sa@ so0
-$!
-$! c
-$! so0
-$! sa@
-$! c so0
-$! c sa@
-$! so0 sa@
-$! c so0 sa@
-```
+> Displays the rule file contents. Each line is one rule: `:` passes through unchanged, `c` capitalizes, `sXY` substitutes X for Y, `$!` appends `!`. Combine functions on one line to chain them.
 
 ### Applying Rules to Generate Wordlist
 
@@ -62,6 +46,7 @@ $! c so0 sa@
 # Generate mutated wordlist (no cracking, just output)
 hashcat --force password.list -r custom.rule --stdout | sort -u > mut_password.list
 ```
+> `--stdout` makes hashcat output mutations instead of cracking. Pipe through `sort -u` to deduplicate. The resulting file can be used with any cracker or tool, not just hashcat.
 
 **Input**: 1 word (`password`) → **Output**: 15 mutated variants:
 ```
@@ -92,6 +77,7 @@ cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
 wc -l inlane.wordlist
 # 326
 ```
+> CeWL crawls the target site up to depth 4 (`-d 4`), collects words of at least 6 characters (`-m 6`), lowercases them all, and saves to `inlane.wordlist`. Swap the URL for any target's public website.
 
 | Flag | Purpose |
 |------|---------|
@@ -158,6 +144,7 @@ august
 cat
 EOF
 ```
+> Creates the OSINT base wordlist from a heredoc. Each line is a base word derived from OSINT. Replace with names, dates, locations, and interests gathered about the target.
 
 ### Step 2: Create Targeted Rules
 
@@ -188,6 +175,7 @@ c so0
 c sa@ so0
 EOF
 ```
+> Builds a targeted rule file using birthdate digits and common suffixes from the OSINT. Each `$N` appends a digit, `c` capitalizes, `sa@` substitutes a→@. Tailor these rules to the target's known dates and policy requirements.
 
 ### Step 3: Generate Mutated Wordlist
 
@@ -196,12 +184,14 @@ hashcat --force mark_base.list -r mark_rules.rule --stdout | sort -u > mark_fina
 wc -l mark_final.list
 # 455 candidates
 ```
+> Generates all rule mutations of the base words and saves the unique results. `--force` bypasses driver warnings. Check the count with `wc -l` before running the actual crack.
 
 ### Step 4: Crack the Hash
 
 ```bash
 hashcat -a 0 -m 0 97268a8ae45ac7d15c3cea4ce6ea550b mark_final.list
 ```
+> Dictionary attack using the targeted wordlist just generated. `-m 0` is MD5. The list is small (455 candidates) so this completes instantly. Results print as `hash:plaintext`.
 
 ### Result
 

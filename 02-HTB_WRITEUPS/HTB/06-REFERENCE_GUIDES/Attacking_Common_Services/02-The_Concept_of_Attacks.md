@@ -115,6 +115,7 @@ Use this pattern to analyze any vulnerability:
 3. PRIVILEGES — What account/permissions does the vulnerable process run under?
 4. DESTINATION — Where does the result go? Local file? Network callback? DB?
 ```
+> Apply this four-step lens to every vulnerability. Identifying each element turns a complex CVE into a structured, reproducible attack path.
 
 ### Use Cases for This Framework
 

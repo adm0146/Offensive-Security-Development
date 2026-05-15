@@ -57,6 +57,7 @@ Email contents → search "password" → MSSQL credentials
          ↓
 MSSQL → xp_cmdshell → RCE
 ```
+> Each service's data becomes the key for the next. This chain — FTP to email to database to RCE — is a real-world pattern, not just theory.
 
 ### Step 3 — Understand the Target's Context
 Ask:
@@ -75,6 +76,7 @@ Ask:
 *config*, *backup*, *.bak, *.conf, *.env, *.xml, *.ini
 *users*, *accounts*, *admin*, *.sql, *.db
 ```
+> Use with `find -name`, `dir /s /b`, or `Get-ChildItem -Include`. Run all variants — credential files rarely have obvious names.
 
 ### Content Search Keywords
 ```
@@ -82,6 +84,7 @@ password, passwd, credentials, secret, token, apikey
 username, user=, login, auth, connectionstring
 BEGIN RSA, BEGIN OPENSSH, BEGIN PGP
 ```
+> Use with `grep -ri`, `findstr /s /i`, or `Select-String`. The `BEGIN RSA` / `BEGIN OPENSSH` / `BEGIN PGP` strings indicate private keys in files.
 
 ---
 

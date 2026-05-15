@@ -15,7 +15,7 @@ SELECT * FROM logins ORDER BY password DESC;
 SELECT * FROM logins ORDER BY password DESC, id ASC;
 ```
 
-> Default sort is `ASC`. Multi-column sort is useful when multiple rows share the same value in the first sort column.
+> Default sort order is ascending (`ASC`). Use a second sort column to break ties when multiple rows share the same value in the first column.
 
 ---
 
@@ -29,7 +29,7 @@ SELECT * FROM logins LIMIT 2;
 SELECT * FROM logins LIMIT 1, 2;
 ```
 
-> `LIMIT offset, count` — offset is 0-indexed. `LIMIT 1, 2` skips the first record and returns the next two.
+> `LIMIT offset, count` — the offset is zero-indexed. `LIMIT 1, 2` skips the first record and returns the next two after it.
 
 ---
 
@@ -72,6 +72,7 @@ SELECT * FROM logins WHERE username LIKE '___';       -- exactly 3-char names (e
 -- AND — both conditions must be true
 SELECT * FROM employees WHERE first_name LIKE 'Bar%' AND hire_date = '1990-01-01';
 ```
+> Filters rows using two conditions joined by `AND`. Both must be true for a row to be returned. Use `OR` instead of `AND` during SQLi to make a condition always true (e.g., `' OR 1=1-- -`).
 
 ---
 
@@ -88,6 +89,7 @@ SELECT * FROM employees WHERE first_name LIKE 'Bar%' AND hire_date = '1990-01-01
 mysql -u root -ppassword -h TARGET_IP -P TARGET_PORT --skip-ssl \
   -e "USE employees; SELECT * FROM employees WHERE first_name LIKE 'Bar%' AND hire_date = '1990-01-01';"
 ```
+> Queries the employees table using a wildcard name pattern and an exact date match. `LIKE 'Bar%'` matches any first name starting with "Bar". The date must be quoted. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **Result:**
 ```

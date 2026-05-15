@@ -54,6 +54,7 @@ OpenSSH supports **six** authentication methods:
 ```bash
 cat /etc/ssh/sshd_config | grep -v "#" | sed -r '/^\s*$/d'
 ```
+> Prints the active SSH server config with comments and blank lines stripped, so only effective settings remain. Run on a host where you have local access to audit for dangerous SSH options.
 
 ```
 Include /etc/ssh/sshd_config.d/*.conf
@@ -91,6 +92,7 @@ Subsystem       sftp    /usr/lib/openssh/sftp-server
 ```bash
 sudo nmap -sV -p 22 10.129.14.132
 ```
+> Version-scans only SSH port 22 to grab the OpenSSH banner for CVE research. Swap `10.129.14.132` for your target IP.
 
 #### ssh-audit — Comprehensive SSH Audit
 
@@ -98,6 +100,7 @@ sudo nmap -sV -p 22 10.129.14.132
 git clone https://github.com/jtesta/ssh-audit.git && cd ssh-audit
 ./ssh-audit.py 10.129.14.132
 ```
+> Clones ssh-audit then audits the target's SSH crypto posture, flagging weak key-exchange/host-key/cipher algorithms. Swap `10.129.14.132` for your target IP.
 
 Sample output:
 
@@ -134,6 +137,7 @@ Key things to look for:
 ```bash
 ssh -v cry0l1t3@10.129.14.132
 ```
+> Connects with verbose output so the server's advertised authentication methods are printed (publickey, password, etc.). Swap `cry0l1t3` for a username and `10.129.14.132` for your target IP.
 
 ```
 debug1: Authentications that can continue: publickey,password,keyboard-interactive
@@ -144,6 +148,7 @@ debug1: Authentications that can continue: publickey,password,keyboard-interacti
 ```bash
 ssh -v cry0l1t3@10.129.14.132 -o PreferredAuthentications=password
 ```
+> Forces SSH to use password auth only, confirming the server accepts it before launching a brute-force. Swap the username and `10.129.14.132` for your target.
 
 ```
 debug1: Authentications that can continue: publickey,password,keyboard-interactive
@@ -186,6 +191,7 @@ cry0l1t3@10.129.14.132's password:
 ```bash
 sudo nmap -sV -p 873 127.0.0.1
 ```
+> Version-scans the rsync port to confirm the daemon and its protocol version. Swap `127.0.0.1` for your target IP.
 
 ```
 PORT    STATE SERVICE VERSION
@@ -197,6 +203,7 @@ PORT    STATE SERVICE VERSION
 ```bash
 nc -nv 127.0.0.1 873
 ```
+> Raw-connects to the rsync daemon; type `#list` to enumerate available modules/shares. Swap `127.0.0.1` for your target IP.
 
 ```
 @RSYNCD: 31.0
@@ -211,6 +218,7 @@ dev             Dev Tools
 ```bash
 rsync -av --list-only rsync://127.0.0.1/dev
 ```
+> Lists the contents of the `dev` rsync module without downloading anything. Swap `127.0.0.1` for your target IP and `dev` for the share name from `#list`.
 
 ```
 drwxr-xr-x             48 2022/09/19 09:43:10 .
@@ -231,6 +239,7 @@ rsync -av -e ssh rsync://127.0.0.1/dev
 # Over SSH on non-standard port
 rsync -av -e "ssh -p2222" rsync://127.0.0.1/dev
 ```
+> Downloads the entire `dev` share to the current directory, either over the raw rsync protocol or tunnelled through SSH (use `-e "ssh -pPORT"` for non-standard SSH ports). Swap the IP, share name, and port for your target.
 
 > ⚠️ **Pentesting Insight:** Look for `.ssh` directories, config files, and credentials. Rsync shares are sometimes accessible **without authentication**. Always try password reuse if you have creds.
 
@@ -293,6 +302,7 @@ pwnbox    cry0l1t3
 ```bash
 sudo nmap -sV -p 512,513,514 10.0.17.2
 ```
+> Version-scans the three legacy R-services ports (rexec/rlogin/rsh) to confirm they're exposed. Swap `10.0.17.2` for your target IP.
 
 ```
 PORT    STATE SERVICE    VERSION
@@ -306,6 +316,7 @@ PORT    STATE SERVICE    VERSION
 ```bash
 rlogin 10.0.17.2 -l htb-student
 ```
+> Attempts an rlogin session as the given user — succeeds without a password if the target trusts your host via `.rhosts`/`hosts.equiv`. Swap `10.0.17.2` for your target IP and `htb-student` for the username.
 
 ```
 Last login: Fri Dec  2 16:11:21 from localhost
@@ -317,6 +328,7 @@ Last login: Fri Dec  2 16:11:21 from localhost
 ```bash
 rwho
 ```
+> Lists users currently logged into hosts on the local network that run the rwhod daemon — harvest these usernames for later attacks. No arguments; broadcasts on the local segment.
 
 ```
 root          web01:pts/0 Dec  2 21:34
@@ -328,6 +340,7 @@ htb-student   workstn01:tty1  Dec  2 19:57  2:25
 ```bash
 rusers -al 10.0.17.5
 ```
+> Queries a specific host for detailed info on its logged-in users (`-a` all hosts, `-l` long format). Swap `10.0.17.5` for your target IP.
 
 ```
 htb-student     10.0.17.5:console          Dec 2 19:57     2:25

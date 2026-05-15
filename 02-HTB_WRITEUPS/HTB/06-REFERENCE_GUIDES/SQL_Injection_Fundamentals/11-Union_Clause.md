@@ -4,16 +4,16 @@
 
 ## How UNION Works
 
-`UNION` appends the rows of a second `SELECT` to the first. The combined result is returned as one table.
+`UNION` stacks the rows from a second `SELECT` on top of the first and returns them as one combined table.
 
 ```sql
 SELECT * FROM ports UNION SELECT * FROM ships;
 -- Returns all rows from both tables stacked together
 ```
 
-**Two hard rules:**
+**Two rules that must be met:**
 1. Both `SELECT` statements must return the **same number of columns**
-2. The **data types** of corresponding columns must be compatible
+2. The **data types** of matching columns must be compatible
 
 ---
 
@@ -42,7 +42,7 @@ SELECT * FROM products WHERE product_id = 'user_input'
 SELECT * FROM products WHERE product_id = '1' UNION SELECT username, password FROM passwords-- '
 ```
 
-The second `SELECT` runs against any table you choose — including `information_schema` for metadata enumeration.
+The second `SELECT` can read from any table you choose — including the built-in `information_schema` database that holds metadata about every table and column on the server.
 
 ---
 
@@ -64,6 +64,7 @@ mysql -u root -ppassword -h TARGET_IP -P TARGET_PORT --skip-ssl \
         SELECT dept_no, dept_name, 3, 4, 5, 6 FROM departments
       ) AS combined_result;"
 ```
+> Counts total rows across both tables combined via UNION. The `departments` table has only 2 columns, so literals `3, 4, 5, 6` pad it to match `employees`'s 6 columns. The outer `SELECT COUNT(*)` wraps the UNION in a subquery to return a single number. Replace `TARGET_IP` and `TARGET_PORT` with your target's values.
 
 **employees columns (6):** `emp_no, birth_date, first_name, last_name, gender, hire_date`  
 **departments columns (2):** `dept_no, dept_name` → padded to 6 with `3, 4, 5, 6`

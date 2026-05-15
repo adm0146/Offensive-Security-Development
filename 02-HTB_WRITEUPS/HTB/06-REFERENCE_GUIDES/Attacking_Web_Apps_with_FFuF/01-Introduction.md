@@ -18,7 +18,7 @@
 
 ## Why ffuf
 
-ffuf (Fuzz Faster U Fool) is the primary tool for this module. It sends HTTP requests from a wordlist and reports back which ones returned interesting responses.
+ffuf (Fuzz Faster U Fool) is the primary tool for this module. It sends many HTTP (Hyper Text Transfer Protocol) requests — one per wordlist entry — and shows you which ones got an interesting response back.
 
 **ffuf vs alternatives:**
 
@@ -30,7 +30,7 @@ ffuf (Fuzz Faster U Fool) is the primary tool for this module. It sends HTTP req
 | wfuzz | Fast | High | Parameter fuzzing |
 | Burp Intruder | 1 req/sec (free) | Highest | GUI-based |
 
-**Core concept:** Replace any part of an HTTP request with the keyword `FUZZ`, point ffuf at a wordlist, and it iterates over every entry — reporting which ones produce different/interesting responses.
+**Core concept:** Put the word `FUZZ` anywhere in an HTTP request. Point ffuf at a wordlist. It swaps `FUZZ` for each word and reports which ones get a different response.
 
 ---
 

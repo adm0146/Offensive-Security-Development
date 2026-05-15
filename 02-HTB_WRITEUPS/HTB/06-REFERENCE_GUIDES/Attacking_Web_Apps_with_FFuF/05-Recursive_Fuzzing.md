@@ -16,12 +16,12 @@ Flag was at `/forum/flag.php` — found automatically because recursion queued `
 
 ## The Problem Recursive Fuzzing Solves
 
-Without recursion, finding files in subdirectories takes multiple manual passes:
+Without recursion, you have to run ffuf again manually for every directory you find. It looks like this:
 1. Fuzz root → find `/forum`
 2. Manually re-run ffuf targeting `/forum/FUZZ`
 3. Repeat for every new directory found
 
-With `-recursion`, ffuf automatically queues a new scan for each discovered directory.
+The `-recursion` flag fixes this. ffuf automatically starts a new scan inside each directory it discovers.
 
 ---
 
@@ -36,8 +36,9 @@ ffuf -w WORDLIST:FUZZ \
   -v                   # verbose — show full URL in output (critical when recursing)
   -ic                  # ignore wordlist comments
 ```
+> `-recursion` tells ffuf to automatically start a new scan inside any directory it finds. Without `-recursion-depth 1`, the scan can chain indefinitely. `-v` is essential here — without it you see `flag.php` but not which directory it's in.
 
-**`-recursion-depth 1`** is strongly recommended. Without a depth limit, ffuf will chase every subdirectory it finds indefinitely — scanning can run for hours on deep trees.
+**`-recursion-depth 1`** is strongly recommended. Without a depth limit, ffuf chases every subdirectory forever. The scan can run for hours on targets with deep folder structures.
 
 ---
 
@@ -51,8 +52,9 @@ ffuf -w ~/SecLists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-small
   -v -ic \
   -t 100
 ```
+> Full recursive scan with PHP extension testing. The `-e .php` flag doubles request count — each word is tried once bare and once with `.php`. Use `common.txt` instead of the large list when time is limited.
 
-**Note:** The wordlist entry count effectively doubles when using `-e .php` — each word is tried once bare and once with `.php`. A 87k-word list becomes ~175k requests per directory level.
+**Note:** `-e .php` doubles the request count. Each word is tried once plain and once with `.php` added. An 87k-word list becomes about 175k requests per directory level.
 
 ---
 

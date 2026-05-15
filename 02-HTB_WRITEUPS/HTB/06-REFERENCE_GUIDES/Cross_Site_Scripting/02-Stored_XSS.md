@@ -4,7 +4,7 @@
 
 ## What Makes It Stored
 
-Server saves the user's input (DB, file, cache) and later serves it to other users without sanitizing. Every viewer triggers the payload — no link to share required.
+The server saves user input (in a database, file, or cache) and later serves it to other users without sanitizing it. Every viewer triggers the payload. No special link needs to be shared.
 
 ---
 
@@ -16,8 +16,9 @@ Server saves the user's input (DB, file, cache) and later serves it to other use
 <script>print()</script>                <!-- triggers browser print dialog -->
 <plaintext>                             <!-- HTML rendering stops; useful when alert() blocked -->
 ```
+> Use `window.origin` instead of a hardcoded value. If input is rendered inside a cross-origin iframe, the alert shows which document is executing — not just where the form lives.
 
-> Use `window.origin` instead of a hardcoded value — if input is rendered inside a cross-origin iframe, the alert reveals which document is actually executing, not where the form lives.
+
 
 ---
 
@@ -32,9 +33,9 @@ Server saves the user's input (DB, file, cache) and later serves it to other use
 
 ## Modern Browser Quirks
 
-- Chrome/Firefox suppress `alert()` in some sandboxed contexts (cross-origin iframes, certain CSP states)
-- `<plaintext>` is the most reliable detection — it visually breaks the page rendering
-- `<svg onload=...>` and `<img src=x onerror=...>` are backup payload styles when `<script>` is filtered
+- Chrome and Firefox suppress `alert()` in some sandboxed contexts, such as cross-origin iframes or certain Content Security Policy (CSP) states.
+- `<plaintext>` is the most reliable detection payload. It visually breaks page rendering so you know the browser processed it.
+- `<svg onload=...>` and `<img src=x onerror=...>` are backup payload styles when `<script>` is filtered.
 
 ---
 
@@ -60,8 +61,9 @@ The flag is delivered in the server's `Set-Cookie` response header:
 curl -sk "http://154.57.164.76:32103/" -i | grep -i set-cookie
 # Set-Cookie: cookie=HTB{570r3d_f0r_3v3ry0n3_70_533}
 ```
+> Fetches the page silently (`-sk`) and prints headers (`-i`). Then `grep` isolates the `Set-Cookie` line. Swap the IP:port for the current lab target.
 
-> The lab sets a flag cookie on every request; the XSS payload merely demonstrates how an attacker would have exfiltrated it from a real victim.
+> The lab sets a flag cookie on every request; the XSS payload demonstrates how an attacker would have exfiltrated it from a real victim.
 
 **Flag:** `HTB{570r3d_f0r_3v3ry0n3_70_533}`
 

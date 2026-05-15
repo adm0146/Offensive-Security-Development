@@ -31,6 +31,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
   -t 100
 # Returns: id, user
 ```
+> Same two-step workflow as GET fuzzing. The difference: `-X POST` switches the method and `-d 'FUZZ=key'` puts `FUZZ` in the request body. The `Content-Type` header is required for PHP to parse the form data.
 
 ---
 
@@ -43,7 +44,7 @@ ffuf -w ~/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ \
 | Content-Type | not needed | `-H 'Content-Type: application/x-www-form-urlencoded'` |
 | Visible in URL | Yes | No |
 
-**PHP requires** `application/x-www-form-urlencoded` for POST body parsing — always set this header when fuzzing PHP endpoints.
+**PHP requires** the `application/x-www-form-urlencoded` header to parse POST body data. Always set it when fuzzing PHP endpoints or the server won't see the parameter at all.
 
 ---
 
@@ -58,8 +59,9 @@ curl -s \
 
 # Response: "Invalid id!"  ← parameter accepted, value wrong → fuzz the value next
 ```
+> Manually verify a hit from ffuf by sending the found parameter with curl. "Invalid id!" means the parameter name is correct. The server processes it but rejects the value — move to value fuzzing next.
 
-"Invalid id!" = the param name is correct, value is wrong → move to value fuzzing (Section 12).
+"Invalid id!" means the parameter name is correct but the value is wrong. Move on to value fuzzing (Section 12).
 
 ---
 

@@ -6,11 +6,12 @@
 
 ## What Is Hydra?
 
-Fast, parallel network login cracker. Supports 50+ protocols. Pre-installed on Kali.
+Hydra is a fast, parallel network login cracker. It supports more than 50 protocols and comes pre-installed on Kali.
 
 ```bash
 hydra -h        # verify installed
 ```
+> Shows the Hydra help page. Run this to confirm Hydra is installed and to see all available flags.
 
 ---
 
@@ -19,6 +20,7 @@ hydra -h        # verify installed
 ```bash
 hydra [login_options] [password_options] [attack_options] service://target
 ```
+> The general Hydra command structure. Replace each bracket group with actual flags and specify the service (e.g., `ssh://10.10.10.1` or `http-post-form` for web forms).
 
 ---
 
@@ -65,36 +67,43 @@ hydra [login_options] [password_options] [attack_options] service://target
 ```bash
 hydra -L usernames.txt -P passwords.txt www.example.com http-get
 ```
+> Brute-forces HTTP Basic Authentication at the root path `/`. `-L` takes a username list, `-P` takes a password list. Hydra tries every combination.
 
 ### SSH (single cred)
 ```bash
 hydra -l root -p toor ssh://TARGET
 ```
+> Tests a single username/password pair against SSH. Use this for quick spot-checks of known credentials before running a full wordlist.
 
 ### SSH (multiple targets)
 ```bash
 hydra -l root -p toor -M targets.txt ssh
 ```
+> Tests the same credential pair against a list of hosts. `-M` takes a file with one host per line. Useful for spraying one credential across an entire subnet.
 
 ### FTP on non-standard port
 ```bash
 hydra -L usernames.txt -P passwords.txt -s 2121 -V ftp://ftp.example.com
 ```
+> Brute-forces FTP on a non-standard port (2121 instead of the default 21). `-s PORT` overrides the default port. `-V` prints every attempt — useful for debugging but very noisy.
 
 ### Web login form (POST) — success on HTTP 302 redirect
 ```bash
 hydra -l admin -P passwords.txt www.example.com http-post-form "/login:user=^USER^&pass=^PASS^:S=302"
 ```
+> Brute-forces a web login form. `S=302` means "success = the server redirects after login." Replace the path, field names, and success condition to match your target. Use Burp Suite to capture a real login request and copy the exact parameter names.
 
 ### Web login form (POST) — fail on error string
 ```bash
 hydra -l admin -P passwords.txt www.example.com http-post-form "/login:user=^USER^&pass=^PASS^:F=Invalid credentials"
 ```
+> Same POST form attack but using a failure string instead. `F=Invalid credentials` means "fail = the response contains this text." Use this when a failed login shows an error message rather than a redirect.
 
 ### RDP with generated passwords (brute force mode)
 ```bash
 hydra -l administrator -x 6:8:abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 rdp://192.168.1.100
 ```
+> Brute-forces RDP by generating passwords on the fly. `-x 6:8:...` tries all combinations of the given character set at lengths 6, 7, and 8. Only use this when you know the password constraints — the search space grows fast.
 
 ---
 
@@ -110,7 +119,7 @@ hydra -l administrator -x 6:8:abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
   path                                  S=302     → succeed on HTTP 302 redirect
 ```
 
-> **Getting the form params:** Open Burp, submit a bad login, capture the POST request — copy the body and replace the credential values with `^USER^` and `^PASS^`.
+> **Getting the form params:** Open Burp Suite, submit a bad login, and capture the POST request. Copy the body. Replace the username and password values with `^USER^` and `^PASS^`.
 
 ---
 

@@ -11,6 +11,7 @@ Hashcat is a GPU-accelerated password cracking tool (open-source since 2015) sup
 ```bash
 hashcat -a <attack_mode> -m <hash_type> <hashes> [wordlist, rule, mask, ...]
 ```
+> Core hashcat syntax. `-a` sets the attack mode (0=dictionary, 3=mask), `-m` sets the hash type ID. The hash can be a single string or a file with one hash per line.
 
 | Flag | Purpose |
 |------|---------|
@@ -31,6 +32,7 @@ hashcat --help
 # Auto-detect with hashID (-m for hashcat mode)
 hashid -m '$1$FNr44XZC$wQxY6HHLrgrGX0e1195k.1'
 ```
+> `hashcat --help` lists all `-m` mode IDs. `hashid -m` auto-identifies a hash and prints the hashcat `-m` value to use. Quote hashes with special characters like `$`.
 
 ### Common Hash Mode IDs
 
@@ -68,6 +70,7 @@ hashcat -a 0 -m 0 e3e3ec5831ad5e7288241960e5d4fdb8 /usr/share/wordlists/rockyou.
 hashcat -a 0 -m 0 1b0556a75770563578569ae21392630c /usr/share/wordlists/rockyou.txt \
   -r /usr/share/hashcat/rules/best64.rule
 ```
+> `-a 0` is dictionary mode. `-m 0` is MD5. Add `-r` with a rule file to apply mutations to every wordlist entry. Start with `best64.rule` before trying larger rulesets.
 
 #### Common Rule Files (`/usr/share/hashcat/rules/`)
 
@@ -90,6 +93,7 @@ User-defined brute-force with explicit keyspace constraints.
 # Uppercase + 4 lowercase + digit + symbol
 hashcat -a 3 -m 0 1e293d6912d074c0fd15844d803400dd '?u?l?l?l?l?d?s'
 ```
+> `-a 3` is mask mode. Each `?` placeholder defines one character position. Quote the mask to stop the shell from interpreting `?`. Adjust the pattern to match the known password policy.
 
 #### Built-in Charsets
 
@@ -111,6 +115,7 @@ hashcat -a 3 -m 0 1e293d6912d074c0fd15844d803400dd '?u?l?l?l?l?d?s'
 hashcat -a 3 -m 0 <hash> -1 '?l?d' '?1?1?1?1?1?1'
 #                         ↑ custom set    ↑ 6-char mask using it
 ```
+> `-1` defines a custom character set (here: lowercase + digits). Reference it as `?1` in the mask. Supports up to four custom sets (`-1` through `-4`). Useful when the built-in charsets are too broad or too narrow.
 
 | Flag | Reference |
 |------|-----------|
@@ -152,6 +157,7 @@ hashcat -a 3 -m 0 <hash> -1 '?l?d' '?1?1?1?1?1?1'
 ```bash
 hashcat -a 0 -m 0 e3e3ec5831ad5e7288241960e5d4fdb8 /usr/share/wordlists/rockyou.txt
 ```
+> Straight dictionary attack against a single MD5 hash. Hashcat prints the cracked password after the hash separated by a colon. Add `--show` to display already-cracked results.
 
 **Answer: `crazy!`** — Straight dictionary hit in rockyou.txt, no rules needed.
 
@@ -163,6 +169,7 @@ hashcat -a 0 -m 0 e3e3ec5831ad5e7288241960e5d4fdb8 /usr/share/wordlists/rockyou.
 hashcat -a 0 -m 0 1b0556a75770563578569ae21392630c /usr/share/wordlists/rockyou.txt \
   -r /usr/share/hashcat/rules/best66.rule
 ```
+> Applies `best66.rule` mutations to every rockyou.txt word. Catches leet-speak substitutions and common suffixes that a plain dictionary attack misses.
 
 **Answer: `c0wb0ys1`** — Base word `cowboys` mutated with leet speak (`o→0`) + appended `1`. Wordlist alone missed it; rules caught the mutation.
 
@@ -177,6 +184,7 @@ Mask: uppercase + 4 lowercase + digit + symbol (`?u?l?l?l?l?d?s`)
 ```bash
 hashcat -a 3 -m 0 1e293d6912d074c0fd15844d803400dd '?u?l?l?l?l?d?s'
 ```
+> Mask attack with a specific 7-character pattern: one uppercase, four lowercase, one digit, one symbol. Use when you know the target password policy so you can constrain the keyspace.
 
 **Answer: `Mouse5!`** — 7-char password matching the exact mask pattern. Keyspace was ~3.9B candidates, cracked in ~4 seconds.
 

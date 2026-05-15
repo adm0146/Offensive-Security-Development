@@ -25,19 +25,19 @@
 
 ## ACL Concepts
 
-**ACL (Access Control List)** — defines who has access to an object and at what level.
+**ACL (Access Control List)** — defines who has access to an AD object and at what level. Every user, group, and computer object has one.
 
-**DACL (Discretionary ACL)** — controls who is allowed/denied access. Made up of ACEs.
+**DACL (Discretionary ACL)** — controls who is allowed or denied access. Made up of Access Control Entries (ACEs).
 - No DACL on object = everyone has full rights
 - DACL with no ACEs = everyone denied
 
-**SACL (System ACL)** — controls audit logging for access attempts. Not used for attack — just logging.
+**SACL (System ACL)** — controls audit logging for access attempts. Not used for attacks — just logging.
 
-**ACE (Access Control Entry)** — individual entry in a DACL. Each ACE contains:
-- SID of the principal (user/group)
+**ACE (Access Control Entry)** — a single entry inside a DACL. Each ACE contains:
+- Security Identifier (SID) of the principal (user/group)
 - ACE type (allow, deny, audit)
 - Inheritance flags
-- Access mask (32-bit — defines specific rights)
+- Access mask (32-bit value — defines which specific rights are granted)
 
 **ACEs are checked top to bottom — first match wins. Deny beats allow if both exist.**
 
@@ -55,11 +55,11 @@
 
 ## Why ACL Attacks Matter
 
-- **Not detected by vulnerability scanners** — ACL misconfigs are invisible to Nessus/OpenVAS
-- **Often unchecked for years** — especially in complex environments
-- **Software installs create them** — Exchange, SCCM, etc. add broad ACEs at install time
-- **Hard to spot** — even admins don't audit ACLs regularly
-- **BloodHound visualizes them** — edges like `ForceChangePassword`, `GenericAll`, `WriteDACL` show attack paths
+- **Not detected by vulnerability scanners** — ACL misconfigurations are invisible to Nessus and OpenVAS.
+- **Often unchecked for years** — especially in complex environments where no one does regular reviews.
+- **Software installs create them** — Exchange, SCCM, and other products add broad ACEs at install time without warning.
+- **Hard to spot** — even experienced admins do not audit ACLs regularly.
+- **BloodHound visualizes them** — edges like `ForceChangePassword`, `GenericAll`, and `WriteDACL` show exact attack paths.
 
 ---
 
@@ -97,6 +97,7 @@
 Find-InterestingDomainAcl                          # broad scan for interesting ACEs
 Get-DomainObjectAcl -Identity USER -ResolveGUIDs   # ACEs on a specific object
 ```
+> Start with BloodHound to find ACL edges visually. Then use PowerView to confirm the exact ACE and plan the abuse. `Find-InterestingDomainAcl` scans the whole domain for non-default ACEs. `Get-DomainObjectAcl -ResolveGUIDs` translates the raw GUID values in ACEs into human-readable right names.
 
 ---
 

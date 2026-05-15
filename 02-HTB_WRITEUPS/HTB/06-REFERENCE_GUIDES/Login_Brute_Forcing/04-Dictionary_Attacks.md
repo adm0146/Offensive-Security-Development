@@ -4,9 +4,9 @@
 
 ## What Is a Dictionary Attack?
 
-Instead of trying every possible combination, a dictionary attack tests a pre-built list of likely passwords. It's faster because it exploits the human habit of choosing predictable, memorable passwords.
+A dictionary attack (also called a wordlist attack) tries passwords from a pre-built list instead of testing every possible combination. It's much faster because people tend to pick predictable, memorable passwords that appear in these lists.
 
-**The better the wordlist matches the target, the higher the success rate.**
+**The more the wordlist matches the target, the higher the success rate.**
 
 ---
 
@@ -75,6 +75,7 @@ with ThreadPoolExecutor(max_workers=50) as executor:
             executor.shutdown(wait=False, cancel_futures=True)
             break
 ```
+> The same threaded pattern as the PIN script. Two key differences: `requests.post(...)` sends the password in the request body (not the URL), and the password list comes from a wordlist file instead of `range()`. Change the URL and `data=` parameter name to match your target.
 
 **What changed from the PIN script:**
 | Change | Reason |
@@ -90,6 +91,7 @@ with ThreadPoolExecutor(max_workers=50) as executor:
 ```bash
 python3 dictionary-solver.py
 ```
+> Runs the dictionary attack script. With 50 threads and only 500 passwords, this completes in a few seconds.
 
 **Result:**
 ```

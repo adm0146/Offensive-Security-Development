@@ -17,6 +17,7 @@ xfreerdp /v:MS01_IP /u:htb-student /p:'Academy_student_AD!' /cert:ignore /dynami
 # xfreerdp to Linux attack host (for BloodHound GUI)
 xfreerdp /v:ATTACK01_IP /u:htb-student /p:'HTB_@cademy_stdnt!' /cert:ignore /dynamic-resolution
 ```
+> SSH gives a terminal on the Parrot Linux box. The third command opens a graphical session (for BloodHound). Swap each `_IP` placeholder with the actual spawned IP.
 
 **Tool locations:** Windows = `C:\Tools\` | Linux = `/opt/` or PATH
 
@@ -35,10 +36,10 @@ xfreerdp /v:ATTACK01_IP /u:htb-student /p:'HTB_@cademy_stdnt!' /cert:ignore /dyn
 
 ## Key Concepts
 
-- **Primary attack surface:** Misconfigurations, not just CVEs
-- **Minimum access needed:** Any valid domain user unlocks the majority of AD enumeration
-- **Both platforms:** Must be comfortable attacking from Linux and Windows
-- **Iterative:** You'll loop back to enumeration every time you gain new access
+- **Primary attack surface:** Most Active Directory (AD) attacks exploit misconfiguration, not software bugs.
+- **Minimum access needed:** Any valid domain user account unlocks most AD enumeration.
+- **Both platforms:** You need to attack from both Linux and Windows. Know both.
+- **Iterative:** Every time you gain new access, go back and enumerate again. New creds open new doors.
 
 ---
 
