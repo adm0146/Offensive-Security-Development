@@ -5,25 +5,25 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (~66%, 19/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (~80%, 23/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
-## Current Status (May 12, 2026)
+## Current Status (May 14, 2026)
 
 ```
-CPTS Learning Pathway: ██████████████████████████░░░░░░░░░░░░░░ ~66%
+CPTS Learning Pathway: ████████████████████████████████░░░░░░░░ ~80%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 19 / 28 |
-| Academy Module In Progress | None — between modules |
-| Reference Guides | 330+ |
+| Academy Modules Complete | 23 / 28 |
+| Academy Module In Progress | Attacking Common Applications (17/33 sections) |
+| Reference Guides | 370+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -49,11 +49,11 @@ CPTS Learning Pathway: ███████████████████
 | SQL Injection Fundamentals | ✅ Complete (17/17) |
 | SQLMap Essentials | ✅ Complete (11/11) |
 | Cross-Site Scripting (XSS) | ✅ Complete (10/10) |
-| File Inclusion | ⬚ Not Started |
-| File Upload Attacks | ⬚ Not Started |
-| Command Injections | ⬚ Not Started |
-| Web Attacks | ⬚ Not Started |
-| Attacking Common Applications | ⬚ Not Started |
+| File Inclusion | ✅ Complete (11/11) |
+| File Upload Attacks | ✅ Complete (11/11) |
+| Command Injections | ✅ Complete (12/12) |
+| Web Attacks | ✅ Complete (18/18) |
+| Attacking Common Applications | 🔄 In Progress (17/33) |
 | Linux Privilege Escalation | ⬚ Not Started |
 | Windows Privilege Escalation | ⬚ Not Started |
 | Documentation & Reporting | ⬚ Not Started |
@@ -89,6 +89,11 @@ Offensive-Security-Development/
 |   |   |-- SQL_Injection_Fundamentals/                ← 17 guides (complete)
 |   |   |-- SQLMap_Essentials/                         ← 11 guides (complete)
 |   |   |-- Cross_Site_Scripting/                      ← 10 guides (complete)
+|   |   |-- File_Inclusion/                            ← 11 guides (complete)
+|   |   |-- File_Upload_Attacks/                       ← 11 guides (complete)
+|   |   |-- Command_Injections/                        ← 12 guides (complete)
+|   |   |-- Web_Attacks/                               ← 18 guides (complete)
+|   |   |-- Attacking_Common_Applications/             ← 17 guides (in progress)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -274,6 +279,70 @@ SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, plink, ICMP tunneling.
 | 09 | Prevention: htmlspecialchars, DOMPurify, CSP, HttpOnly cookies |
 | 10 | Skills Assessment — WordPress blog, blind XSS via comment `url` field (`http://x"` breakout) |
 
+### File Inclusion ✅ (11 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full LFI/RFI playbook: wrappers, log poisoning, automated scanning |
+| 01-03 | LFI intro, path traversal, basic bypasses (null bytes, encoding, approved paths) |
+| 04-05 | PHP filters (`php://filter` base64 read) and PHP wrappers (data://, input://, expect://) |
+| 06 | Remote File Inclusion — hosted shells, Windows UNC paths |
+| 07-08 | LFI + file uploads for RCE; log poisoning (Apache/SSH/mail logs) |
+| 09 | Automated scanning with ffuf and LFI wordlists |
+| 10 | Prevention: input validation, disable_functions, WAF |
+| 11 | Skills Assessment — LFI chain to RCE via log poisoning |
+
+### File Upload Attacks ✅ (11 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full upload attack decision tree: absent → client → blacklist → whitelist → type filters |
+| 01-03 | Intro, absent validation (direct .php upload), basic exploitation |
+| 04 | Client-side bypass — intercept in Burp, change Content-Type |
+| 05 | Blacklist bypass — `.php5`, `.phtml`, `.phar`, `.shtml` extensions |
+| 06 | Whitelist bypass — double extensions (`shell.jpg.php`), null bytes |
+| 07 | Type filter bypass — magic bytes (`FF D8 FF`), exiftool metadata injection |
+| 08 | Limited uploads — XML XXE, SVG XSS, PDF/ZIP injection |
+| 09 | Other attacks — zip slip, directory traversal in filename |
+| 10 | Prevention: allowlist validation, storage separation, Content-Type server-check |
+| 11 | Skills Assessment — full bypass chain to RCE |
+
+### Command Injections ✅ (12 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full injection playbook: operators, space bypass, char bypass, obfuscation |
+| 01-04 | Intro, detection (error-based/blind), injection operators (`;`, `||`, `&&`, `\|`) |
+| 05 | Identifying filters — which chars/commands are blocked |
+| 06 | Bypassing space filters — `${IFS}`, `%09` (tab), brace expansion |
+| 07 | Bypassing blacklisted chars — `$'c'at`, variable manipulation, path tricks |
+| 08 | Bypassing blacklisted commands — case manipulation, `w'h'o'a'm'i'`, `who$@ami` |
+| 09 | Advanced obfuscation — reverse strings, base64, `$(rev<<<...)` |
+| 10 | Evasion tools — Bashfuscator, DOSfuscation (Windows) |
+| 11 | Prevention: input sanitization, `escapeshellcmd()`, server-side allowlists |
+| 12 | Skills Assessment — blind injection, filter bypass chain to RCE |
+
+### Web Attacks ✅ (18 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full cheatsheet: HTTP verb tampering, IDOR, XXE — attacks + bypasses |
+| 01-05 | HTTP Verb Tampering: intro, exploiting, bypass basic auth, bypass security filters, prevention |
+| 06-12 | IDOR: intro, identifying IDORs, mass enumeration, encoded reference bypass, API IDORs, chaining, prevention |
+| 13-17 | XXE: intro, local file disclosure, advanced file disclosure, blind exfiltration (DNS/OOB), prevention |
+| 18 | Skills Assessment — chain HTTP verb + IDOR + XXE for full compromise |
+
+### Attacking Common Applications 🔄 (17/33 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Quick-reference for all covered applications |
+| 01-02 | Discovery & enumeration methodology, application fingerprinting |
+| 03-04 | WordPress: enumeration (WPScan, manual), exploitation (plugin upload, CVEs) |
+| 05-06 | Joomla: discovery, exploitation (template editor RCE, CVE-2019-10945) |
+| 07-08 | Drupal: discovery, exploitation (Drupalgeddon2 CVE-2018-7600, Drupa queen CVE-2019-6340) |
+| 09-10 | Tomcat: discovery, exploitation (manager WAR upload, CVE-2019-0232 CGI) |
+| 11-12 | Jenkins: discovery, exploitation (script console RCE, Groovy reverse shell) |
+| 13-14 | Splunk: discovery, exploitation (malicious app upload, Free mode RCE via REST API) |
+| 15 | PRTG: discovery + CVE-2018-9276 authenticated command injection → SYSTEM |
+| 16 | osTicket: email harvesting, credential reuse, closed ticket data extraction |
+| 17 | GitLab: version fingerprint, unauthenticated/authenticated enumeration, CVEs |
+
 ### Vulnerability Assessment
 Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
@@ -309,7 +378,13 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 | SQL Injection | UNION extraction, auth bypass, INFORMATION_SCHEMA enum, INTO OUTFILE web shells | SQL Injection ✅ |
 | SQLMap Automation | All injection types, --tamper bypass, --file-read/write, --os-shell | SQLMap Essentials ✅ |
 | XSS Exploitation | Stored / Reflected / DOM-based, cookie theft, phishing form injection, blind XSS | XSS ✅ |
-| Web Exploitation | File inclusion, command injection, file upload | Upcoming |
+| File Inclusion | LFI/RFI path traversal, PHP wrappers/filters, log poisoning, RCE via upload+LFI | File Inclusion ✅ |
+| File Upload Attacks | Validation bypass (client/blacklist/whitelist/type), magic bytes, metadata injection | File Upload ✅ |
+| Command Injection | Operator injection, space/char/command filter bypass, blind injection, obfuscation | Cmd Injection ✅ |
+| HTTP Verb Tampering | Auth bypass via GET/POST/HEAD/PUT method switching | Web Attacks ✅ |
+| IDOR | Mass enumeration, encoded reference bypass, IDOR in APIs, chaining IDORs | Web Attacks ✅ |
+| XXE Injection | Local file read, SSRF via XXE, blind OOB exfiltration via DNS | Web Attacks ✅ |
+| Application Attacks | WordPress/Joomla/Drupal/Tomcat/Jenkins/Splunk/PRTG/osTicket/GitLab | Common Apps 🔄 |
 | Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
 
 ---
@@ -344,7 +419,12 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 - [SQL Injection Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/SQL_Injection_Fundamentals/00-EXAM_CHEATSHEET.md)
 - [SQLMap Essentials Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/SQLMap_Essentials/00-EXAM_CHEATSHEET.md)
 - [XSS Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Cross_Site_Scripting/00-EXAM_CHEATSHEET.md)
+- [File Inclusion Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/File_Inclusion/00-EXAM_CHEATSHEET.md)
+- [File Upload Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/File_Upload_Attacks/00-EXAM_CHEATSHEET.md)
+- [Command Injections Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Command_Injections/00-EXAM_CHEATSHEET.md)
+- [Web Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Web_Attacks/00-EXAM_CHEATSHEET.md)
+- [Attacking Common Applications Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Common_Applications/00-EXAM_CHEATSHEET.md)
 
 ---
 
-Last Updated: May 12, 2026
+Last Updated: May 14, 2026

@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** June 21, 2026  
-**Last Updated:** May 12, 2026
+**Last Updated:** May 14, 2026
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ██████████████████████████░░░░░░░░░░░░░░ ~66%
+CPTS Learning Pathway: ████████████████████████████████░░░░░░░░ ~80%
 ```
 
 ---
@@ -44,15 +44,107 @@ CPTS Learning Pathway: ███████████████████
 | SQL Injection Fundamentals | ✅ Complete | 17/17 | Skills Assessment ✅ (chattr.htb) |
 | SQLMap Essentials | ✅ Complete | 11/11 | Skills Assessment ✅ (Minishop) |
 | **Cross-Site Scripting (XSS)** | ✅ **Complete** | **10/10** | **Skills Assessment ✅ (WordPress)** |
-| File Inclusion | ⬚ Not Started | — | |
-| File Upload Attacks | ⬚ Not Started | — | |
-| Command Injections | ⬚ Not Started | — | |
-| Web Attacks | ⬚ Not Started | — | |
-| Attacking Common Applications | ⬚ Not Started | — | |
+| File Inclusion | ✅ Complete | 11/11 | Skills Assessment ✅ |
+| File Upload Attacks | ✅ Complete | 11/11 | Skills Assessment ✅ |
+| Command Injections | ✅ Complete | 12/12 | Skills Assessment ✅ |
+| Web Attacks | ✅ Complete | 18/18 | Skills Assessment ✅ |
+| **Attacking Common Applications** | 🔄 **In Progress** | **17/33** | WordPress → GitLab done |
 | Linux Privilege Escalation | ⬚ Not Started | — | |
 | Windows Privilege Escalation | ⬚ Not Started | — | |
 | Documentation & Reporting | ⬚ Not Started | — | |
 | Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
+
+---
+
+## Attacking Common Applications — In Progress 🔄
+
+17/33 sections complete as of May 14, 2026. Guides at:
+`06-REFERENCE_GUIDES/Attacking_Common_Applications/`
+
+### Completed (Sections 1–17)
+
+| Application | Attack Technique |
+|-------------|----------------|
+| WordPress | WPScan enum, plugin upload RCE, CVE-2021-29447 (XXE), xmlrpc brute force |
+| Joomla | Template editor RCE, CVE-2019-10945 directory traversal, config.php creds |
+| Drupal | Drupalgeddon2 (CVE-2018-7600), Drupa queen (CVE-2019-6340), PHP filter module RCE |
+| Tomcat | Manager WAR upload RCE, CVE-2019-0232 CGI RCE, AJP Ghostcat (CVE-2020-1938) |
+| Jenkins | Script console Groovy RCE, `cmd.exe /c` shell, declarative pipeline injection |
+| Splunk | Malicious app upload, Free mode REST API RCE (Python 3 `.decode()` fix required) |
+| PRTG | CVE-2018-9276 notification cmd injection → SYSTEM, `objecttype=notification` required |
+| osTicket | Email harvesting for account registration, closed ticket credential extraction |
+| GitLab | Version fingerprint, public repo enum, API file read, phpunit/CI secret extraction |
+
+---
+
+## File Inclusion — Complete ✅
+
+All 11 sections finished May 14, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/File_Inclusion/`
+
+### Techniques Covered
+
+| Technique | Key Detail |
+|-----------|------------|
+| Path traversal (LFI) | `../../etc/passwd`, null bytes, encoding bypasses, approved path bypass |
+| PHP filters | `php://filter/convert.base64-encode/resource=config.php` |
+| PHP wrappers | `data://`, `input://`, `expect://` for code execution |
+| Remote File Inclusion | Hosted PHP shell, Windows UNC path RFI |
+| LFI + file upload | Upload image with PHP in EXIF, include via LFI |
+| Log poisoning | Apache/Nginx access log, SSH auth log, `/proc/self/environ` |
+| Automated scanning | ffuf with LFI wordlists, fuzzing for traversal depth |
+
+---
+
+## File Upload Attacks — Complete ✅
+
+All 11 sections finished May 14, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/File_Upload_Attacks/`
+
+### Techniques Covered
+
+| Bypass Method | Technique |
+|---------------|-----------|
+| Absent validation | Direct `.php` shell upload |
+| Client-side bypass | Intercept in Burp, change extension/Content-Type |
+| Blacklist bypass | `.php5`, `.phtml`, `.phar`, `.shtml` alt extensions |
+| Whitelist bypass | Double extension (`shell.jpg.php`), null byte (`shell.php%00.jpg`) |
+| Type filter bypass | Magic bytes (`FF D8 FF`), exiftool comment injection |
+| SVG/XML injection | XXE via SVG, XSS via SVG `<script>` |
+| Zip slip | Directory traversal via zip entry filename |
+
+---
+
+## Command Injections — Complete ✅
+
+All 12 sections finished May 14, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Command_Injections/`
+
+### Techniques Covered
+
+| Technique | Detail |
+|-----------|--------|
+| Injection operators | `;`, `||`, `&&`, `\|`, newline (`%0a`) |
+| Space filter bypass | `${IFS}`, `%09`, brace expansion `{cmd,}` |
+| Char filter bypass | `$'c'at`, variable slicing `${PATH:0:1}`, `/???/c?t` |
+| Command filter bypass | Case manipulation, `w'h'o'a'm'i`, `who$@ami`, `$(rev<<<imaohw)` |
+| Blind injection | Time-based (`sleep 5`), OOB DNS/HTTP exfil |
+| Obfuscation tools | Bashfuscator, DOSfuscation |
+
+---
+
+## Web Attacks — Complete ✅
+
+All 18 sections finished May 14, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Web_Attacks/`
+
+### Techniques Covered
+
+| Category | Techniques |
+|----------|-----------|
+| HTTP Verb Tampering | GET/POST/HEAD bypass auth, bypass security filters |
+| IDOR | Insecure direct object references, encoded reference bypass, API IDOR |
+| XXE Injection | Local file read, SSRF, blind OOB exfil via DNS, error-based XXE |
 
 ---
 
@@ -154,7 +246,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 ~66% (19/28) — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 ~80% (23/28) — exam June 21, 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |
