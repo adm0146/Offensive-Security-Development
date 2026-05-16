@@ -5,25 +5,25 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (~80%, 23/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (88.9%, 25/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
-## Current Status (May 14, 2026)
+## Current Status (May 15, 2026)
 
 ```
-CPTS Learning Pathway: ████████████████████████████████░░░░░░░░ ~80%
+CPTS Learning Pathway: ████████████████████████████████████░░░░ 88.9%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 23 / 28 |
-| Academy Module In Progress | Attacking Common Applications (17/33 sections) |
-| Reference Guides | 370+ |
+| Academy Modules Complete | 25 / 28 |
+| Academy Modules Remaining | Windows PrivEsc, Documentation & Reporting, Enterprise Networks |
+| Reference Guides | 400+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -53,8 +53,8 @@ CPTS Learning Pathway: ███████████████████
 | File Upload Attacks | ✅ Complete (11/11) |
 | Command Injections | ✅ Complete (12/12) |
 | Web Attacks | ✅ Complete (18/18) |
-| Attacking Common Applications | 🔄 In Progress (17/33) |
-| Linux Privilege Escalation | ⬚ Not Started |
+| Attacking Common Applications | ✅ Complete (33/33) |
+| Linux Privilege Escalation | ✅ Complete (28/28) |
 | Windows Privilege Escalation | ⬚ Not Started |
 | Documentation & Reporting | ⬚ Not Started |
 | Attacking Enterprise Networks | ⬚ Not Started |
@@ -93,7 +93,8 @@ Offensive-Security-Development/
 |   |   |-- File_Upload_Attacks/                       ← 11 guides (complete)
 |   |   |-- Command_Injections/                        ← 12 guides (complete)
 |   |   |-- Web_Attacks/                               ← 18 guides (complete)
-|   |   |-- Attacking_Common_Applications/             ← 17 guides (in progress)
+|   |   |-- Attacking_Common_Applications/             ← 34 guides (complete)
+|   |   |-- Linux_Privilege_Escalation/                ← 29 guides (complete)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -328,20 +329,42 @@ SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, plink, ICMP tunneling.
 | 13-17 | XXE: intro, local file disclosure, advanced file disclosure, blind exfiltration (DNS/OOB), prevention |
 | 18 | Skills Assessment — chain HTTP verb + IDOR + XXE for full compromise |
 
-### Attacking Common Applications 🔄 (17/33 guides)
+### Attacking Common Applications ✅ (34 guides)
 | Guide | Description |
 |-------|-------------|
-| 00-EXAM_CHEATSHEET.md | Quick-reference for all covered applications |
+| 00-EXAM_CHEATSHEET.md | Quick-reference for all 15+ application types |
 | 01-02 | Discovery & enumeration methodology, application fingerprinting |
-| 03-04 | WordPress: enumeration (WPScan, manual), exploitation (plugin upload, CVEs) |
-| 05-06 | Joomla: discovery, exploitation (template editor RCE, CVE-2019-10945) |
-| 07-08 | Drupal: discovery, exploitation (Drupalgeddon2 CVE-2018-7600, Drupa queen CVE-2019-6340) |
-| 09-10 | Tomcat: discovery, exploitation (manager WAR upload, CVE-2019-0232 CGI) |
-| 11-12 | Jenkins: discovery, exploitation (script console RCE, Groovy reverse shell) |
-| 13-14 | Splunk: discovery, exploitation (malicious app upload, Free mode RCE via REST API) |
-| 15 | PRTG: discovery + CVE-2018-9276 authenticated command injection → SYSTEM |
-| 16 | osTicket: email harvesting, credential reuse, closed ticket data extraction |
-| 17 | GitLab: version fingerprint, unauthenticated/authenticated enumeration, CVEs |
+| 03-04 | WordPress: WPScan, plugin upload RCE, CVE-2021-29447 XXE |
+| 05-06 | Joomla: template editor RCE, CVE-2019-10945 |
+| 07-08 | Drupal: Drupalgeddon2 CVE-2018-7600, PHP filter module RCE |
+| 09-10 | Tomcat: manager WAR upload, CVE-2019-0232 CGI, Ghostcat |
+| 11-12 | Jenkins: script console Groovy RCE |
+| 13-14 | Splunk: malicious app upload, Free mode REST API RCE |
+| 15 | PRTG: CVE-2018-9276 cmd injection → SYSTEM |
+| 16 | osTicket: email harvesting, closed ticket data extraction |
+| 17-18 | GitLab: CVE-2021-22205 ExifTool RCE, self-registration bypass |
+| 19-20 | Shellshock CVE-2014-6271, Tomcat CGI CVE-2019-0232 |
+| 21-24 | ColdFusion traversal/upload, IIS Tilde 8.3, LDAP injection |
+| 25-29 | Mass assignment, thick clients, WebLogic CVE-2020-14882 |
+| 30-33 | Nagios XI, vCenter, skills assessments |
+
+### Linux Privilege Escalation ✅ (29 guides)
+| Guide | Description |
+|-------|-------------|
+| 00-EXAM_CHEATSHEET.md | Full privesc priority checklist — sudo→SUID→cron→creds→kernel |
+| 01-04 | Enumeration: environment, services/internals, credential hunting |
+| 05-07 | Path abuse, wildcard abuse, restricted shell escape |
+| 08-09 | SUID/SGID + GTFOBins, sudo rights abuse |
+| 10-11 | Privileged groups (docker/lxd/disk/adm), capabilities |
+| 12-13 | Vulnerable services (Screen 4.5.0), cron job abuse |
+| 14-16 | Containers: LXC/LXD, Docker, Kubernetes |
+| 17-18 | Logrotate, misc techniques (NFS, tmux hijacking) |
+| 19 | Kernel exploits (OverlayFS, Dirty COW) |
+| 20-22 | Shared libraries (LD_PRELOAD, RUNPATH, Python hijacking) |
+| 23-24 | Sudo CVEs (14287, Baron Samedit), Polkit/PwnKit |
+| 25-26 | Dirty Pipe CVE-2022-0847, Netfilter CVEs |
+| 27 | Linux hardening (defensive reference) |
+| 28 | Skills assessment (5-flag chain) |
 
 ### Vulnerability Assessment
 Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
@@ -384,8 +407,9 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 | HTTP Verb Tampering | Auth bypass via GET/POST/HEAD/PUT method switching | Web Attacks ✅ |
 | IDOR | Mass enumeration, encoded reference bypass, IDOR in APIs, chaining IDORs | Web Attacks ✅ |
 | XXE Injection | Local file read, SSRF via XXE, blind OOB exfiltration via DNS | Web Attacks ✅ |
-| Application Attacks | WordPress/Joomla/Drupal/Tomcat/Jenkins/Splunk/PRTG/osTicket/GitLab | Common Apps 🔄 |
-| Privilege Escalation | Linux/Windows privesc techniques | Upcoming |
+| Application Attacks | WordPress/Joomla/Drupal/Tomcat/Jenkins/Splunk/PRTG/osTicket/GitLab/ColdFusion/WebLogic/Nagios | Common Apps ✅ |
+| Linux Privilege Escalation | Sudo/SUID/cron/capabilities/groups, LD_PRELOAD, Python hijacking, kernel CVEs, containers | Linux PrivEsc ✅ |
+| Windows Privilege Escalation | Windows privesc techniques | Upcoming |
 
 ---
 
@@ -424,7 +448,8 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 - [Command Injections Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Command_Injections/00-EXAM_CHEATSHEET.md)
 - [Web Attacks Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Web_Attacks/00-EXAM_CHEATSHEET.md)
 - [Attacking Common Applications Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Common_Applications/00-EXAM_CHEATSHEET.md)
+- [Linux Privilege Escalation Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Linux_Privilege_Escalation/00-EXAM_CHEATSHEET.md)
 
 ---
 
-Last Updated: May 14, 2026
+Last Updated: May 15, 2026

@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** June 21, 2026  
-**Last Updated:** May 14, 2026
+**Last Updated:** May 15, 2026
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ████████████████████████████████░░░░░░░░ ~80%
+CPTS Learning Pathway: ████████████████████████████████████░░░░ 88.9%
 ```
 
 ---
@@ -48,20 +48,20 @@ CPTS Learning Pathway: ███████████████████
 | File Upload Attacks | ✅ Complete | 11/11 | Skills Assessment ✅ |
 | Command Injections | ✅ Complete | 12/12 | Skills Assessment ✅ |
 | Web Attacks | ✅ Complete | 18/18 | Skills Assessment ✅ |
-| **Attacking Common Applications** | 🔄 **In Progress** | **17/33** | WordPress → GitLab done |
-| Linux Privilege Escalation | ⬚ Not Started | — | |
+| **Attacking Common Applications** | ✅ **Complete** | **33/33** | All apps + exam cheatsheet |
+| **Linux Privilege Escalation** | ✅ **Complete** | **28/28** | All guides + exam cheatsheet |
 | Windows Privilege Escalation | ⬚ Not Started | — | |
 | Documentation & Reporting | ⬚ Not Started | — | |
 | Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
 
 ---
 
-## Attacking Common Applications — In Progress 🔄
+## Attacking Common Applications — Complete ✅
 
-17/33 sections complete as of May 14, 2026. Guides at:
+All 33 sections finished May 14, 2026. Guides at:
 `06-REFERENCE_GUIDES/Attacking_Common_Applications/`
 
-### Completed (Sections 1–17)
+### Covered Applications
 
 | Application | Attack Technique |
 |-------------|----------------|
@@ -73,7 +73,33 @@ CPTS Learning Pathway: ███████████████████
 | Splunk | Malicious app upload, Free mode REST API RCE (Python 3 `.decode()` fix required) |
 | PRTG | CVE-2018-9276 notification cmd injection → SYSTEM, `objecttype=notification` required |
 | osTicket | Email harvesting for account registration, closed ticket credential extraction |
-| GitLab | Version fingerprint, public repo enum, API file read, phpunit/CI secret extraction |
+| GitLab | CVE-2021-22205 ExifTool RCE, self-registration bypass |
+| Shellshock | CVE-2014-6271 CGI User-Agent injection |
+| ColdFusion | CVE-2010-2861 traversal, CVE-2009-2265 FCKeditor upload |
+| IIS Tilde | Short filename enumeration (8.3) |
+| WebLogic | CVE-2020-14882+14883 unauth RCE |
+| Nagios XI | CVE-2020-35578 plugin filename injection |
+
+---
+
+## Linux Privilege Escalation — Complete ✅
+
+All 28 sections finished May 15, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Linux_Privilege_Escalation/`
+
+### Techniques Covered
+
+| Category | Techniques |
+|----------|-----------|
+| Enumeration | Environment, services/internals, credential hunting, hidden files |
+| Permissions | SUID/SGID + GTFOBins, sudo rights, capabilities, privileged groups |
+| Abuse Vectors | PATH abuse, wildcard abuse, cron job abuse, restricted shell escape |
+| Services & Misc | Screen 4.5.0, NFS no_root_squash, tmux hijacking, logrotate |
+| Libraries | LD_PRELOAD, shared object hijacking (RUNPATH), Python library hijacking |
+| Containers | LXC/LXD, Docker, Kubernetes |
+| Kernel/CVE | OverlayFS, Dirty Pipe, Dirty COW, PwnKit, Netfilter CVEs |
+| Sudo/Polkit | CVE-2019-14287, Baron Samedit, CVE-2021-4034 |
+| Skills Assessment | 5-flag chain: hidden files → cred reuse → group privs → Tomcat → sudo pager escape |
 
 ---
 
@@ -246,7 +272,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 ~80% (23/28) — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 88.9% (25/28) — exam June 21, 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |
