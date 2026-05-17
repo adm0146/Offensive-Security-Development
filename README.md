@@ -5,7 +5,7 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (88.9%, 25/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (91.1%, 25/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
@@ -15,7 +15,7 @@ Documenting my path through security certifications and hands-on penetration tes
 ## Current Status (May 16, 2026)
 
 ```
-CPTS Learning Pathway: ████████████████████████████████████░░░░ 88.9%
+CPTS Learning Pathway: █████████████████████████████████████░░░ 91.1%
 Windows Privilege Escalation: ███████████░░░░░░░░░░░░░░░░░░░░░░ 11/33
 ```
 
