@@ -12,18 +12,20 @@ Documenting my path through security certifications and hands-on penetration tes
 
 ---
 
-## Current Status (May 15, 2026)
+## Current Status (May 16, 2026)
 
 ```
 CPTS Learning Pathway: ████████████████████████████████████░░░░ 88.9%
+Windows Privilege Escalation: ███████████░░░░░░░░░░░░░░░░░░░░░░ 11/33
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
 | Academy Modules Complete | 25 / 28 |
-| Academy Modules Remaining | Windows PrivEsc, Documentation & Reporting, Enterprise Networks |
-| Reference Guides | 400+ |
+| Academy Modules In Progress | Windows Privilege Escalation (11/33 sections) |
+| Academy Modules Remaining | Documentation & Reporting, Enterprise Networks |
+| Reference Guides | 410+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -55,7 +57,7 @@ CPTS Learning Pathway: ███████████████████
 | Web Attacks | ✅ Complete (18/18) |
 | Attacking Common Applications | ✅ Complete (33/33) |
 | Linux Privilege Escalation | ✅ Complete (28/28) |
-| Windows Privilege Escalation | ⬚ Not Started |
+| Windows Privilege Escalation | 🔄 In Progress (11/33) |
 | Documentation & Reporting | ⬚ Not Started |
 | Attacking Enterprise Networks | ⬚ Not Started |
 
@@ -95,6 +97,7 @@ Offensive-Security-Development/
 |   |   |-- Web_Attacks/                               ← 18 guides (complete)
 |   |   |-- Attacking_Common_Applications/             ← 34 guides (complete)
 |   |   |-- Linux_Privilege_Escalation/                ← 29 guides (complete)
+|   |   |-- Windows_Privilege_Escalation/              ← 11 guides (in progress)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -366,6 +369,21 @@ SSH SOCKS, Chisel, Sshuttle, Socat, SocksOverRDP, plink, ICMP tunneling.
 | 27 | Linux hardening (defensive reference) |
 | 28 | Skills assessment (5-flag chain) |
 
+### Windows Privilege Escalation 🔄 (11/33 guides)
+| Guide | Description |
+|-------|-------------|
+| 01 | Introduction — why privesc matters, real-world scenarios, common vectors |
+| 02 | Useful Tools — WinPEAS, Seatbelt, PowerUp, SharpUp, Watson, LaZagne, AV detection |
+| 03 | Situational Awareness — network info, dual-homing, AppLocker, Defender enumeration |
+| 04 | Initial Enumeration — systeminfo, users/groups, netstat, installed programs, patch level |
+| 05 | Communication with Processes — named pipes, localhost listeners, DACL abuse |
+| 06 | Windows Privileges Overview — dangerous groups, privilege constants, UAC filtering |
+| 07 | SeImpersonate/SeAssignPrimaryToken — Potato attacks, PrintSpoofer, MSSQL→SYSTEM |
+| 08 | SeDebugPrivilege — LSASS dump, Mimikatz credential extraction, process injection |
+| 09 | SeTakeOwnershipPrivilege — takeown + icacls to read protected files |
+| 10 | Windows Built-in Groups (Backup Operators) — SeBackupPrivilege, NTDS.dit extraction |
+| 11 | Event Log Readers — wevtutil credential harvesting from process creation logs |
+
 ### Vulnerability Assessment
 Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
@@ -409,7 +427,7 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 | XXE Injection | Local file read, SSRF via XXE, blind OOB exfiltration via DNS | Web Attacks ✅ |
 | Application Attacks | WordPress/Joomla/Drupal/Tomcat/Jenkins/Splunk/PRTG/osTicket/GitLab/ColdFusion/WebLogic/Nagios | Common Apps ✅ |
 | Linux Privilege Escalation | Sudo/SUID/cron/capabilities/groups, LD_PRELOAD, Python hijacking, kernel CVEs, containers | Linux PrivEsc ✅ |
-| Windows Privilege Escalation | Windows privesc techniques | Upcoming |
+| Windows Privilege Escalation | SeImpersonate/Potato, SeDebug/LSASS, SeBackup/NTDS.dit, SeTakeOwnership, Event Logs | Win PrivEsc 🔄 |
 
 ---
 
@@ -452,4 +470,4 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ---
 
-Last Updated: May 15, 2026
+Last Updated: May 16, 2026
