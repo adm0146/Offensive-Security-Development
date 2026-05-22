@@ -5,7 +5,7 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (95.6%, 26/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (97.2%, 27/28 modules) | June 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
@@ -15,15 +15,15 @@ Documenting my path through security certifications and hands-on penetration tes
 ## Current Status (May 21, 2026)
 
 ```
-CPTS Learning Pathway: ██████████████████████████████████████░░ 95.6%
+CPTS Learning Pathway: ███████████████████████████████████████░ 97.2%
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 22 (19 Very Easy, 3 Easy) |
-| Academy Modules Complete | 26 / 28 |
-| Academy Modules Remaining | Documentation & Reporting, Enterprise Networks |
-| Reference Guides | 440+ |
+| Academy Modules Complete | 27 / 28 |
+| Academy Modules Remaining | Attacking Enterprise Networks |
+| Reference Guides | 460+ |
 | Target Exam | June 21, 2026 |
 
 ---
@@ -56,7 +56,7 @@ CPTS Learning Pathway: ███████████████████
 | Attacking Common Applications | ✅ Complete (33/33) |
 | Linux Privilege Escalation | ✅ Complete (28/28) |
 | Windows Privilege Escalation | ✅ Complete (33/33) |
-| Documentation & Reporting | ⬚ Not Started |
+| Documentation & Reporting | ✅ Complete (8/8) |
 | Attacking Enterprise Networks | ⬚ Not Started |
 
 ---
@@ -96,6 +96,7 @@ Offensive-Security-Development/
 |   |   |-- Attacking_Common_Applications/             ← 34 guides (complete)
 |   |   |-- Linux_Privilege_Escalation/                ← 29 guides (complete)
 |   |   |-- Windows_Privilege_Escalation/              ← 34 guides (complete)
+|   |   |-- Documentation_and_Reporting/              ← 9 guides (complete)
 |   |   |-- Vulnerability_Assessment/
 |   |-- README.md                  CPTS progress tracker
 |
@@ -468,6 +469,7 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 - [Attacking Common Applications Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Common_Applications/00-EXAM_CHEATSHEET.md)
 - [Linux Privilege Escalation Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Linux_Privilege_Escalation/00-EXAM_CHEATSHEET.md)
 - [Windows Privilege Escalation Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Windows_Privilege_Escalation/00-EXAM_CHEATSHEET.md)
+- [Documentation & Reporting Cheatsheet](02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Documentation_and_Reporting/00-EXAM_CHEATSHEET.md)
 
 ---
 

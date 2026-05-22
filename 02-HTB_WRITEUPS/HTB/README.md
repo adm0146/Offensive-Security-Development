@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ██████████████████████████████████████░░ 95.6%
+CPTS Learning Pathway: ███████████████████████████████████████░ 97.2%
 ```
 
 ---
@@ -51,7 +51,7 @@ CPTS Learning Pathway: ███████████████████
 | **Attacking Common Applications** | ✅ **Complete** | **33/33** | All apps + exam cheatsheet |
 | **Linux Privilege Escalation** | ✅ **Complete** | **28/28** | All guides + exam cheatsheet |
 | **Windows Privilege Escalation** | ✅ **Complete** | **33/33** | All guides + exam cheatsheet |
-| Documentation & Reporting | ⬚ Not Started | — | |
+| **Documentation & Reporting** | ✅ **Complete** | **8/8** | All guides + exam cheatsheet |
 | Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
 
 ---
@@ -101,6 +101,25 @@ All 33 sections finished May 21, 2026. Full reference guides at:
 | Legacy OS | MS16-032 (Server 2008/Win7), Windows-Exploit-Suggester, kernel CVEs |
 | Skills Assessments | Part I: command injection → SMB delivery → JuicyPotato → SYSTEM |
 | | Part II: Unattend.xml creds → AlwaysInstallElevated → SYSTEM → SAM crack |
+
+---
+
+## Documentation & Reporting — Complete ✅
+
+All 8 sections finished May 21, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Documentation_and_Reporting/`
+
+### Topics Covered
+
+| Topic | Key Content |
+|-------|------------|
+| Notetaking & Organization | Tmux logging, folder structure, attack path/cred centralization |
+| Types of Reports | Internal/external pentest, vuln assessment, web app, attestation letter |
+| Components of a Report | Executive summary, remediation, attack chain, findings, appendices |
+| Writing Findings | Description, impact, affected systems, remediation, evidence rules |
+| Tips & Tricks | MS Word styles, macros, findings database, QA process |
+| Practice Lab | INLANEFREIGHT.LOCAL: FILE01 → clusteragent → DC01 → DCSync |
+| Client Communication | Start/stop notifications, critical findings, report lifecycle |
 
 ---
 
@@ -294,7 +313,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 88.9% (25/28) — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 97.2% (27/28) — exam June 21, 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |
