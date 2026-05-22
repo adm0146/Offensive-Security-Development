@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** June 21, 2026  
-**Last Updated:** May 15, 2026
+**Last Updated:** May 21, 2026
 
 ---
 
@@ -18,7 +18,7 @@
 ---
 
 ```
-CPTS Learning Pathway: ████████████████████████████████████░░░░ 88.9%
+CPTS Learning Pathway: ██████████████████████████████████████░░ 95.6%
 ```
 
 ---
@@ -50,7 +50,7 @@ CPTS Learning Pathway: ███████████████████
 | Web Attacks | ✅ Complete | 18/18 | Skills Assessment ✅ |
 | **Attacking Common Applications** | ✅ **Complete** | **33/33** | All apps + exam cheatsheet |
 | **Linux Privilege Escalation** | ✅ **Complete** | **28/28** | All guides + exam cheatsheet |
-| Windows Privilege Escalation | ⬚ Not Started | — | |
+| **Windows Privilege Escalation** | ✅ **Complete** | **33/33** | All guides + exam cheatsheet |
 | Documentation & Reporting | ⬚ Not Started | — | |
 | Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
 
@@ -79,6 +79,28 @@ All 33 sections finished May 14, 2026. Guides at:
 | IIS Tilde | Short filename enumeration (8.3) |
 | WebLogic | CVE-2020-14882+14883 unauth RCE |
 | Nagios XI | CVE-2020-35578 plugin filename injection |
+
+---
+
+## Windows Privilege Escalation — Complete ✅
+
+All 33 sections finished May 21, 2026. Full reference guides at:
+`06-REFERENCE_GUIDES/Windows_Privilege_Escalation/`
+
+### Techniques Covered
+
+| Category | Techniques |
+|----------|-----------|
+| Token Privileges | SeImpersonate (JuicyPotato/PrintSpoofer/SweetPotato), SeDebug (Mimikatz/LSASS), SeTakeOwnership, SeBackup |
+| Group Abuse | Backup Operators, DnsAdmins, Event Log Readers, Hyper-V, Print/Server Operators |
+| Service Attacks | Unquoted paths, weak permissions, DLL hijacking, vulnerable services |
+| Credential Hunting | Unattend.xml, web.config, PowerShell history, user descriptions, Registry autologon, cmdkey |
+| Misconfigurations | AlwaysInstallElevated (MSI to SYSTEM), UAC bypass, scheduled tasks |
+| Interacting with Users | SCF file attacks, Responder NTLMv2 capture |
+| Pillaging | mRemoteNG, SAM/SYSTEM dump, pass-the-hash, LaZagne |
+| Legacy OS | MS16-032 (Server 2008/Win7), Windows-Exploit-Suggester, kernel CVEs |
+| Skills Assessments | Part I: command injection → SMB delivery → JuicyPotato → SYSTEM |
+| | Part II: Unattend.xml creds → AlwaysInstallElevated → SYSTEM → SAM crack |
 
 ---
 
