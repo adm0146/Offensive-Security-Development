@@ -9,28 +9,32 @@
 ## State entering this plan
 
 - 27/28 HTB Academy CPTS modules documented with reference guides + exam cheatsheets
-- Missing module: **Attacking Enterprise Networks** (capstone — folder does not exist)
+- **AEN module: ~24% complete, in progress** on native Kali desktop (primary workspace). Approach: guided walkthrough with assistant — not blind, not spoonfed answers. Module folder + writeups will be pushed from Kali when complete.
 - Missing cheatsheet: `Using_Web_Proxies/00-EXAM_CHEATSHEET.md` (only module without one)
 - HTB box practice: 22 boxes, all Very Easy / Easy tier. **Zero Medium or above.**
 - Pivoting: only practiced on FUNNEL (Very Easy SSH tunnel)
 - Reporting: complete module, no end-to-end mock report artifact exists
 - Pro Lab: **buying Zephyr** (AD-heavy, most CPTS-exam-aligned)
+- Primary workspace: native Kali Linux desktop. This Mac repo is for planning + reference docs.
 
 ---
 
-## Phase 1 — AEN Blind Run (May 27 – June 5, 10 days)
+## Phase 1 — AEN Guided Walkthrough (May 27 – June 5, 10 days)
 
-**Goal:** Complete Attacking Enterprise Networks module without reading sections ahead. First mock exam.
+**Goal:** Complete Attacking Enterprise Networks module via guided walkthrough on native Kali. Already ~24% in as of 5/27. Use it as a learning exercise + first mock report — not a blind exam.
+
+**Collaboration mode:** Ask the assistant for reasoning help, technique hints, and methodology — not direct exploit commands. The assistant should push back: "what have you tried, what does enum show, what does the privilege/permission imply?" before handing over the next move.
 
 | Day | Date | Focus |
 |---|---|---|
-| Wed | 5/27 | Scaffold `06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/` folder. Set up Kali, OpenVPN, fresh note template. Begin AEN engagement blind. |
-| Thu–Mon | 5/28 – 6/1 | Work AEN sections. Take exam-style notes from minute one. Optimize for the report, not the reference guide. |
+| Wed | 5/27 | Continue AEN from current ~24% position on Kali. Set up exam-style note template from minute one. |
+| Thu–Mon | 5/28 – 6/1 | Push through AEN sections. Take notes optimized for the report, not the reference guide. Capture screenshots as you go (you can't redo them after the box resets). |
 | Tue–Wed | 6/2 – 6/3 | Finish remaining hosts / objectives. |
-| Thu–Fri | 6/4 – 6/5 | Write a full end-to-end pentest report: executive summary, methodology, findings, screenshots, remediation. Half of CPTS grading is the report. |
+| Thu–Fri | 6/4 – 6/5 | Write a full end-to-end pentest report: executive summary, methodology, findings (severity / impact / remediation), screenshots, recommendations. Half of CPTS grading is the report. |
 
-**Deliverables:**
-- AEN module folder + section guides + `00-EXAM_CHEATSHEET.md`
+**Deliverables (pushed from Kali when done):**
+- AEN module folder under `06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/`
+- Section guides + `00-EXAM_CHEATSHEET.md` matching existing module convention
 - First end-to-end mock report (.md or .docx)
 
 ---
