@@ -1,129 +1,183 @@
-# CPTS Prep Schedule — May 27 → July 12, 2026
+# CPTS Prep Schedule — Great-Prep Version
 
-**Exam date:** 2026-07-12 (10-day exam window)
-**Schedule created:** 2026-05-27 (46 days out)
-**Time budget assumption:** ~3.5 hrs/day weekday + ~6 hrs/day weekend ≈ 30 hrs/week, ~180 hrs total
+**Approach:** Readiness-gated, not date-pinned. Exam is scheduled **when the gates pass**, not on a fixed calendar.
+**Working assumption:** ~5 hrs/weekday + ~6 hrs/weekend ≈ 37 hrs/week.
+**Estimated duration if executed cleanly:** ~10–12 weeks of focused prep (~300–400 hands-on hours).
+**Schedule v2 created:** 2026-05-27.
 
 ---
 
 ## State entering this plan
 
-- 27/28 HTB Academy CPTS modules documented with reference guides + exam cheatsheets
-- **AEN module: ~24% complete, in progress** on native Kali desktop (primary workspace). Approach: guided walkthrough with assistant — not blind, not spoonfed answers. Module folder + writeups will be pushed from Kali when complete.
-- Missing cheatsheet: `Using_Web_Proxies/00-EXAM_CHEATSHEET.md` (only module without one)
-- HTB box practice: 22 boxes, all Very Easy / Easy tier. **Zero Medium or above.**
-- Pivoting: only practiced on FUNNEL (Very Easy SSH tunnel)
-- Reporting: complete module, no end-to-end mock report artifact exists
-- Pro Lab: **buying Zephyr** (AD-heavy, most CPTS-exam-aligned)
+- 27/28 HTB Academy CPTS modules documented with reference guides + exam cheatsheets.
+- **AEN module: ~24% complete, in progress** on native Kali (primary workspace). Guided walkthrough with assistant — not blind, not spoonfed.
+- Missing cheatsheet: `Using_Web_Proxies/00-EXAM_CHEATSHEET.md` (only module without one).
+- HTB box practice: 22 boxes, all Very Easy / Easy. Zero Medium+.
+- Pivoting: only practiced on FUNNEL.
+- Reporting: complete module, no end-to-end mock report artifact exists.
+- Pro Labs: **buying Zephyr first**, then **Dante** after.
 - Primary workspace: native Kali Linux desktop. This Mac repo is for planning + reference docs.
 
 ---
 
-## Phase 1 — AEN Guided Walkthrough (May 27 – June 5, 10 days)
+## Why this is the great-prep schedule, not the good-prep schedule
 
-**Goal:** Complete Attacking Enterprise Networks module via guided walkthrough on native Kali. Already ~24% in as of 5/27. Use it as a learning exercise + first mock report — not a blind exam.
+The earlier draft was 46 days, ~180 hrs, fixed July 12 exam. Honest assessment of that plan: 70–80% chance of first-attempt pass, no buffer, AEN done guided not blind, only 2 mock reports, 5–8 Medium boxes. Bottom of the passing distribution.
 
-**Collaboration mode:** Ask the assistant for reasoning help, technique hints, and methodology — not direct exploit commands. The assistant should push back: "what have you tried, what does enum show, what does the privilege/permission imply?" before handing over the next move.
-
-| Day | Date | Focus |
-|---|---|---|
-| Wed | 5/27 | Continue AEN from current ~24% position on Kali. Set up exam-style note template from minute one. |
-| Thu–Mon | 5/28 – 6/1 | Push through AEN sections. Take notes optimized for the report, not the reference guide. Capture screenshots as you go (you can't redo them after the box resets). |
-| Tue–Wed | 6/2 – 6/3 | Finish remaining hosts / objectives. |
-| Thu–Fri | 6/4 – 6/5 | Write a full end-to-end pentest report: executive summary, methodology, findings (severity / impact / remediation), screenshots, recommendations. Half of CPTS grading is the report. |
-
-**Deliverables (pushed from Kali when done):**
-- AEN module folder under `06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/`
-- Section guides + `00-EXAM_CHEATSHEET.md` matching existing module convention
-- First end-to-end mock report (.md or .docx)
+This version raises the floor to ~90% likely pass by adding: AEN blind second pass, Dante (in addition to Zephyr), 4 mock reports (last one rubric-scored), 15+ Medium boxes, higher daily hours, IppSec walkthroughs as standard practice, and explicit readiness gates before sitting the exam.
 
 ---
 
-## Phase 2 — Zephyr + AD Box Reps (June 6 – June 17, 12 days)
+## Phase 1 — AEN Guided Walkthrough
 
-**Goal:** Calibrate to Medium difficulty. Most exam-aligned external practice.
+**Status:** In progress, ~24% complete.
 
-| Day | Date | Focus |
-|---|---|---|
-| Sat–Sun | 6/6 – 6/7 | Buy Zephyr cubes, VPN setup, start first 25% of Zephyr (5–6 hosts) |
-| Mon–Wed | 6/8 – 6/10 | Continue Zephyr OR retired CPTS-track AD boxes: **FOREST**, **ACTIVE** + IppSec walkthrough |
-| Thu–Sat | 6/11 – 6/13 | **SAUNA** (AS-REP roasting), **MONTEVERDE** (Azure ADConnect) |
-| Sun–Tue | 6/14 – 6/16 | **RESOLUTE** (DnsAdmins), one Linux-heavy box (CAP / KNIFE) |
-| Wed | 6/17 | Catch-up day. Write mini-report on hardest box from this phase. |
+Continue AEN on Kali with assistant in collaboration mode (reasoning help, not exploit handouts). Take exam-style notes from minute one. Capture screenshots as you go — you can't redo them after a box resets.
 
-**Rule:** If a box takes > 6 hours without progress, watch IppSec walkthrough for that point. Methodology > pride.
+**Estimated remaining:** ~10 days.
 
----
-
-## Phase 3 — Pivoting + Web Depth (June 18 – June 26, 9 days)
-
-**Goal:** Build pivoting muscle memory, shore up missing cheatsheet, drill weak web areas.
-
-| Day | Date | Focus |
-|---|---|---|
-| Thu | 6/18 | Add `00-EXAM_CHEATSHEET.md` to `Using_Web_Proxies/`. Re-read Pivoting_Tunneling guide. |
-| Fri–Sun | 6/19 – 6/21 | Two pivoting-required boxes (Zephyr hosts requiring chisel/proxychains, or REEL / MULTIMASTER). Drill: `ssh -L/-D/-R`, chisel client/server, proxychains4, socat relay. |
-| Mon–Wed | 6/22 – 6/24 | One web-heavy box per day. Bias toward modules you trust least: SQLi, file upload, deserialization. |
-| Thu–Fri | 6/25 – 6/26 | **Mock report #2** on a chained-pivot box. "Report as you go" workflow under time pressure: 24 hrs foothold → report. |
+**Gate to Phase 2:**
+- [ ] All AEN sections complete
+- [ ] Mock report #1 written end-to-end (exec summary → findings → remediation)
+- [ ] AEN folder pushed to GitHub from Kali
 
 ---
 
-## Phase 4 — Capstone Simulation (June 27 – July 4, 8 days)
+## Phase 2 — AEN Blind Second Pass
 
-**Goal:** Full exam dress rehearsal.
+**Goal:** Diagnostic. Re-do AEN hosts from scratch without notes. This is the closest in-Academy exam simulation — reviewers consistently call it the single best gauge of readiness.
 
-| Day | Date | Focus |
-|---|---|---|
-| Sat–Sun | 6/27 – 6/28 | Push toward Zephyr completion (or 2 fresh Medium AD boxes) |
-| Mon–Thu | 6/29 – 7/2 | **96-hour simulated exam.** Chained scenario: remaining Zephyr, or self-imposed 3-box chain. Strict hours. Concurrent report. |
-| Fri–Sat | 7/3 – 7/4 | Finalize simulation report. Compare against Phase 1 AEN report — what improved, what's still rough. |
+If you struggle on a host you "knew" how to solve, that technique is recognized, not internalized. Drill it before moving on.
 
----
+**Estimated duration:** 5–7 days.
 
-## Phase 5 — Targeted Review (July 5 – July 9, 5 days)
-
-**Goal:** Plug gaps surfaced in Phases 2–4. No new content.
-
-| Day | Date | Focus |
-|---|---|---|
-| Sun | 7/5 | Re-read all 28 `00-EXAM_CHEATSHEET.md` files. Flag rusty areas. |
-| Mon | 7/6 | Targeted reps on rustiest 2–3 areas (likely candidates: BloodHound queries, mimikatz/Rubeus syntax, evil-winrm flags, msfvenom one-liners) |
-| Tue | 7/7 | AD attack-path speed drill: Kerberoast → AS-REP → DCSync on a known box. Target < 90 min. |
-| Wed | 7/8 | Report-writing drill: executive summary + one full finding writeup against a solved box. 90 min cap. |
-| Thu | 7/9 | Tool sanity check: VPN, BloodHound, msfvenom encoding, screenshot tooling, report template. Patch Kali. |
+**Gate to Phase 3:**
+- [ ] All AEN hosts solved blind (notes from Phase 1 closed)
+- [ ] List of struggling-points captured for targeted drill in Phase 6
 
 ---
 
-## Phase 6 — Taper (July 10 – July 11, 2 days)
+## Phase 3 — Zephyr Pro Lab
 
-| Day | Date | Focus |
-|---|---|---|
-| Fri | 7/10 | Light review only. Cheatsheets, no new boxes. Sleep 8+ hrs. |
-| Sat | 7/11 | Full rest. No screens past 6pm. Lay out exam-day setup. |
-| **Sun** | **7/12** | **Exam starts. 10-day window.** |
+**Goal:** Complete Zephyr 100%. Zephyr is AD-heavy, chained, 14 hosts — closest single external thing to the CPTS exam.
+
+- Buy Zephyr cubes on HTB (3 cubes, ~$45 student / ~$90 standard). Verify VPN from Kali.
+- Treat Zephyr like a real engagement: full enum, document every host, write findings as you go (this becomes mock report #2).
+- **Stuck-rule:** 6 hours without progress on a host → IppSec walkthrough for an equivalent retired box, then return.
+
+**Parallel:** Begin Medium HTB boxes (see Phase 5).
+
+**Estimated duration:** 15–20 days.
+
+**Gate to Phase 4:**
+- [ ] Zephyr 100% complete (or 90%+ with documented blocker)
+- [ ] Mock report #2 written on Zephyr engagement
+- [ ] ≥ 5 Medium AD HTB boxes solved (own work; IppSec assist counts only if redone solo after)
 
 ---
 
-## Acceptance criteria (per phase)
+## Phase 4 — Dante Pro Lab
 
-| Phase | Done when |
+**Goal:** Fill the non-AD gaps Zephyr doesn't hit. Dante is mixed Linux + Windows, 14 hosts, 27 flags, broader skillset.
+
+- Buy Dante cubes after Zephyr finishes.
+- Don't aim for 100% — aim for ≥ 75% with a focus on the chains/techniques you're weakest on.
+- Concurrent report writing as before.
+
+**Parallel:** Continue Medium HTB boxes.
+
+**Estimated duration:** 20–30 days.
+
+**Gate to Phase 5:**
+- [ ] Dante ≥ 75% complete
+- [ ] Mock report #3 written on a Dante chain
+- [ ] Total ≥ 15 Medium HTB boxes solved
+
+---
+
+## Phase 5 — Medium HTB Box Volume (parallel track, ongoing Phases 3–6)
+
+Not a sequential phase — a constant background track that runs alongside Pro Labs.
+
+**Target progression:**
+1. FOREST (AS-REP roast, DCSync via ACL abuse) — canonical
+2. ACTIVE (Kerberoasting, GPP cpassword)
+3. SAUNA (AS-REP roast + WinRM)
+4. MONTEVERDE (Azure ADConnect creds)
+5. RESOLUTE (DnsAdmins → DLL → SYSTEM)
+6. CASCADE (LDAP, AD recycle bin)
+7. INTELLIGENCE (constrained delegation, gMSA)
+8. MULTIMASTER (SQLi → AD → constrained delegation chain)
+9. REEL (phishing-style email → AD)
+10. WORKER (Azure DevOps pivot)
+... plus 5+ more biased toward your weakest areas
+
+**Rule:** IppSec walkthrough after every solve (to refine methodology) and after every skip (to learn the technique).
+
+---
+
+## Phase 6 — 96-Hour Capstone Simulation
+
+**Goal:** Full dress rehearsal. Self-imposed exam under strict conditions.
+
+- Pick a chained scenario: unfinished Zephyr/Dante section, or 3 fresh Medium AD boxes chained.
+- Hard time cap: 96 hours total, no extensions.
+- Concurrent report writing — this becomes **mock report #4**, the one you score against the HTB CPTS official rubric.
+- No hints, no IppSec, no notes from Pro Lab solutions.
+
+**Estimated duration:** 5 days.
+
+**Gate to Phase 7:**
+- [ ] Simulation objectives completed within 96 hrs
+- [ ] Mock report #4 submitted and self-scored against rubric
+- [ ] Honest list of mistakes / time sinks captured
+
+---
+
+## Phase 7 — Targeted Review + Taper
+
+**Goal:** Plug gaps from Phase 6, polish, rest. No new content.
+
+| Step | Activity |
 |---|---|
-| 1 | AEN folder populated, blind run complete, mock report written |
-| 2 | Zephyr ≥ 50%, ≥ 4 Medium AD boxes solved (own work or with IppSec assist) |
-| 3 | 2+ pivoting boxes solved, Web_Proxies cheatsheet added, mock report #2 written |
-| 4 | 96-hr simulation completed with concurrent report |
-| 5 | All 28 cheatsheets re-read, weak areas drilled |
-| 6 | Rested, environment verified |
+| 1 | Re-read all 28 `00-EXAM_CHEATSHEET.md` files. Flag rusty areas. |
+| 2 | Targeted reps on rusty areas (likely: BloodHound queries, mimikatz / Rubeus, evil-winrm flags, msfvenom one-liners) |
+| 3 | AD attack-path speed drill: Kerberoast → AS-REP → DCSync on a known box, < 90 min |
+| 4 | Report-writing drill: exec summary + one finding writeup, 90 min cap |
+| 5 | Tool sanity check: VPN, BloodHound, msfvenom, screenshot tooling, report template |
+| 6 | **Taper, 2 days minimum.** Light review only. Sleep 8+ hrs. No screens past 6pm on the last day. |
+| 7 | **Schedule the exam** — only after gates below all pass. |
+
+**Estimated duration:** 7 days.
+
+---
+
+## Exam Readiness Gates
+
+**Do not schedule the CPTS exam until ALL of these are true.** This is the whole point of going great-prep over good-prep — readiness, not calendar.
+
+- [ ] AEN guided complete + mock report #1 written
+- [ ] AEN blind second pass — all hosts solved without notes
+- [ ] Zephyr ≥ 90% + mock report #2 written
+- [ ] Dante ≥ 75% + mock report #3 written
+- [ ] ≥ 15 Medium HTB boxes solved (own work)
+- [ ] 96-hr simulation passed + mock report #4 scored against rubric
+- [ ] Cheatsheet review complete, no module feels rusty
+- [ ] Tool sanity check passed
+- [ ] 2-day taper completed
+
+If you can check every box, you are not in the bottom 20% of the exam distribution. Schedule the exam.
 
 ---
 
 ## Failure modes to watch for
 
-- **Sinking 12+ hours into a single Medium box out of pride.** Cap at 6, then IppSec.
-- **Treating AEN as a learning exercise instead of a mock exam.** Read-ahead defeats the point.
-- **Skipping the concurrent report.** This is the most common reason CPTS candidates fail the exam despite solid technical execution.
-- **Phase 5 becoming a new-content phase.** No. Review only.
-- **Skipping Phase 6 taper.** Sleep deprivation on Day 1 of a 10-day exam compounds.
+- **Skipping the AEN blind second pass because "I just did it."** That's the test — recognition vs. internalization. Don't skip.
+- **Treating Pro Lab as a learning exercise.** It's a calibration exercise. Concurrent report writing is non-negotiable.
+- **Spending 12+ hours on a Medium box out of pride.** Cap at 6, then IppSec.
+- **Letting the schedule drift right indefinitely.** Push the exam back for readiness gaps, not for procrastination. Track which gate is blocking each week.
+- **Skipping IppSec walkthroughs after solves.** You learn methodology this way that you don't get from just solving.
+- **Phase 7 becoming a new-content phase.** No. Review only.
 
 ---
 
@@ -133,9 +187,11 @@
 - Radiant Sec, "How I Passed HTB CPTS"
 - UberZachAttack, "CPTS Review (with Pro Labs)"
 - Yash, "My CPTS experience"
+- whYMiR, "Review: HTB Dante Pro Lab"
 
 Consensus takeaways applied here:
-- AEN done blind = closest in-Academy exam simulation
-- Pro Lab (Zephyr preferred) = most exam-like external practice
-- CPTS-track HTB boxes are essential, not optional — but not random boxes
-- Concurrent report writing is non-negotiable
+- AEN blind = closest in-Academy exam simulation (Phase 2)
+- Pro Labs (Zephyr + Dante) = most exam-like external practice (Phases 3, 4)
+- CPTS-track HTB boxes are essential supplements (Phase 5)
+- Concurrent report writing is non-negotiable (Phases 1, 3, 4, 6)
+- IppSec walkthroughs build methodology, not just commands (Phase 5)
