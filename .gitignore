@@ -33,6 +33,8 @@ env/
 dist/
 build/
 *.egg-info/
+comp5700-venv/
+*.dylib
 
 # Lab Notes (personal, if needed)
 personal-notes/

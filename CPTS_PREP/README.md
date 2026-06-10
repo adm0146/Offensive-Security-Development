@@ -2,7 +2,7 @@
 
 **Target:** early July 2026 — **readiness-gated, not date-gated.** The exam is self-scheduled; you start the 10-day window when the signals below are green. Don't burn the voucher early.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-10
 
 ---
 
@@ -25,8 +25,8 @@ Scaffolding fades each week: Week 1 I teach, Week 2 I ask, Week 3+ you drive bli
 
 | Week | Boxes | Focus | Done? |
 |------|-------|-------|-------|
-| **1** | **Active** ✅ · Forest · Sauna | GPP, Kerberoast, AS-REP, BloodHound ACL → DCSync | ☐ |
-| **2** | Cascade · Resolute · Monteverde | spraying, WinRM, AD Connect creds, more ACL | ☐ |
+| **1** | **Active** ✅ · **Forest** ✅ · **Sauna** ✅ | GPP, Kerberoast, AS-REP, BloodHound ACL → DCSync | ✅ |
+| **2** | **Cascade** ✅ · Resolute · Monteverde | spraying, WinRM, AD Connect creds, more ACL | ☐ |
 | **3** | Escape · Support · Blackfield + **Dante** (lab) | ADCS/ESC1, RBCD, SeBackup, multi-host pivoting | ☐ |
 | **4** | **Zephyr** (Pro Lab) + 1 practice report | exam dress rehearsal end-to-end | ☐ |
 
@@ -40,7 +40,8 @@ Full curriculum + ordering: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION
 |-----|-----------|------|-------|----------------|---------|
 | Active | Easy | 2026-06-08 | ❌ taught | GPP cpassword, Kerberoast, psexec | [ACTIVE_Easy.md](../02-HTB_WRITEUPS/HTB/02-EASY/ACTIVE_Easy.md) |
 | Forest | Easy | 2026-06-09 | 🟡 hints+taught | AS-REP roast, BloodHound ACL chain → DCSync, PtH | [FOREST_Easy.md](../02-HTB_WRITEUPS/HTB/02-EASY/FOREST_Easy.md) |
-| Sauna | Easy | — | — | AS-REP roast, ACL abuse, DCSync | **← next, drive it** |
+| Sauna | Easy | 2026-06-09 | 🟡 hints | AS-REP roast, autologon registry, DCSync, PtH | [SAUNA_Easy.md](../02-HTB_WRITEUPS/HTB/02-EASY/SAUNA_Easy.md) |
+| Cascade | Medium | 2026-06-10 | 🟡 hints | LDAP enum, TightVNC decrypt, .NET reversing, AD Recycle Bin | [CASCADE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/CASCADE_Medium.md) |
 
 *(Solo? = ❌ taught / 🟡 hints / ✅ unaided. The goal is turning ❌→✅.)*
 
@@ -54,11 +55,15 @@ Close these by **doing**, not reading. Each box below drills one.
 - [ ] **Kerberoasting** — `GetUserSPNs -request` → `hashcat -m 13100` — *Active ✅ seen*
 - [x] **AS-REP roasting** — `GetNPUsers` → `-m 18200` — *Forest ✅ (solo-confirm on Sauna)*
 - [x] **BloodHound** — collect (CE collector!), mark owned, pathfind, read ACL edges — *Forest ✅*
-- [x] **ACL abuse w/ bloodyAD** — `add groupMember`, `add dcsync`, WriteDacl chain — *Forest ✅ (solo-confirm on Sauna)*
+- [x] **ACL abuse w/ bloodyAD** — `add groupMember`, `add dcsync`, WriteDacl chain — *Forest ✅*
 - [x] **DCSync** — `secretsdump -just-dc-ntlm` — *Forest ✅*
 - [x] **Pass-the-Hash** — `nxc -H` / `evil-winrm -H` — *Forest ✅*
 - [ ] **Double pivot** — SOCKS + `netsh portproxy`, then `ligolo-ng` — *Dante/Zephyr*
 - [ ] **NTLMv2 capture** — Inveigh/Responder → `-m 5600` — *later*
+- [x] **LDAP anonymous enum** — `ldapsearch -x` for custom attributes (cascadeLegacyPwd) — *Cascade ✅*
+- [x] **Published-key decryption** — TightVNC DES, GPP AES — recognize format, Google key, decrypt — *Active + Cascade ✅*
+- [ ] **.NET reversing** — extract UTF-16LE strings / monodis for hardcoded keys — *Cascade ✅ seen*
+- [x] **AD Recycle Bin** — `Get-ADObject -Filter {isDeleted -eq $true} -IncludeDeletedObjects` — *Cascade ✅*
 
 ---
 
@@ -85,4 +90,4 @@ Close these by **doing**, not reading. Each box below drills one.
 - AEN reference guides: [../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/](../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/)
 - Box progression: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION.md)
 
-**Next action:** spawn **Forest** — AS-REP roast + BloodHound ACL → DCSync, training wheels off.
+**Next action:** Week 2 — **Resolute** (password spraying, DnsAdmins DLL abuse). Cascade complete.
