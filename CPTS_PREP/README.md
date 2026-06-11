@@ -19,18 +19,21 @@ You're ready when you can do these **solo, no notes, no hand-holding:**
 
 ---
 
-## 📅 4-Week Plan (boxes, you driving)
+## 📅 5-Week Plan (aligned with CPTS → CRTO Ops Plan)
 
-Scaffolding fades each week: Week 1 I teach, Week 2 I ask, Week 3+ you drive blind.
+Scaffolding fades each week: Week 1 ADCS gap-killers, Week 2 RBCD/Kerberos, Week 3+ fully blind.
 
 | Week | Boxes | Focus | Done? |
 |------|-------|-------|-------|
-| **1** | **Active** ✅ · **Forest** ✅ · **Sauna** ✅ | GPP, Kerberoast, AS-REP, BloodHound ACL → DCSync | ✅ |
-| **2** | **Cascade** ✅ · Resolute · Monteverde | spraying, WinRM, AD Connect creds, more ACL | ☐ |
-| **3** | Escape · Support · Blackfield + **Dante** (lab) | ADCS/ESC1, RBCD, SeBackup, multi-host pivoting | ☐ |
-| **4** | **Zephyr** (Pro Lab) + 1 practice report | exam dress rehearsal end-to-end | ☐ |
+| **1** | **Certified** ✅ · **Escape** ✅ · Authority | ADCS ESC1/ESC9, Shadow Credentials, PassTheCert | ☐ |
+| **2** | Vintage · Blackfield | RBCD, Kerberos-only ops, gMSA, DPAPI, SeBackup → NTDS | ☐ |
+| **3** | **Cascade** ✅ · Support · Intelligence · Monteverde · Tabby | Blind reps + report template lock | ☐ |
+| **4** | **Zephyr** (Pro Lab) — blind run | Multi-host enterprise chain, pivoting under load | ☐ |
+| **5** | Taper — no new material | Field manual review, logistics check, rest | ☐ |
 
-Full curriculum + ordering: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION.md)
+**Pre-work (complete):** Active ✅ · Forest ✅ · Sauna ✅ (Kerberoast, AS-REP, GPP, DCSync, ACL abuse, PtH)
+
+Full ops plan: [CPTS CRTO Roadmap 2026.html](../CPTS_CRTO_Roadmap_2026.html)
 
 ---
 
@@ -42,6 +45,8 @@ Full curriculum + ordering: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION
 | Forest | Easy | 2026-06-09 | 🟡 hints+taught | AS-REP roast, BloodHound ACL chain → DCSync, PtH | [FOREST_Easy.md](../02-HTB_WRITEUPS/HTB/02-EASY/FOREST_Easy.md) |
 | Sauna | Easy | 2026-06-09 | 🟡 hints | AS-REP roast, autologon registry, DCSync, PtH | [SAUNA_Easy.md](../02-HTB_WRITEUPS/HTB/02-EASY/SAUNA_Easy.md) |
 | Cascade | Medium | 2026-06-10 | 🟡 hints | LDAP enum, TightVNC decrypt, .NET reversing, AD Recycle Bin | [CASCADE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/CASCADE_Medium.md) |
+| Certified | Medium | 2026-06-10 | 🟡 syntax refs | ACL chaining, Shadow Credentials, ADCS ESC9, PtH | [CERTIFIED_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/CERTIFIED_Medium.md) |
+| Escape | Medium | 2026-06-11 | 🟡 infra issues | MSSQL xp_dirtree coercion, Responder, ADCS ESC1, PtH | [ESCAPE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/ESCAPE_Medium.md) |
 
 *(Solo? = ❌ taught / 🟡 hints / ✅ unaided. The goal is turning ❌→✅.)*
 
@@ -58,6 +63,12 @@ Close these by **doing**, not reading. Each box below drills one.
 - [x] **ACL abuse w/ bloodyAD** — `add groupMember`, `add dcsync`, WriteDacl chain — *Forest ✅*
 - [x] **DCSync** — `secretsdump -just-dc-ntlm` — *Forest ✅*
 - [x] **Pass-the-Hash** — `nxc -H` / `evil-winrm -H` — *Forest ✅*
+- [x] **ACL chaining** — WriteOwner → dacledit → group add, multi-hop chains — *Certified ✅*
+- [x] **Shadow Credentials** — `certipy shadow auto`, msDS-KeyCredentialLink + PKINIT → hash — *Certified ✅*
+- [x] **ADCS ESC9** — CT_FLAG_NO_SECURITY_EXTENSION + weak binding → UPN swap → impersonate — *Certified ✅*
+- [x] **ADCS ESC1** — ENROLLEE_SUPPLIES_SUBJECT + Client Auth EKU → request cert as any user — *Escape ✅*
+- [x] **MSSQL hash coercion** — xp_dirtree UNC path → Responder captures NTLMv2 → crack -m 5600 — *Escape ✅*
+- [x] **Credential hunting in logs** — check ERRORLOG, config files, scripts, history after every shell — *Escape ✅*
 - [ ] **Double pivot** — SOCKS + `netsh portproxy`, then `ligolo-ng` — *Dante/Zephyr*
 - [ ] **NTLMv2 capture** — Inveigh/Responder → `-m 5600` — *later*
 - [x] **LDAP anonymous enum** — `ldapsearch -x` for custom attributes (cascadeLegacyPwd) — *Cascade ✅*
@@ -90,4 +101,4 @@ Close these by **doing**, not reading. Each box below drills one.
 - AEN reference guides: [../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/](../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/)
 - Box progression: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION.md)
 
-**Next action:** Week 2 — **Resolute** (password spraying, DnsAdmins DLL abuse). Cascade complete.
+**Next action:** Week 1 — **Authority** (ADCS PassTheCert). Finish the ADCS gap-killers.
