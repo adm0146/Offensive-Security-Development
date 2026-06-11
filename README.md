@@ -5,7 +5,7 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (97.2%, 27/28 modules) | July 2026 |
+| CPTS | 📖 In Progress (100%, 28/28 modules) | July 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
@@ -15,15 +15,15 @@ Documenting my path through security certifications and hands-on penetration tes
 ## Current Status (June 11, 2026)
 
 ```
-CPTS Learning Pathway: ███████████████████████████████████████░ 97.2%
+CPTS Learning Pathway: ████████████████████████████████████████ 100%
 Exam Box Practice:     ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ Week 1/5
 ```
 
 | Metric | Status |
 |--------|--------|
 | Machines Completed | 28 (19 Very Easy, 3 Easy, 6 AD boxes) |
-| Academy Modules Complete | 27 / 28 |
-| Academy Modules Remaining | Attacking Enterprise Networks |
+| Academy Modules Complete | 28 / 28 |
+| Academy Modules Remaining | None — full pathway complete |
 | Reference Guides | 460+ |
 | AD Box Practice | Active, Forest, Sauna, Cascade, Certified, Escape |
 | Target Exam | Early July 2026 (readiness-gated) |
@@ -59,7 +59,7 @@ Exam Box Practice:     ████████░░░░░░░░░░░
 | Linux Privilege Escalation | ✅ Complete (28/28) |
 | Windows Privilege Escalation | ✅ Complete (33/33) |
 | Documentation & Reporting | ✅ Complete (8/8) |
-| Attacking Enterprise Networks | ⬚ Not Started |
+| Attacking Enterprise Networks | ✅ Complete |
 
 ---
 
