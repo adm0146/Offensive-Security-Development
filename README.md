@@ -5,26 +5,28 @@ Documenting my path through security certifications and hands-on penetration tes
 | Certification | Status | Target |
 |---------------|--------|--------|
 | Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (97.2%, 27/28 modules) | June 2026 |
+| CPTS | 📖 In Progress (97.2%, 27/28 modules) | July 2026 |
 | CRTO | Planned | After CPTS |
 | CRTE | Planned | After CRTO |
 | CARTP | Planned | After CRTE |
 
 ---
 
-## Current Status (May 21, 2026)
+## Current Status (June 11, 2026)
 
 ```
 CPTS Learning Pathway: ███████████████████████████████████████░ 97.2%
+Exam Box Practice:     ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ Week 1/5
 ```
 
 | Metric | Status |
 |--------|--------|
-| Machines Completed | 22 (19 Very Easy, 3 Easy) |
+| Machines Completed | 28 (19 Very Easy, 3 Easy, 6 AD boxes) |
 | Academy Modules Complete | 27 / 28 |
 | Academy Modules Remaining | Attacking Enterprise Networks |
 | Reference Guides | 460+ |
-| Target Exam | June 21, 2026 |
+| AD Box Practice | Active, Forest, Sauna, Cascade, Certified, Escape |
+| Target Exam | Early July 2026 (readiness-gated) |
 
 ---
 
@@ -70,7 +72,8 @@ Offensive-Security-Development/
 |
 |-- 02-HTB_WRITEUPS/HTB/
 |   |-- 01-FOUNDATIONAL/           Very Easy boxes (19 completed)
-|   |-- 02-EASY/                   Easy boxes (3 completed)
+|   |-- 02-EASY/                   Easy boxes (3 + 3 AD)
+|   |-- 03-MEDIUM/                 Medium AD boxes (3 completed)
 |   |-- 06-REFERENCE_GUIDES/
 |   |   |-- Foundation/
 |   |   |-- Network_Enumeration_With_Nmap/
@@ -131,13 +134,24 @@ Offensive-Security-Development/
 | TACTICS | SMB + PSExec |
 | ARCHETYPE | SMB + MSSQL + xp_cmdshell + WinPEAS + PSExec |
 
-### Easy (3)
+### Easy (6)
 
 | Box | Key Skills |
 |-----|------------|
 | NIBBLES | Web exploitation, Linux privilege escalation |
 | GETTING_STARTED | Theme injection, RCE |
 | LAME | SMB Samba 3.0.20 usermap_script (CVE-2007-2447), direct root |
+| ACTIVE | GPP cpassword decrypt, Kerberoast, PSExec |
+| FOREST | AS-REP roast, BloodHound ACL chain → DCSync, PtH |
+| SAUNA | AS-REP roast, autologon registry, DCSync, PtH |
+
+### Medium (3)
+
+| Box | Key Skills |
+|-----|------------|
+| CASCADE | LDAP anonymous enum, TightVNC decrypt, .NET reversing, AD Recycle Bin |
+| CERTIFIED | ACL chaining (WriteOwner → DACL → group), Shadow Credentials, ADCS ESC9 |
+| ESCAPE | MSSQL xp_dirtree coercion, Responder NTLMv2, ADCS ESC1 |
 
 ---
 
@@ -473,4 +487,4 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ---
 
-Last Updated: May 21, 2026
+Last Updated: June 11, 2026

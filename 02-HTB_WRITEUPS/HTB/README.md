@@ -302,9 +302,22 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | Difficulty | Completed |
 |------------|-----------|
 | Very Easy | 19 |
-| Easy | 3 |
-| Medium | 0 |
-| **Total** | **22** |
+| Easy | 6 (incl. Active, Forest, Sauna) |
+| Medium | 3 (Cascade, Certified, Escape) |
+| **Total** | **28** |
+
+---
+
+## AD Box Practice (CPTS Exam Prep)
+
+| Box | Difficulty | Solo? | Key Techniques | Writeup |
+|-----|-----------|-------|----------------|---------|
+| Active | Easy | ❌ taught | GPP cpassword, Kerberoast, PSExec | [ACTIVE_Easy.md](02-EASY/ACTIVE_Easy.md) |
+| Forest | Easy | 🟡 hints | AS-REP roast, BloodHound ACL chain → DCSync, PtH | [FOREST_Easy.md](02-EASY/FOREST_Easy.md) |
+| Sauna | Easy | 🟡 hints | AS-REP roast, autologon registry, DCSync, PtH | [SAUNA_Easy.md](02-EASY/SAUNA_Easy.md) |
+| Cascade | Medium | 🟡 hints | LDAP enum, TightVNC decrypt, .NET reversing, AD Recycle Bin | [CASCADE_Medium.md](03-MEDIUM/CASCADE_Medium.md) |
+| Certified | Medium | 🟡 syntax refs | ACL chaining, Shadow Credentials, ADCS ESC9, PtH | [CERTIFIED_Medium.md](03-MEDIUM/CERTIFIED_Medium.md) |
+| Escape | Medium | 🟡 infra issues | MSSQL xp_dirtree coercion, Responder NTLMv2, ADCS ESC1 | [ESCAPE_Medium.md](03-MEDIUM/ESCAPE_Medium.md) |
 
 ---
 
@@ -313,7 +326,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 97.2% (27/28) — exam June 21, 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 97.2% (27/28) — exam early July 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |
