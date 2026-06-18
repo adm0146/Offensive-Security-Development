@@ -2,7 +2,7 @@
 
 **Start Date:** January 22, 2026  
 **Target Exam:** June 21, 2026  
-**Last Updated:** May 21, 2026
+**Last Updated:** June 18, 2026
 
 ---
 
@@ -52,7 +52,7 @@ CPTS Learning Pathway: ███████████████████
 | **Linux Privilege Escalation** | ✅ **Complete** | **28/28** | All guides + exam cheatsheet |
 | **Windows Privilege Escalation** | ✅ **Complete** | **33/33** | All guides + exam cheatsheet |
 | **Documentation & Reporting** | ✅ **Complete** | **8/8** | All guides + exam cheatsheet |
-| Attacking Enterprise Networks | ⬚ Not Started | — | Final capstone |
+| Attacking Enterprise Networks | ✅ Complete | All | Final capstone |
 
 ---
 
@@ -302,9 +302,9 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | Difficulty | Completed |
 |------------|-----------|
 | Very Easy | 19 |
-| Easy | 6 (incl. Active, Forest, Sauna) |
-| Medium | 3 (Cascade, Certified, Escape) |
-| **Total** | **28** |
+| Easy | 9 (incl. Active, Forest, Sauna, Cicada, Support, Manager) |
+| Medium | 5 (Cascade, Certified, Escape, Authority, Blackfield) |
+| **Total** | **33** |
 
 ---
 
@@ -318,6 +318,11 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | Cascade | Medium | 🟡 hints | LDAP enum, TightVNC decrypt, .NET reversing, AD Recycle Bin | [CASCADE_Medium.md](03-MEDIUM/CASCADE_Medium.md) |
 | Certified | Medium | 🟡 syntax refs | ACL chaining, Shadow Credentials, ADCS ESC9, PtH | [CERTIFIED_Medium.md](03-MEDIUM/CERTIFIED_Medium.md) |
 | Escape | Medium | 🟡 infra issues | MSSQL xp_dirtree coercion, Responder NTLMv2, ADCS ESC1 | [ESCAPE_Medium.md](03-MEDIUM/ESCAPE_Medium.md) |
+| Cicada | Easy | ✅ unaided | LDAP enum, password spray | *(no writeup)* |
+| Support | Easy | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
+| Manager | Easy | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
+| Authority | Medium | 🟡 hints | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | *(in progress)* |
+| Blackfield | Medium | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | [BLACKFIELD_Medium.md](03-MEDIUM/BLACKFIELD_Medium.md) |
 
 ---
 
@@ -326,7 +331,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | # | Cert | Focus | Status |
 |---|------|-------|--------|
 | 1 | Security+ | Foundations | ✅ Jan 2026 (768/900) |
-| 2 | **CPTS** | Penetration Testing | 🔄 97.2% (27/28) — exam early July 2026 |
+| 2 | **CPTS** | Penetration Testing | 🔄 100% (28/28) — exam early July 2026 |
 | 3 | CRTO | Red Team Ops | ⬚ After CPTS |
 | 4 | CRTE | Red Team Expert | ⬚ After CRTO |
 | 5 | CARTP | Azure Red Team | ⬚ After CRTE |

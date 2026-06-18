@@ -12,20 +12,20 @@ Documenting my path through security certifications and hands-on penetration tes
 
 ---
 
-## Current Status (June 11, 2026)
+## Current Status (June 18, 2026)
 
 ```
 CPTS Learning Pathway: ████████████████████████████████████████ 100%
-Exam Box Practice:     ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ Week 1/5
+Exam Box Practice:     ████████████████░░░░░░░░░░░░░░░░░░░░░░░ Week 2/5
 ```
 
 | Metric | Status |
 |--------|--------|
-| Machines Completed | 28 (19 Very Easy, 3 Easy, 6 AD boxes) |
+| Machines Completed | 33 (19 Very Easy, 3 Easy, 11 AD boxes) |
 | Academy Modules Complete | 28 / 28 |
 | Academy Modules Remaining | None — full pathway complete |
 | Reference Guides | 460+ |
-| AD Box Practice | Active, Forest, Sauna, Cascade, Certified, Escape |
+| AD Box Practice | Active, Forest, Sauna, Cicada, Support, Manager, Cascade, Certified, Escape, Authority, Blackfield |
 | Target Exam | Early July 2026 (readiness-gated) |
 
 ---
@@ -72,8 +72,8 @@ Offensive-Security-Development/
 |
 |-- 02-HTB_WRITEUPS/HTB/
 |   |-- 01-FOUNDATIONAL/           Very Easy boxes (19 completed)
-|   |-- 02-EASY/                   Easy boxes (3 + 3 AD)
-|   |-- 03-MEDIUM/                 Medium AD boxes (3 completed)
+|   |-- 02-EASY/                   Easy boxes (3 + 6 AD)
+|   |-- 03-MEDIUM/                 Medium AD boxes (5 completed)
 |   |-- 06-REFERENCE_GUIDES/
 |   |   |-- Foundation/
 |   |   |-- Network_Enumeration_With_Nmap/
@@ -134,7 +134,7 @@ Offensive-Security-Development/
 | TACTICS | SMB + PSExec |
 | ARCHETYPE | SMB + MSSQL + xp_cmdshell + WinPEAS + PSExec |
 
-### Easy (6)
+### Easy (9)
 
 | Box | Key Skills |
 |-----|------------|
@@ -144,14 +144,19 @@ Offensive-Security-Development/
 | ACTIVE | GPP cpassword decrypt, Kerberoast, PSExec |
 | FOREST | AS-REP roast, BloodHound ACL chain → DCSync, PtH |
 | SAUNA | AS-REP roast, autologon registry, DCSync, PtH |
+| CICADA | LDAP enum, password spray |
+| SUPPORT | .NET reversing, RBCD |
+| MANAGER | MSSQL, ADCS ESC7 |
 
-### Medium (3)
+### Medium (5)
 
 | Box | Key Skills |
 |-----|------------|
 | CASCADE | LDAP anonymous enum, TightVNC decrypt, .NET reversing, AD Recycle Bin |
 | CERTIFIED | ACL chaining (WriteOwner → DACL → group), Shadow Credentials, ADCS ESC9 |
 | ESCAPE | MSSQL xp_dirtree coercion, Responder NTLMv2, ADCS ESC1 |
+| AUTHORITY | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert |
+| BLACKFIELD | AS-REP Roasting, ForceChangePassword, LSASS dump analysis, SeBackupPrivilege → ntds.dit |
 
 ---
 
@@ -487,4 +492,4 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ---
 
-Last Updated: June 11, 2026
+Last Updated: June 18, 2026

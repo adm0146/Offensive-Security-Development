@@ -2,7 +2,7 @@
 
 **Target:** early July 2026 — **readiness-gated, not date-gated.** The exam is self-scheduled; you start the 10-day window when the signals below are green. Don't burn the voucher early.
 
-**Last updated:** 2026-06-10
+**Last updated:** 2026-06-18
 
 ---
 
@@ -26,7 +26,7 @@ Scaffolding fades each week: Week 1 ADCS gap-killers, Week 2 RBCD/Kerberos, Week
 | Week | Boxes | Focus | Done? |
 |------|-------|-------|-------|
 | **1** | **Certified** ✅ · **Escape** ✅ · Authority | ADCS ESC1/ESC9, Shadow Credentials, PassTheCert | ☐ |
-| **2** | Vintage · Blackfield | RBCD, Kerberos-only ops, gMSA, DPAPI, SeBackup → NTDS | ☐ |
+| **2** | Vintage · **Blackfield** ✅ | RBCD, Kerberos-only ops, gMSA, DPAPI, SeBackup → NTDS | ☐ |
 | **3** | **Cascade** ✅ · Support · Intelligence · Monteverde · Tabby | Blind reps + report template lock | ☐ |
 | **4** | **Zephyr** (Pro Lab) — blind run | Multi-host enterprise chain, pivoting under load | ☐ |
 | **5** | Taper — no new material | Field manual review, logistics check, rest | ☐ |
@@ -47,6 +47,11 @@ Full ops plan: [CPTS CRTO Roadmap 2026.html](../CPTS_CRTO_Roadmap_2026.html)
 | Cascade | Medium | 2026-06-10 | 🟡 hints | LDAP enum, TightVNC decrypt, .NET reversing, AD Recycle Bin | [CASCADE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/CASCADE_Medium.md) |
 | Certified | Medium | 2026-06-10 | 🟡 syntax refs | ACL chaining, Shadow Credentials, ADCS ESC9, PtH | [CERTIFIED_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/CERTIFIED_Medium.md) |
 | Escape | Medium | 2026-06-11 | 🟡 infra issues | MSSQL xp_dirtree coercion, Responder, ADCS ESC1, PtH | [ESCAPE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/ESCAPE_Medium.md) |
+| Cicada | Easy | 2026-06-11 | ✅ unaided | LDAP enum, password spray | *(no writeup)* |
+| Support | Easy | 2026-06-11 | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
+| Manager | Easy | 2026-06-12 | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
+| Authority | Medium | 2026-06-17 | 🟡 hints | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | *(in progress)* |
+| Blackfield | Medium | 2026-06-18 | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | *(writeup pending)* |
 
 *(Solo? = ❌ taught / 🟡 hints / ✅ unaided. The goal is turning ❌→✅.)*
 
@@ -70,6 +75,9 @@ Close these by **doing**, not reading. Each box below drills one.
 - [x] **MSSQL hash coercion** — xp_dirtree UNC path → Responder captures NTLMv2 → crack -m 5600 — *Escape ✅*
 - [x] **Credential hunting in logs** — check ERRORLOG, config files, scripts, history after every shell — *Escape ✅*
 - [ ] **Double pivot** — SOCKS + `netsh portproxy`, then `ligolo-ng` — *Dante/Zephyr*
+- [x] **ForceChangePassword** — rpcclient `setuserinfo2 <user> 23 "<pass>"` — *Blackfield ✅*
+- [x] **LSASS dump analysis** — `pypykatz lsa minidump lsass.DMP` — *Blackfield ✅*
+- [x] **SeBackupPrivilege → ntds.dit** — diskshadow + robocopy /B + secretsdump LOCAL — *Blackfield ✅*
 - [ ] **NTLMv2 capture** — Inveigh/Responder → `-m 5600` — *later*
 - [x] **LDAP anonymous enum** — `ldapsearch -x` for custom attributes (cascadeLegacyPwd) — *Cascade ✅*
 - [x] **Published-key decryption** — TightVNC DES, GPP AES — recognize format, Google key, decrypt — *Active + Cascade ✅*
@@ -101,4 +109,4 @@ Close these by **doing**, not reading. Each box below drills one.
 - AEN reference guides: [../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/](../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/)
 - Box progression: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION.md)
 
-**Next action:** Week 1 — **Authority** (ADCS PassTheCert). Finish the ADCS gap-killers.
+**Next action:** Authority blind re-run (clean rep), then Vintage (Week 2 RBCD/Kerberos-only).
