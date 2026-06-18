@@ -1,8 +1,8 @@
-# VINTAGE — Medium
+# VINTAGE — Hard
 
 **Date Started:** June 18, 2026
 **Date Completed:** June 18, 2026
-**Difficulty:** Medium
+**Difficulty:** Hard
 **Platform:** HackTheBox (retired)
 **Tags:** Active Directory, Kerberos-Only, Pre-Windows 2000, gMSA, DPAPI, RBCD, Targeted Kerberoasting, S4U
 **Status:** COMPLETE

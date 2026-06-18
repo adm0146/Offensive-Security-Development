@@ -51,8 +51,8 @@ Full ops plan: [CPTS CRTO Roadmap 2026.html](../CPTS_CRTO_Roadmap_2026.html)
 | Support | Easy | 2026-06-11 | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
 | Manager | Easy | 2026-06-12 | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
 | Authority | Medium | 2026-06-18 | 🟡 infra issues | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | [AUTHORITY_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/AUTHORITY_Medium.md) |
-| Blackfield | Medium | 2026-06-18 | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | *(writeup pending)* |
-| Vintage | Medium | 2026-06-18 | 🟡 syntax refs + infra | Kerberos-only, Pre-Win2000, gMSA, targeted Kerberoast, DPAPI, RBCD S4U | [VINTAGE_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/VINTAGE_Medium.md) |
+| Blackfield | Hard | 2026-06-18 | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | [BLACKFIELD_Hard.md](../02-HTB_WRITEUPS/HTB/04-HARD/BLACKFIELD_Hard.md) |
+| Vintage | Hard | 2026-06-18 | 🟡 syntax refs + infra | Kerberos-only, Pre-Win2000, gMSA, targeted Kerberoast, DPAPI, RBCD S4U | [VINTAGE_Hard.md](../02-HTB_WRITEUPS/HTB/04-HARD/VINTAGE_Hard.md) |
 
 *(Solo? = ❌ taught / 🟡 hints / ✅ unaided. The goal is turning ❌→✅.)*
 

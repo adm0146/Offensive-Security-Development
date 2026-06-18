@@ -1,8 +1,8 @@
-# BLACKFIELD — Medium
+# BLACKFIELD — Hard
 
 **Date Started:** June 18, 2026
 **Date Completed:** June 18, 2026
-**Difficulty:** Medium (community rates it Hard)
+**Difficulty:** Hard
 **Platform:** HackTheBox (retired)
 **Tags:** Active Directory, AS-REP Roasting, ForceChangePassword, LSASS dump, SeBackupPrivilege, pypykatz
 **Status:** COMPLETE

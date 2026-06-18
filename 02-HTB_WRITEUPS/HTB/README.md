@@ -303,7 +303,8 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 |------------|-----------|
 | Very Easy | 19 |
 | Easy | 9 (incl. Active, Forest, Sauna, Cicada, Support, Manager) |
-| Medium | 6 (Cascade, Certified, Escape, Authority, Blackfield, Vintage) |
+| Medium | 4 (Cascade, Certified, Escape, Authority) |
+| Hard | 2 (Blackfield, Vintage) |
 | **Total** | **34** |
 
 ---
@@ -322,8 +323,8 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | Support | Easy | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
 | Manager | Easy | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
 | Authority | Medium | 🟡 infra issues | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | [AUTHORITY_Medium.md](03-MEDIUM/AUTHORITY_Medium.md) |
-| Blackfield | Medium | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | [BLACKFIELD_Medium.md](03-MEDIUM/BLACKFIELD_Medium.md) |
-| Vintage | Medium | 🟡 syntax refs + infra | Kerberos-only, Pre-Win2000, gMSA, targeted Kerberoast, DPAPI, RBCD S4U | [VINTAGE_Medium.md](03-MEDIUM/VINTAGE_Medium.md) |
+| Blackfield | Hard | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | [BLACKFIELD_Hard.md](04-HARD/BLACKFIELD_Hard.md) |
+| Vintage | Hard | 🟡 syntax refs + infra | Kerberos-only, Pre-Win2000, gMSA, targeted Kerberoast, DPAPI, RBCD S4U | [VINTAGE_Hard.md](04-HARD/VINTAGE_Hard.md) |
 
 ---
 
