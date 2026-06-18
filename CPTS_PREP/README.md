@@ -25,7 +25,7 @@ Scaffolding fades each week: Week 1 ADCS gap-killers, Week 2 RBCD/Kerberos, Week
 
 | Week | Boxes | Focus | Done? |
 |------|-------|-------|-------|
-| **1** | **Certified** ✅ · **Escape** ✅ · Authority | ADCS ESC1/ESC9, Shadow Credentials, PassTheCert | ☐ |
+| **1** | **Certified** ✅ · **Escape** ✅ · **Authority** ✅ | ADCS ESC1/ESC9, Shadow Credentials, PassTheCert | ✅ |
 | **2** | Vintage · **Blackfield** ✅ | RBCD, Kerberos-only ops, gMSA, DPAPI, SeBackup → NTDS | ☐ |
 | **3** | **Cascade** ✅ · Support · Intelligence · Monteverde · Tabby | Blind reps + report template lock | ☐ |
 | **4** | **Zephyr** (Pro Lab) — blind run | Multi-host enterprise chain, pivoting under load | ☐ |
@@ -50,7 +50,7 @@ Full ops plan: [CPTS CRTO Roadmap 2026.html](../CPTS_CRTO_Roadmap_2026.html)
 | Cicada | Easy | 2026-06-11 | ✅ unaided | LDAP enum, password spray | *(no writeup)* |
 | Support | Easy | 2026-06-11 | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
 | Manager | Easy | 2026-06-12 | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
-| Authority | Medium | 2026-06-17 | 🟡 hints | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | *(in progress)* |
+| Authority | Medium | 2026-06-18 | 🟡 infra issues | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | [AUTHORITY_Medium.md](../02-HTB_WRITEUPS/HTB/03-MEDIUM/AUTHORITY_Medium.md) |
 | Blackfield | Medium | 2026-06-18 | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | *(writeup pending)* |
 
 *(Solo? = ❌ taught / 🟡 hints / ✅ unaided. The goal is turning ❌→✅.)*
@@ -109,4 +109,4 @@ Close these by **doing**, not reading. Each box below drills one.
 - AEN reference guides: [../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/](../02-HTB_WRITEUPS/HTB/06-REFERENCE_GUIDES/Attacking_Enterprise_Networks/)
 - Box progression: [../CPTS_BOX_PROGRESSION.md](../CPTS_BOX_PROGRESSION.md)
 
-**Next action:** Authority blind re-run (clean rep), then Vintage (Week 2 RBCD/Kerberos-only).
+**Next action:** Vintage (Week 2 RBCD/Kerberos-only), then Intelligence.

@@ -321,7 +321,7 @@ Full guides at: `06-REFERENCE_GUIDES/Active_Directory_Enumeration_and_Attacks/`
 | Cicada | Easy | ✅ unaided | LDAP enum, password spray | *(no writeup)* |
 | Support | Easy | ✅ unaided | .NET reversing, RBCD | *(no writeup)* |
 | Manager | Easy | ✅ unaided | MSSQL, ADCS ESC7 | *(no writeup)* |
-| Authority | Medium | 🟡 hints | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | *(in progress)* |
+| Authority | Medium | 🟡 infra issues | Ansible vault, PWM config redirect, ADCS ESC1, PassTheCert | [AUTHORITY_Medium.md](03-MEDIUM/AUTHORITY_Medium.md) |
 | Blackfield | Medium | 🟡 BH UI help | AS-REP roast, ForceChangePassword, LSASS dump, SeBackupPrivilege → ntds.dit | [BLACKFIELD_Medium.md](03-MEDIUM/BLACKFIELD_Medium.md) |
 
 ---
