@@ -1,0 +1,33 @@
+---
+# Ansible playbook: build a Flask image and run it in a Docker container.
+# Publishes host :80 -> container :5000.
+#
+# Prereqs on the target VM:
+#   sudo apt-get install -y ansible docker.io
+#   sudo systemctl enable --now docker
+#   ansible-galaxy collection install community.docker
+#
+# Run:
+#   ansible-playbook deploy.yml
+
+- name: Deploy Flask app in Docker
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    - name: Build Flask image
+      community.docker.docker_image:
+        name: flask-app
+        source: build
+        build:
+          path: /home/ubuntu/flask-app
+        state: present
+
+    - name: Run Flask container
+      community.docker.docker_container:
+        name: flask-app
+        image: flask-app
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:5000"
