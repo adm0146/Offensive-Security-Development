@@ -1,32 +1,31 @@
 # Offensive Security Development
 
-Documenting my path through security certifications and hands-on penetration testing in 2026.
+Documenting my hands-on penetration-testing training as I build toward cleared-defense software engineering, with reverse engineering / vulnerability research as the long-term specialization.
 
 | Certification | Status | Target |
 |---------------|--------|--------|
-| Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| CPTS | 📖 In Progress (100%, 28/28 modules) | July 2026 |
-| CRTO | Planned | After CPTS |
-| CRTE | Planned | After CRTO |
-| CARTP | Planned | After CRTE |
+| CompTIA Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
+| OSCP (OffSec PEN-200) | 📖 In progress | Exam Aug 22, 2026 |
+| OSED (EXP-301, exploit dev → RE) | Planned | Post-graduation |
+
+*Foundation built via the full HTB Academy CPTS pathway (28/28 modules); OSCP is the current exam focus.*
 
 ---
 
-## Current Status (June 18, 2026)
+## Current Status (July 2026)
 
 ```
-CPTS Learning Pathway: ████████████████████████████████████████ 100%
-Exam Box Practice:     ████████████████░░░░░░░░░░░░░░░░░░░░░░░ Week 2/5
+HTB Academy CPTS Pathway: ████████████████████████████████████████ 100%
+OSCP (PEN-200) Prep:      ██████████████████░░░░░░░░░░░░░░░░░░░░░░  in progress
 ```
 
 | Metric | Status |
 |--------|--------|
+| Current focus | OSCP / PEN-200 — exam Aug 22, 2026 |
 | Machines Completed | 33 (19 Very Easy, 3 Easy, 11 AD boxes) |
-| Academy Modules Complete | 28 / 28 |
-| Academy Modules Remaining | None — full pathway complete |
+| Academy Modules Complete | 28 / 28 (full CPTS pathway) |
 | Reference Guides | 460+ |
 | AD Box Practice | Active, Forest, Sauna, Cicada, Support, Manager, Cascade, Certified, Escape, Authority, Blackfield |
-| Target Exam | Early July 2026 (readiness-gated) |
 
 ---
 
@@ -492,4 +491,4 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ---
 
-Last Updated: June 18, 2026
+Last Updated: July 26, 2026
