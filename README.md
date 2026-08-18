@@ -5,14 +5,14 @@ Documenting my hands-on penetration-testing training as I build toward cleared-d
 | Certification | Status | Target |
 |---------------|--------|--------|
 | CompTIA Security+ | ✅ Passed (768/900, 85.3%) | Jan 2026 |
-| OSCP (OffSec PEN-200) | 📖 In progress | Exam Aug 22, 2026 |
+| OSCP (OffSec PEN-200) | 📖 In progress | Exam Sep 23, 2026 |
 | OSED (EXP-301, exploit dev → RE) | Planned | Post-graduation |
 
 *Foundation built via the full HTB Academy CPTS pathway (28/28 modules); OSCP is the current exam focus.*
 
 ---
 
-## Current Status (July 2026)
+## Current Status (August 2026)
 
 ```
 HTB Academy CPTS Pathway: ████████████████████████████████████████ 100%
@@ -21,7 +21,7 @@ OSCP (PEN-200) Prep:      ██████████████████
 
 | Metric | Status |
 |--------|--------|
-| Current focus | OSCP / PEN-200 — exam Aug 22, 2026 |
+| Current focus | OSCP / PEN-200 — exam Sep 23, 2026 |
 | Machines Completed | 33 (19 Very Easy, 3 Easy, 11 AD boxes) |
 | Academy Modules Complete | 28 / 28 (full CPTS pathway) |
 | Reference Guides | 460+ |
