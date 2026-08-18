@@ -491,4 +491,4 @@ Nessus, OpenVAS, CVSS, CVE/OVAL, professional reporting.
 
 ---
 
-Last Updated: July 26, 2026
+Last Updated: August 18, 2026
